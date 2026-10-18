@@ -1,0 +1,87 @@
+{
+  "model": "logistic_regression",
+  "evaluation_split": "validation",
+  "threshold_selection": "maximum validation F1; higher threshold on ties",
+  "test_evaluated": false,
+  "train_rows": 6082007,
+  "validation_rows": 191147,
+  "validation_fraud_rate": 0.006173259323975788,
+  "average_precision": 0.895039397502936,
+  "pr_auc_trapezoidal": 0.8949683388355861,
+  "at_0_5": {
+    "threshold": 0.5,
+    "precision": 0.2682982616651418,
+    "recall": 0.9940677966101695,
+    "f1": 0.42255043227665706,
+    "confusion_matrix": [
+      [
+        186768,
+        3199
+      ],
+      [
+        7,
+        1173
+      ]
+    ],
+    "predicted_fraud_rate": 0.022872448952900123
+  },
+  "at_selected_threshold": {
+    "threshold": 0.9747662170152243,
+    "precision": 0.8177570093457944,
+    "recall": 0.8898305084745762,
+    "f1": 0.8522727272727273,
+    "confusion_matrix": [
+      [
+        189733,
+        234
+      ],
+      [
+        130,
+        1050
+      ]
+    ],
+    "predicted_fraud_rate": 0.006717343196597383
+  },
+  "confusion_matrix_layout": "[[TN, FP], [FN, TP]]",
+  "fit_seconds": 15.79734122900004,
+  "iterations": [
+    25
+  ],
+  "feature_names": [
+    "log_amount",
+    "log_sender_balance",
+    "amount_balance_fraction",
+    "amount_exceeds_balance",
+    "type_CASH_IN",
+    "type_CASH_OUT",
+    "type_DEBIT",
+    "type_PAYMENT",
+    "type_TRANSFER"
+  ],
+  "training_parameters": {
+    "C": 1.0,
+    "class_weight": "balanced",
+    "dual": false,
+    "fit_intercept": true,
+    "intercept_scaling": 1,
+    "l1_ratio": null,
+    "max_iter": 500,
+    "multi_class": "deprecated",
+    "n_jobs": null,
+    "penalty": "l2",
+    "random_state": 42,
+    "solver": "lbfgs",
+    "tol": 0.0001,
+    "verbose": 0,
+    "warm_start": false
+  },
+  "sklearn_version": "1.7.2",
+  "source_sha256": "16910f90577b0d981bf8ff289714510bb89bc71bff7d3f220f024e287e4eea6b",
+  "split_sha256": {
+    "train": "66816fa9f925f5e27a84f73956194ab17d4827c01fea1f815ff0f6596929860b",
+    "validation": "a1727d0d819ee2ed8c1473e500797d4c2bef2aa1c2e76882338b02ae4b971dc0"
+  },
+  "model_sha256": "72321c8ea964d44678bca48b62103fd969225340acec3332ef7517db4cf8f36a",
+  "serialization_check": "PASS",
+  "total_seconds": 28.936533957000165
+}
