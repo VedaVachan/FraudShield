@@ -1,0 +1,88 @@
+{
+  "model": "xgboost",
+  "evaluation_split": "validation",
+  "test_evaluated": false,
+  "threshold_selection": "maximum validation F1; higher threshold on ties",
+  "train_rows": 6082007,
+  "validation_rows": 191147,
+  "validation_fraud_rate": 0.006173259323975788,
+  "average_precision": 0.9888366568411971,
+  "pr_auc_trapezoidal": 0.9891943239002642,
+  "at_0_5": {
+    "threshold": 0.5,
+    "precision": 0.9284028324154209,
+    "recall": 1.0,
+    "f1": 0.9628722970216238,
+    "confusion_matrix": [
+      [
+        189876,
+        91
+      ],
+      [
+        0,
+        1180
+      ]
+    ],
+    "predicted_fraud_rate": 0.006649332712519684
+  },
+  "at_selected_threshold": {
+    "threshold": 0.9195699691772461,
+    "precision": 0.9284028324154209,
+    "recall": 1.0,
+    "f1": 0.9628722970216238,
+    "confusion_matrix": [
+      [
+        189876,
+        91
+      ],
+      [
+        0,
+        1180
+      ]
+    ],
+    "predicted_fraud_rate": 0.006649332712519684
+  },
+  "confusion_matrix_layout": "[[TN, FP], [FN, TP]]",
+  "fit_seconds": 69.13777934099971,
+  "best_iteration_zero_based": 214,
+  "best_validation_aucpr_xgboost": 0.9891912829822498,
+  "rounds_trained": 240,
+  "feature_names": [
+    "log_amount",
+    "log_sender_balance",
+    "amount_balance_fraction",
+    "amount_exceeds_balance",
+    "type_CASH_IN",
+    "type_CASH_OUT",
+    "type_DEBIT",
+    "type_PAYMENT",
+    "type_TRANSFER"
+  ],
+  "training_parameters": {
+    "objective": "binary:logistic",
+    "eval_metric": "aucpr",
+    "tree_method": "hist",
+    "device": "cpu",
+    "n_jobs": 2,
+    "n_estimators": 300,
+    "max_depth": 4,
+    "learning_rate": 0.05,
+    "min_child_weight": 5,
+    "subsample": 0.8,
+    "colsample_bytree": 1.0,
+    "max_bin": 256,
+    "reg_lambda": 1.0,
+    "scale_pos_weight": 32.42018394887693,
+    "early_stopping_rounds": 25,
+    "random_state": 42
+  },
+  "xgboost_version": "3.0.5",
+  "source_sha256": "16910f90577b0d981bf8ff289714510bb89bc71bff7d3f220f024e287e4eea6b",
+  "split_sha256": {
+    "train": "66816fa9f925f5e27a84f73956194ab17d4827c01fea1f815ff0f6596929860b",
+    "validation": "a1727d0d819ee2ed8c1473e500797d4c2bef2aa1c2e76882338b02ae4b971dc0"
+  },
+  "model_sha256": "1d2df49373788c5b1e554ec9ab9cfc346cc0feb1e13406bc0cd93b1594518bcb",
+  "serialization_check": "PASS",
+  "total_seconds": 75.15596364600015
+}
