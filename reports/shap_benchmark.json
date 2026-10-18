@@ -1,0 +1,90 @@
+{
+  "model_sha256": "1d2df49373788c5b1e554ec9ab9cfc346cc0feb1e13406bc0cd93b1594518bcb",
+  "trees_explained": 215,
+  "method": "XGBoost native exact SHAP contributions",
+  "contribution_units": "raw model log-odds",
+  "demo": {
+    "description": "invented transaction; ground truth unknown",
+    "input": {
+      "type": "TRANSFER",
+      "amount": 100000.0,
+      "oldbalanceOrg": 100000.0
+    },
+    "score": 0.9916079044342041,
+    "threshold": 0.9195699691772461,
+    "predicted_fraud": true,
+    "base_value": -5.609713077545166,
+    "raw_margin": 4.772031784057617,
+    "contributions": [
+      {
+        "feature": "amount_exceeds_balance",
+        "shap_log_odds": 4.380070209503174
+      },
+      {
+        "feature": "amount_balance_fraction",
+        "shap_log_odds": 4.200893402099609
+      },
+      {
+        "feature": "type_TRANSFER",
+        "shap_log_odds": 2.510343313217163
+      },
+      {
+        "feature": "type_CASH_OUT",
+        "shap_log_odds": -0.4414238929748535
+      },
+      {
+        "feature": "log_amount",
+        "shap_log_odds": -0.3235665261745453
+      },
+      {
+        "feature": "log_sender_balance",
+        "shap_log_odds": -0.1936536431312561
+      },
+      {
+        "feature": "type_PAYMENT",
+        "shap_log_odds": 0.1470889002084732
+      },
+      {
+        "feature": "type_CASH_IN",
+        "shap_log_odds": 0.10191535949707031
+      },
+      {
+        "feature": "type_DEBIT",
+        "shap_log_odds": 8.002507092896849e-05
+      }
+    ]
+  },
+  "benchmark": {
+    "batch_size": 1,
+    "concurrency": 1,
+    "numerical_thread_limit": 2,
+    "warmup_calls": 100,
+    "measured_calls": 1000,
+    "sample": "first 1000 validation rows",
+    "full_explanation_latency": {
+      "median_ms": 3.6065745,
+      "p95_ms": 7.355736999999999,
+      "p99_ms": 13.12134055,
+      "mean_ms": 4.104705281,
+      "max_ms": 29.869709
+    },
+    "includes": [
+      "DataFrame creation",
+      "feature construction",
+      "DMatrix construction",
+      "SHAP and raw-margin computation",
+      "pipeline scoring",
+      "additivity and score-agreement checks"
+    ],
+    "excludes": [
+      "model loading",
+      "explainer initialization",
+      "HTTP handling",
+      "JSON serialization",
+      "concurrent traffic"
+    ]
+  },
+  "python_version": "3.11.17",
+  "platform": "Linux-7.0.0-38-generic-x86_64-with-glibc2.39",
+  "checks": "PASS"
+}
