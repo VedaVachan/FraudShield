@@ -1,0 +1,33 @@
+{
+  "model_sha256": "72321c8ea964d44678bca48b62103fd969225340acec3332ef7517db4cf8f36a",
+  "batch_size": 1,
+  "concurrency": 1,
+  "numerical_thread_limit": 2,
+  "warmup_calls_per_path": 100,
+  "measured_calls_per_path": 1000,
+  "input_sample": "first 1000 validation rows",
+  "python_version": "3.11.17",
+  "platform": "Linux-7.0.0-38-generic-x86_64-with-glibc2.39",
+  "classifier_only": {
+    "median_ms": 0.051596,
+    "p95_ms": 0.21293874999999865,
+    "p99_ms": 0.66886667,
+    "mean_ms": 0.083667216,
+    "max_ms": 1.476064
+  },
+  "full_python_prediction": {
+    "median_ms": 1.012263,
+    "p95_ms": 3.0725742999999994,
+    "p99_ms": 5.296993649999999,
+    "mean_ms": 1.408808763,
+    "max_ms": 9.258492
+  },
+  "prediction_parity": "PASS",
+  "excludes": [
+    "model loading",
+    "cold start",
+    "HTTP and JSON handling",
+    "concurrent traffic",
+    "SHAP explanations"
+  ]
+}
