@@ -1,0 +1,30 @@
+{
+  "source": "data/raw/paysim.csv",
+  "file_size_bytes": 493534783,
+  "rows": 6362620,
+  "transaction_types": {
+    "PAYMENT": 2151495,
+    "TRANSFER": 532909,
+    "CASH_OUT": 2237500,
+    "DEBIT": 41432,
+    "CASH_IN": 1399284
+  },
+  "fraud_labels": {
+    "0": 6354407,
+    "1": 8213
+  },
+  "flagged_labels": {
+    "0": 6362604,
+    "1": 16
+  },
+  "fraud_by_type": {
+    "TRANSFER": 4097,
+    "CASH_OUT": 4116
+  },
+  "fraud_fraction": 0.001290820448180152,
+  "step_min": 1,
+  "step_max": 743,
+  "step_decreases": 0,
+  "errors": {},
+  "status": "PASS"
+}
