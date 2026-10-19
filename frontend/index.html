@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FraudShield — Transaction Review</title>
+<style>
+:root{font-family:system-ui,sans-serif;color:#17283b;background:#eef3f8}
+*{box-sizing:border-box}
+body{margin:0}
+header{background:#10263d;color:white;padding:28px max(24px,calc((100% - 1100px)/2))}
+header p{color:#b9cddd;margin:6px 0}
+h1{margin:0;font-size:30px}
+main{max-width:1100px;margin:28px auto;padding:0 20px}
+.layout{display:grid;grid-template-columns:350px 1fr;gap:22px}
+.card{background:white;border:1px solid #dbe4ed;border-radius:14px;padding:24px}
+h2{font-size:20px;margin:0 0 18px}
+label{display:block;font-weight:600;margin:16px 0 7px}
+input,select{width:100%;padding:11px;border:1px solid #aab9c8;border-radius:7px;font:inherit}
+fieldset{border:0;padding:0;margin:0;min-width:0}
+button{padding:11px 15px;border:0;border-radius:7px;background:#1767a6;color:white;font:inherit;cursor:pointer}
+button.secondary{background:#e6eef6;color:#173f61}
+button:disabled{opacity:.55;cursor:wait}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:22px}
+.note{font-size:13px;line-height:1.6;color:#53677a}
+.status{font-size:14px;margin-top:14px}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}
+.metric{background:#f0f5fa;padding:15px;border-radius:9px}
+.metric strong{display:block;font-size:25px;margin-top:5px}
+.decision{font-weight:700;font-size:22px}
+.flagged{color:#a23a17}
+.clear{color:#17694d}
+#error{color:#a52c26;margin:16px 0}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:10px 4px;border-bottom:1px solid #e5ebf1}
+td:last-child,th:last-child{text-align:right}
+.positive{color:#a23a17}.negative{color:#17694d}
+[hidden]{display:none!important}
+footer{margin:22px 0;font-size:13px;color:#53677a}
+@media(max-width:760px){.layout{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+<h1>FraudShield</h1>
+<p>Local payment screening · XGBoost with SHAP explanations</p>
+<div id="status" class="status" role="status">Checking API…</div>
+</header>
+
+<main>
+<div class="layout">
+<section class="card">
+<h2>Review a transaction</h2>
+<form id="form">
+<fieldset id="fields">
+<label for="type">Transaction type</label>
+<select id="type">
+<option>TRANSFER</option><option>CASH_OUT</option><option>PAYMENT</option>
+<option>CASH_IN</option><option>DEBIT</option>
+</select>
+<label for="amount">Transaction amount</label>
+<input id="amount" type="number" min="0" step="any" value="100000" required>
+<label for="balance">Sender balance before payment</label>
+<input id="balance" type="number" min="0" step="any" value="100000" required>
+<div class="actions">
+<button type="submit">Check transaction</button>
+<button id="explain" class="secondary" type="button">Check + explain</button>
+</div>
+</fieldset>
+</form>
+<p class="note">Default values are an invented demo transaction. Amount and balance
+must use the same monetary unit. Inputs are not saved by this page.</p>
+<div id="error" role="alert" hidden></div>
+</section>
+
+<section class="card" aria-live="polite">
+<h2>Model assessment</h2>
+<p id="empty" class="note">Submit a transaction to view its assessment.</p>
+<div id="result" hidden>
+<div id="decision" class="decision"></div>
+<div class="metrics">
+<div class="metric">Model score<strong id="score"></strong></div>
+<div class="metric">Decision threshold<strong id="threshold"></strong></div>
+</div>
+<p id="model" class="note"></p>
+<p class="note">The score is not a calibrated fraud probability.
+“Not flagged” does not guarantee that a payment is legitimate.</p>
+<div id="shap" hidden>
+<h2>Why this score?</h2>
+<p class="note">Positive contributions push the model toward fraud; negative
+contributions push it away. Values explain the observed feature values,
+including zero-valued indicators. They are not proof of fraud or causal effects.</p>
+<table>
+<thead><tr><th>Engineered feature</th><th>SHAP log-odds</th></tr></thead>
+<tbody id="contributions"></tbody>
+</table>
+<p id="reconstruction" class="note"></p>
+</div>
+</div>
+</section>
+</div>
+<footer>College project using synthetic PaySim data. Results support a demonstration,
+not real payment authorization.</footer>
+</main>
+
+<script>
+"use strict";
+const API = "http://127.0.0.1:8000";
+const $ = id => document.getElementById(id);
+const names = {
+  log_amount: "Log transaction amount",
+  log_sender_balance: "Log sender balance",
+  amount_balance_fraction: "Amount relative to amount + balance",
+  amount_exceeds_balance: "Amount exceeds balance indicator",
+  type_TRANSFER: "TRANSFER indicator",
+  type_CASH_OUT: "CASH_OUT indicator",
+  type_PAYMENT: "PAYMENT indicator",
+  type_CASH_IN: "CASH_IN indicator",
+  type_DEBIT: "DEBIT indicator"
+};
+let busy = false;
+
+function clearResult() {
+  $("result").hidden = true;
+  $("shap").hidden = true;
+  $("error").hidden = true;
+  $("empty").hidden = false;
+  $("empty").textContent = "Submit a transaction to view its assessment.";
+  $("contributions").replaceChildren();
+}
+
+async function request(path, payload) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 20000);
+  try {
+    const options = {signal: controller.signal, cache: "no-store"};
+    if (payload !== undefined) {
+      options.method = "POST";
+      options.headers = {"Content-Type": "application/json"};
+      options.body = JSON.stringify(payload);
+    }
+    const response = await fetch(API + path, options);
+    if (!response.ok) {
+      throw new Error(response.status === 422
+        ? "Invalid input. Check the type, amount, and balance."
+        : `API request failed (HTTP ${response.status}).`);
+    }
+    return await response.json();
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function checkHealth() {
+  try {
+    const data = await request("/health");
+    $("status").textContent = data.status === "ready"
+      ? `API ready · ${data.model_name} · version ${data.model_version}`
+      : "API is not ready";
+  } catch {
+    $("status").textContent = "API unavailable — check the backend terminal";
+  }
+}
+
+async function run(explain) {
+  if (busy || !$("form").reportValidity()) return;
+  const payload = {
+    type: $("type").value,
+    amount: Number($("amount").value),
+    oldbalanceOrg: Number($("balance").value)
+  };
+  clearResult();
+  if (!Number.isFinite(payload.amount) ||
+      !Number.isFinite(payload.oldbalanceOrg)) {
+    $("error").textContent = "Enter finite numerical amounts.";
+    $("error").hidden = false;
+    return;
+  }
+  busy = true;
+  $("fields").disabled = true;
+  $("empty").textContent = explain ? "Calculating explanation…" : "Checking…";
+  try {
+    const data = await request(explain ? "/explain" : "/predict", payload);
+    $("empty").hidden = true;
+    $("result").hidden = false;
+    $("decision").textContent = data.predicted_fraud
+      ? "Flagged for review" : "Not flagged by the model";
+    $("decision").className = "decision " + (data.predicted_fraud ? "flagged" : "clear");
+    $("score").textContent = data.score.toFixed(5);
+    $("threshold").textContent = data.threshold.toFixed(5);
+    $("model").textContent = `${data.model_name} · version ${data.model_version}`;
+    $("status").textContent = `API responding · ${data.model_name} · version ${data.model_version}`;
+    if (explain) {
+      for (const item of data.contributions) {
+        const row = document.createElement("tr");
+        const label = document.createElement("td");
+        const value = document.createElement("td");
+        label.textContent = names[item.feature] || item.feature;
+        value.textContent = (item.shap_log_odds >= 0 ? "+" : "") + item.shap_log_odds.toFixed(4);
+        value.className = item.shap_log_odds >= 0 ? "positive" : "negative";
+        row.append(label, value);
+        $("contributions").append(row);
+      }
+      const total = data.contributions.reduce((sum, x) => sum + x.shap_log_odds, 0);
+      $("reconstruction").textContent =
+        `Base ${data.base_value.toFixed(4)} + contributions ${total.toFixed(4)} ` +
+        `≈ raw margin ${data.raw_margin.toFixed(4)} (log-odds).`;
+      $("shap").hidden = false;
+    }
+  } catch (error) {
+    clearResult();
+    $("error").textContent = error.name === "AbortError"
+      ? "Request timed out. Check the backend and try again."
+      : error instanceof TypeError
+        ? "Cannot reach the API. Check the backend and browser connection."
+        : error.message;
+    $("error").hidden = false;
+    checkHealth();
+  } finally {
+    busy = false;
+    $("fields").disabled = false;
+  }
+}
+
+$("form").addEventListener("submit", event => {
+  event.preventDefault();
+  run(false);
+});
+$("explain").addEventListener("click", () => run(true));
+$("form").addEventListener("input", clearResult);
+checkHealth();
+</script>
+</body>
+</html>
