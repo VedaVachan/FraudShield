@@ -1,0 +1,27 @@
+{
+  "tracking_uri": "sqlite:////home/vedavachan/projects/fraudshield/runtime/mlflow/tracking.db",
+  "models": {
+    "logreg": {
+      "name": "FraudShield-LogisticRegression",
+      "version": 1,
+      "uri": "models:/FraudShield-LogisticRegression/1",
+      "packaging_run_id": "13d5cdbbea9d42c5b54c358c2d3ad74d",
+      "source_run_id": "93ccaf05bfa4401897837a97b508c8a0",
+      "model_sha256": "72321c8ea964d44678bca48b62103fd969225340acec3332ef7517db4cf8f36a",
+      "threshold": 0.9747662170152243,
+      "verification_rows": 100,
+      "prediction_parity": "PASS"
+    },
+    "xgboost": {
+      "name": "FraudShield-XGBoost",
+      "version": 1,
+      "uri": "models:/FraudShield-XGBoost/1",
+      "packaging_run_id": "323777a876f1444fa43893b4056c1bbf",
+      "source_run_id": "116a3eb388a449bba425317645a84703",
+      "model_sha256": "1d2df49373788c5b1e554ec9ab9cfc346cc0feb1e13406bc0cd93b1594518bcb",
+      "threshold": 0.9195699691772461,
+      "verification_rows": 100,
+      "prediction_parity": "PASS"
+    }
+  }
+}
