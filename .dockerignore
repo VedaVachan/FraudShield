@@ -3,6 +3,7 @@
 !requirements-api.lock.txt
 !backend/
 !backend/app.py
+!backend/metrics.py
 !src/
 !src/fraudshield/
 !src/fraudshield/features.py

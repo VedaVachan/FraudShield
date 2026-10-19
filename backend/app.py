@@ -25,6 +25,7 @@ from threadpoolctl import threadpool_limits
 
 from fraudshield.explanations import FraudExplainer
 from fraudshield.features import INPUT_COLUMNS
+from backend.metrics import configure_metrics, mark_prediction
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -108,7 +109,7 @@ app.add_middleware(
     allow_headers=["Content-Type"],
 )
 
-
+configure_metrics(app)
 @app.exception_handler(RequestValidationError)
 async def invalid_request(request, exc):
     # Do not echo transaction values or arbitrary submitted field names.
@@ -129,14 +130,14 @@ def prediction_payload(request, score):
     if not np.isfinite(score) or not 0 <= score <= 1:
         raise RuntimeError("Invalid model score.")
     state = request.app.state
+    mark_prediction(request, score >= state.threshold)
     return {
         "score": score,
         "threshold": state.threshold,
         "predicted_fraud": bool(score >= state.threshold),
         "model_name": state.model_name,
         "model_version": state.model_version,
-    }
-
+}
 
 @app.get("/health")
 def health(request: Request):

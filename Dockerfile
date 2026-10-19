@@ -21,6 +21,7 @@ RUN python -m pip install --no-cache-dir --only-binary=:all: \
     && python -m pip check
 
 COPY backend/app.py ./backend/app.py
+COPY backend/metrics.py ./backend/metrics.py
 COPY src/fraudshield/features.py ./src/fraudshield/features.py
 COPY src/fraudshield/explanations.py ./src/fraudshield/explanations.py
 
