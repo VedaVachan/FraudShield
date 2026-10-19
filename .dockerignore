@@ -1,0 +1,12 @@
+**
+!Dockerfile
+!requirements-api.lock.txt
+!backend/
+!backend/app.py
+!src/
+!src/fraudshield/
+!src/fraudshield/features.py
+!src/fraudshield/explanations.py
+!frontend/
+!frontend/Dockerfile
+!frontend/index.html

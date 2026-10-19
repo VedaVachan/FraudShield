@@ -1,0 +1,64 @@
+name: fraudshield
+
+services:
+  api:
+    image: fraudshield-api:local
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:8000:8000"
+    cpus: 2.0
+    mem_limit: 1g
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    volumes:
+      - type: bind
+        source: ./artifacts/xgboost_v1/model.joblib
+        target: /app/artifacts/xgboost_v1/model.joblib
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./reports/mlflow_registry.json
+        target: /app/reports/mlflow_registry.json
+        read_only: true
+        bind:
+          create_host_path: false
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import json, urllib.request; r = urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3); assert json.load(r)['status'] == 'ready'"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  frontend:
+    image: fraudshield-frontend:local
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    ports:
+      - "127.0.0.1:8080:8080"
+    cpus: 0.5
+    mem_limit: 128m
+    init: true
+    read_only: true
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; r = urllib.request.urlopen('http://127.0.0.1:8080/', timeout=3); assert r.status == 200"
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
