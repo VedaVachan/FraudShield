@@ -1,0 +1,18 @@
+{
+  "experiment": "FraudShield-Models",
+  "tracking_uri": "sqlite:////home/vedavachan/projects/fraudshield/runtime/mlflow/tracking.db",
+  "runs": {
+    "logreg": {
+      "run_id": "93ccaf05bfa4401897837a97b508c8a0",
+      "model_sha256": "72321c8ea964d44678bca48b62103fd969225340acec3332ef7517db4cf8f36a",
+      "metric_readback": "PASS",
+      "artifact_checksum": "PASS"
+    },
+    "xgboost": {
+      "run_id": "116a3eb388a449bba425317645a84703",
+      "model_sha256": "1d2df49373788c5b1e554ec9ab9cfc346cc0feb1e13406bc0cd93b1594518bcb",
+      "metric_readback": "PASS",
+      "artifact_checksum": "PASS"
+    }
+  }
+}
