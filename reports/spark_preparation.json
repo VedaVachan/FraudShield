@@ -1,0 +1,71 @@
+{
+  "status": "PASS",
+  "source_sha256": "16910f90577b0d981bf8ff289714510bb89bc71bff7d3f220f024e287e4eea6b",
+  "spark_version": "3.5.7",
+  "master": "local[2]",
+  "driver_memory": "1g",
+  "validation_errors": {},
+  "model_inputs": [
+    "type",
+    "amount",
+    "oldbalanceOrg"
+  ],
+  "feature_names": [
+    "log_amount",
+    "log_sender_balance",
+    "amount_balance_fraction",
+    "amount_exceeds_balance",
+    "type_CASH_IN",
+    "type_CASH_OUT",
+    "type_DEBIT",
+    "type_PAYMENT",
+    "type_TRANSFER"
+  ],
+  "audit_columns": [
+    "step",
+    "split"
+  ],
+  "target": "isFraud",
+  "train_end_step": 520,
+  "validation_end_step": 631,
+  "splits": {
+    "train": {
+      "rows": 6082007,
+      "fraud": 5781,
+      "step_min": 1,
+      "step_max": 520
+    },
+    "validation": {
+      "rows": 191147,
+      "fraud": 1180,
+      "step_min": 521,
+      "step_max": 631
+    },
+    "test": {
+      "rows": 89466,
+      "fraud": 1252,
+      "step_min": 632,
+      "step_max": 743
+    }
+  },
+  "feature_parity_training_rows": 1000,
+  "feature_parity": "PASS",
+  "parquet_readback": "PASS",
+  "test_model_evaluated": false,
+  "output": "data/processed/paysim_spark_v1",
+  "parquet_sha256": {
+    "split=test/part-00000-e743d7ab-8238-4ebc-a914-9efcad98d8a7.c000.snappy.parquet": "b13fedac4cfcaadad6b2c68672a6e5bda12872edb545f0887dbe8798ccf0fe78",
+    "split=test/part-00001-e743d7ab-8238-4ebc-a914-9efcad98d8a7.c000.snappy.parquet": "8fe3cb37c55f6386264b408bac6b0eb783ecf0c27dc1e51801c93304e5b37ed4",
+    "split=test/part-00002-e743d7ab-8238-4ebc-a914-9efcad98d8a7.c000.snappy.parquet": "43d12b8bd245c76b220c9824f173a8e76d7e77b248f0ba3bb29197256cb1f023",
+    "split=test/part-00003-e743d7ab-8238-4ebc-a914-9efcad98d8a7.c000.snappy.parquet": "908b995c5b83fb639d521aa501f17620d07c5d5aeef3ddef2de7917343ce31eb",
+    "split=train/part-00000-e743d7ab-8238-4ebc-a914-9efcad98d8a7.c000.snappy.parquet": "1e56b36603977bbee6149aa27cbff8570153d1f77ee28c37bab2fc0cc81427c5",
+    "split=train/part-00001-e743d7ab-8238-4ebc-a914-9efcad98d8a7.c000.snappy.parquet": "73e72201279458e430f360764da73de214370ca667a2ca5ae7952c039f79b52e",
+    "split=train/part-00002-e743d7ab-8238-4ebc-a914-9efcad98d8a7.c000.snappy.parquet": "f7688c187eeb623994daefcc23f46819fb29c3228474f3c2a58c00063bdf026f",
+    "split=train/part-00003-e743d7ab-8238-4ebc-a914-9efcad98d8a7.c000.snappy.parquet": "4bd1fa25ea7e745f3740e3bc88654daa339aaae69b3730ec0f00f057eb93ddc9",
+    "split=validation/part-00000-e743d7ab-8238-4ebc-a914-9efcad98d8a7.c000.snappy.parquet": "4066044d69a4ecfbc0597e3e258f738667d522869ff34e5cf06d3763562fe352",
+    "split=validation/part-00001-e743d7ab-8238-4ebc-a914-9efcad98d8a7.c000.snappy.parquet": "bb507f138f5bee93b65a271d39b98db6c83ff3ecf072f8f5b73ecc2606c3a2c3",
+    "split=validation/part-00002-e743d7ab-8238-4ebc-a914-9efcad98d8a7.c000.snappy.parquet": "523ea6d7f7e31b4163bdedfffa83b0d72f6fb20fbc0d3714b114a9985ff2f840",
+    "split=validation/part-00003-e743d7ab-8238-4ebc-a914-9efcad98d8a7.c000.snappy.parquet": "dcac839f65bc826305079ab2246bd18156fd38cec99f187ac715d3a4958123d6"
+  },
+  "total_seconds": 82.82915609499969
+}
