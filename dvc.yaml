@@ -1,0 +1,13 @@
+stages:
+  spark_prepare:
+    cmd: env PYTHONPATH=src .venv/bin/python scripts/prepare_spark_dvc.py
+    deps:
+      - data/raw/paysim.csv
+      - scripts/prepare_spark.py
+      - scripts/prepare_spark_dvc.py
+      - src/fraudshield/features.py
+      - src/fraudshield/spark_features.py
+      - requirements-ml.lock.txt
+      - requirements-spark.txt
+    outs:
+      - data/processed/paysim_spark_dvc_v1

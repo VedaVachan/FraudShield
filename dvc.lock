@@ -1,0 +1,39 @@
+schema: '2.0'
+stages:
+  spark_prepare:
+    cmd: env PYTHONPATH=src .venv/bin/python scripts/prepare_spark_dvc.py
+    deps:
+    - path: data/raw/paysim.csv
+      hash: md5
+      md5: e92a5f7447f43712f1dca473d0b0fa85
+      size: 493534783
+    - path: requirements-ml.lock.txt
+      hash: md5
+      md5: a58186c494f55aa95cdbc7c1263fa82f
+      size: 2500
+    - path: requirements-spark.txt
+      hash: md5
+      md5: 043b18a2a17116b9722204a87e920d9c
+      size: 30
+    - path: scripts/prepare_spark.py
+      hash: md5
+      md5: 6da9f1ed4cc91234d3147226e05aaf0e
+      size: 9241
+    - path: scripts/prepare_spark_dvc.py
+      hash: md5
+      md5: f68aa895a640d8680bba39df9a5d8c40
+      size: 543
+    - path: src/fraudshield/features.py
+      hash: md5
+      md5: 303eba68bac270b9e162fc8de29838cc
+      size: 2051
+    - path: src/fraudshield/spark_features.py
+      hash: md5
+      md5: cf4cd1860f3ca27e1376adb5f4438237
+      size: 1923
+    outs:
+    - path: data/processed/paysim_spark_dvc_v1
+      hash: md5
+      md5: 3282e49266ac0f63c3954fdd23fd14a3.dir
+      size: 221453282
+      nfiles: 28
