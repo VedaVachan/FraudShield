@@ -1,0 +1,19 @@
+{
+  "scope": "local serving and test-client rollback rehearsal",
+  "stable": {
+    "port": 8000,
+    "version": "1",
+    "model_sha256": "1d2df49373788c5b1e554ec9ab9cfc346cc0feb1e13406bc0cd93b1594518bcb"
+  },
+  "canary": {
+    "port": 8001,
+    "version": "canary-tuned-v1",
+    "model_sha256": "53e1e56d5109d850ee3ae5e35cc2abd3af2cc70d75ea70b5683203265814a3f0"
+  },
+  "synthetic_requests_compared": 5,
+  "decision_disagreements": 0,
+  "rollback_check": "v1 scores, threshold, and decisions reproduced",
+  "canary_promoted": false,
+  "canary_container_removed": true,
+  "stable_ready_after_cleanup": true
+}
