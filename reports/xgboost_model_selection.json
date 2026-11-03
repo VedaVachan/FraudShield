@@ -1,0 +1,27 @@
+{
+  "selected_model": "artifacts/xgboost_dvc_v1/model.joblib",
+  "model_sha256": "4b1fa5cead6f0d8dedcab0d99ed66adfdfd9f5b023adba41c567ca3c0c77d106",
+  "threshold": 0.9105643033981323,
+  "selection_split": "validation",
+  "test_evaluated_at_selection": false,
+  "source_sha256": "16910f90577b0d981bf8ff289714510bb89bc71bff7d3f220f024e287e4eea6b",
+  "split_sha256": {
+    "train": "3efb47c1a284052b85c9c794776a21415eb30ab162dce581222fcf5d419c4204",
+    "validation": "6750a526d889cd77c4edd14ba09a55a62f7a97293e9d9636e9db4ba4657f0538"
+  },
+  "reason": "The tuned candidate had a small validation AP gain, identical aggregate threshold metrics, and mixed latency results. The baseline uses fewer rounds.",
+  "latency_benchmark": {
+    "scope": "warm single-row predict_proba including feature construction",
+    "requests_per_model": 1024,
+    "baseline_ms": {
+      "p50": 0.826,
+      "p95": 2.18,
+      "p99": 4.052
+    },
+    "candidate_ms": {
+      "p50": 0.828,
+      "p95": 2.256,
+      "p99": 3.85
+    }
+  }
+}
