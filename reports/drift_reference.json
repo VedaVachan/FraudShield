@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "reference_split": "train",
+  "source_sha256": "16910f90577b0d981bf8ff289714510bb89bc71bff7d3f220f024e287e4eea6b",
+  "train_rows": 6082007,
+  "transaction_type_counts": {
+    "CASH_IN": 1335450,
+    "CASH_OUT": 2147137,
+    "DEBIT": 39138,
+    "PAYMENT": 2053690,
+    "TRANSFER": 506592
+  },
+  "numeric": {
+    "amount": {
+      "cut_points": [
+        0.01,
+        100,
+        1000,
+        10000,
+        100000,
+        1000000
+      ],
+      "counts": [
+        6,
+        13390,
+        122013,
+        1087910,
+        2142781,
+        2590376,
+        125531
+      ]
+    },
+    "oldbalanceOrg": {
+      "cut_points": [
+        0.01,
+        100,
+        1000,
+        10000,
+        100000,
+        1000000
+      ],
+      "counts": [
+        2023376,
+        31418,
+        281039,
+        423183,
+        1708796,
+        912597,
+        701598
+      ]
+    }
+  }
+}

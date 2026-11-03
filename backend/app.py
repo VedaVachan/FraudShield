@@ -25,7 +25,8 @@ from threadpoolctl import threadpool_limits
 
 from fraudshield.explanations import FraudExplainer
 from fraudshield.features import INPUT_COLUMNS
-from backend.metrics import configure_metrics, mark_prediction
+from backend.drift import DriftMonitor
+from backend.metrics import configure_metrics, mark_drift_input, mark_prediction
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -85,6 +86,7 @@ async def lifespan(app):
         app.state.model_name = receipt["name"]
         app.state.model_version = str(receipt["version"])
         app.state.model_sha256 = actual_hash
+        app.state.drift_monitor = DriftMonitor(ROOT / "reports/drift_reference.json")
         app.state.ready = True
         try:
             yield
@@ -158,7 +160,9 @@ def predict(transaction: Transaction, request: Request):
     score = request.app.state.pipeline.predict_proba(
         frame_for(transaction)
     )[0, 1]
-    return prediction_payload(request, score)
+    payload = prediction_payload(request, score)
+    mark_drift_input(request, transaction.type, transaction.amount, transaction.oldbalanceOrg)
+    return payload
 
 
 @app.post("/explain", response_model=Explanation)

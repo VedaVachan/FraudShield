@@ -22,6 +22,8 @@ RUN python -m pip install --no-cache-dir --only-binary=:all: \
 
 COPY backend/app.py ./backend/app.py
 COPY backend/metrics.py ./backend/metrics.py
+COPY backend/drift.py ./backend/drift.py
+COPY reports/drift_reference.json ./reports/drift_reference.json
 COPY src/fraudshield/features.py ./src/fraudshield/features.py
 COPY src/fraudshield/explanations.py ./src/fraudshield/explanations.py
 

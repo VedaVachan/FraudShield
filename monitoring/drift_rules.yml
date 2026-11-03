@@ -1,0 +1,18 @@
+groups:
+  - name: fraudshield_drift
+    rules:
+      - alert: FraudShieldInputDrift
+        expr: |
+          (fraudshield_input_drift_score{job="fraudshield-api"} > 0.20)
+          and on (job, instance)
+          (sum by (job, instance) (
+            increase(fraudshield_decisions_total{job="fraudshield-api",endpoint="/predict"}[5m])
+          ) > 0)
+          and on (job, instance)
+          (up{job="fraudshield-api"} == 1)
+        for: 30s
+        labels:
+          severity: warning
+        annotations:
+          summary: "FraudShield input drift: {{ $labels.feature }}"
+          description: "Recent prediction inputs differ from training. Review the traffic before taking model action."

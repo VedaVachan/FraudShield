@@ -4,6 +4,9 @@
 !backend/
 !backend/app.py
 !backend/metrics.py
+!backend/drift.py
+!reports/
+!reports/drift_reference.json
 !src/
 !src/fraudshield/
 !src/fraudshield/features.py

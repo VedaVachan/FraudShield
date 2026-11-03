@@ -6,6 +6,7 @@ from prometheus_client import (
     CONTENT_TYPE_LATEST,
     CollectorRegistry,
     Counter,
+    Gauge,
     Histogram,
     generate_latest,
 )
@@ -37,6 +38,7 @@ DECISIONS = Counter(
 
 ENDPOINTS = ("/predict", "/explain")
 DECISION_KEY = "_fraudshield_metric_decision"
+DRIFT_INPUT_KEY = "_fraudshield_drift_input"
 
 for endpoint in ENDPOINTS:
     LATENCY.labels(endpoint)
@@ -49,6 +51,10 @@ def mark_prediction(request, predicted_fraud):
     request.scope.setdefault("state", {})[DECISION_KEY] = (
         "flagged" if predicted_fraud else "not_flagged"
     )
+
+
+def mark_drift_input(request, kind, amount, balance):
+    request.scope.setdefault("state", {})[DRIFT_INPUT_KEY] = (kind, amount, balance)
 
 
 class ScoringMetricsMiddleware:
@@ -94,7 +100,9 @@ class ScoringMetricsMiddleware:
             REQUESTS.labels(endpoint, str(status)).inc()
             LATENCY.labels(endpoint).observe(perf_counter() - started)
 
-            decision = scope.get("state", {}).get(DECISION_KEY)
+            state = scope.get("state", {})
+            drift_input = state.pop(DRIFT_INPUT_KEY, None)
+            decision = state.get(DECISION_KEY)
             if (
                 completed
                 and not failed
@@ -102,11 +110,30 @@ class ScoringMetricsMiddleware:
                 and decision in ("flagged", "not_flagged")
             ):
                 DECISIONS.labels(endpoint, decision).inc()
+                if endpoint == "/predict" and drift_input is not None:
+                    scope['app'].state.drift_monitor.observe(*drift_input)
 
 
 async def metrics_response(request):
+    # A fresh registry keeps each scrape's drift snapshot consistent.
+    drift_registry = CollectorRegistry()
+    monitor = getattr(request.app.state, "drift_monitor", None)
+    size, scores = monitor.snapshot() if monitor is not None else (0, {})
+    Gauge(
+        "fraudshield_drift_window_samples",
+        "Successful predictions in the current drift window.",
+        registry=drift_registry,
+    ).set(size)
+    if scores:
+        drift = Gauge(
+            "fraudshield_input_drift_score",
+            "Distance between recent input bucket proportions and training.",
+            ["feature"], registry=drift_registry,
+        )
+        for feature, value in scores.items():
+            drift.labels(feature).set(value)
     return Response(
-        content=generate_latest(REGISTRY),
+        content=generate_latest(REGISTRY) + generate_latest(drift_registry),
         headers={"Content-Type": CONTENT_TYPE_LATEST},
     )
 

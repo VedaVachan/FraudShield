@@ -1,12 +1,18 @@
 {
   "uid": "fraudshield-overview",
   "title": "FraudShield — Service Monitoring",
-  "tags": ["fraudshield", "local"],
+  "tags": [
+    "fraudshield",
+    "local"
+  ],
   "timezone": "browser",
   "schemaVersion": 39,
-  "version": 1,
+  "version": 2,
   "refresh": "15s",
-  "time": {"from": "now-30m", "to": "now"},
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
   "editable": false,
   "panels": [
     {
@@ -14,8 +20,16 @@
       "title": "API scrape health: 1 = UP, 0 = DOWN",
       "description": "Whether Prometheus can scrape the API metrics endpoint.",
       "type": "stat",
-      "gridPos": {"x": 0, "y": 0, "w": 8, "h": 5},
-      "datasource": {"type": "prometheus", "uid": "fraudshield-prometheus"},
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 8,
+        "h": 5
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "fraudshield-prometheus"
+      },
       "targets": [
         {
           "refId": "A",
@@ -30,15 +44,27 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {"color": "red", "value": null},
-              {"color": "green", "value": 1}
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
             ]
           }
         },
         "overrides": []
       },
       "options": {
-        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "colorMode": "background",
         "graphMode": "none"
       }
@@ -48,8 +74,16 @@
       "title": "Predicted fraud percentage — last 5 minutes",
       "description": "Flagged /predict decisions divided by all /predict decisions. Explanations are excluded. This is not confirmed fraud prevalence. No value when there are no recent decisions.",
       "type": "stat",
-      "gridPos": {"x": 8, "y": 0, "w": 16, "h": 5},
-      "datasource": {"type": "prometheus", "uid": "fraudshield-prometheus"},
+      "gridPos": {
+        "x": 8,
+        "y": 0,
+        "w": 16,
+        "h": 5
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "fraudshield-prometheus"
+      },
       "targets": [
         {
           "refId": "A",
@@ -58,11 +92,22 @@
         }
       ],
       "fieldConfig": {
-        "defaults": {"unit": "percent", "min": 0, "max": 100, "decimals": 2},
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "decimals": 2
+        },
         "overrides": []
       },
       "options": {
-        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "colorMode": "none",
         "graphMode": "none"
       }
@@ -72,8 +117,16 @@
       "title": "Request rate by endpoint",
       "description": "POST requests per second, averaged over 5 minutes. Includes successful and failed requests.",
       "type": "timeseries",
-      "gridPos": {"x": 0, "y": 5, "w": 12, "h": 8},
-      "datasource": {"type": "prometheus", "uid": "fraudshield-prometheus"},
+      "gridPos": {
+        "x": 0,
+        "y": 5,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "fraudshield-prometheus"
+      },
       "targets": [
         {
           "refId": "A",
@@ -82,7 +135,10 @@
         }
       ],
       "fieldConfig": {
-        "defaults": {"unit": "reqps", "min": 0},
+        "defaults": {
+          "unit": "reqps",
+          "min": 0
+        },
         "overrides": []
       }
     },
@@ -91,8 +147,16 @@
       "title": "Estimated p95 server latency by endpoint",
       "description": "Histogram estimate over 5 minutes, including all response statuses. Excludes client/network time. No value without recent requests. The 50 ms objective must also be checked with client-side benchmarks.",
       "type": "timeseries",
-      "gridPos": {"x": 12, "y": 5, "w": 12, "h": 8},
-      "datasource": {"type": "prometheus", "uid": "fraudshield-prometheus"},
+      "gridPos": {
+        "x": 12,
+        "y": 5,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "fraudshield-prometheus"
+      },
       "targets": [
         {
           "refId": "A",
@@ -101,7 +165,10 @@
         }
       ],
       "fieldConfig": {
-        "defaults": {"unit": "ms", "min": 0},
+        "defaults": {
+          "unit": "ms",
+          "min": 0
+        },
         "overrides": []
       }
     },
@@ -110,8 +177,16 @@
       "title": "HTTP error rate by endpoint",
       "description": "4xx and 5xx responses per second over 5 minutes. Invalid input responses count as errors here, but do not count as model decisions.",
       "type": "timeseries",
-      "gridPos": {"x": 0, "y": 13, "w": 24, "h": 8},
-      "datasource": {"type": "prometheus", "uid": "fraudshield-prometheus"},
+      "gridPos": {
+        "x": 0,
+        "y": 13,
+        "w": 24,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "fraudshield-prometheus"
+      },
       "targets": [
         {
           "refId": "A",
@@ -120,7 +195,45 @@
         }
       ],
       "fieldConfig": {
-        "defaults": {"unit": "reqps", "min": 0},
+        "defaults": {
+          "unit": "reqps",
+          "min": 0
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 6,
+      "title": "Input drift vs. training reference",
+      "description": "Compares bucket proportions for the last 500 successful predictions with training data. Scores appear after 100 samples. The window holds its last value while traffic is idle. The 0.20 line is a demo threshold, not a model accuracy measurement.",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 21,
+        "w": 24,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "fraudshield-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "fraudshield_input_drift_score",
+          "legendFormat": "{{feature}}"
+        },
+        {
+          "refId": "B",
+          "expr": "0 * max(fraudshield_input_drift_score) + 0.20",
+          "legendFormat": "Demo threshold"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0,
+          "max": 1
+        },
         "overrides": []
       }
     }
