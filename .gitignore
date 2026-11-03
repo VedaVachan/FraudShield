@@ -6,7 +6,10 @@ __pycache__/
 .env
 .env.*
 !.env.example
-/data/
+/data/*
+!/data/raw/
+/data/raw/*
+!/data/raw/paysim.csv.dvc
 /artifacts/
 /mlruns/
 /mlartifacts/
