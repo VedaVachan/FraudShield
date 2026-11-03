@@ -30,19 +30,20 @@ OUTPUT = ROOT / "artifacts/xgboost_v1"
 REPORT = ROOT / "reports/xgboost_validation.json"
 
 
-def main():
+def main(*, manifest=None, split_loader=load_split):
     if OUTPUT.exists() or REPORT.exists():
         raise SystemExit("STOP: model output or report already exists.")
 
     started = time.perf_counter()
-    manifest = json.loads((DATA / "manifest.json").read_text())
+    if manifest is None:
+        manifest = json.loads((DATA / "manifest.json").read_text())
 
     print("Loading training data...", flush=True)
-    train_x, train_y, _ = load_split("train", manifest["splits"]["train"])
+    train_x, train_y, _ = split_loader("train", manifest["splits"]["train"])
     train_x = train_x.astype(np.float32)
 
     print("Loading validation data...", flush=True)
-    val_x, val_y, sample = load_split(
+    val_x, val_y, sample = split_loader(
         "validation", manifest["splits"]["validation"]
     )
     val_x = val_x.astype(np.float32)

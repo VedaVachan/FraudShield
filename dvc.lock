@@ -67,3 +67,41 @@ stages:
       md5: 75b6f180798b4ec5415ce7387f5160e8.dir
       size: 5347
       nfiles: 2
+  xgboost_train:
+    cmd: env PYTHONPATH=src .venv/bin/python scripts/train_xgboost_dvc.py
+    deps:
+    - path: data/processed/paysim_spark_dvc_v1
+      hash: md5
+      md5: 3282e49266ac0f63c3954fdd23fd14a3.dir
+      size: 221453282
+      nfiles: 28
+    - path: requirements-ml.lock.txt
+      hash: md5
+      md5: a58186c494f55aa95cdbc7c1263fa82f
+      size: 2500
+    - path: scripts/train_logreg.py
+      hash: md5
+      md5: 0d3e731ac7cf00d66f2aa690c05c5a4c
+      size: 7691
+    - path: scripts/train_logreg_dvc.py
+      hash: md5
+      md5: 57fc287d49c78ac8ef488afddbbbfc40
+      size: 3845
+    - path: scripts/train_xgboost.py
+      hash: md5
+      md5: 91d413f01b3335eb00f5bac59ec59b46
+      size: 5671
+    - path: scripts/train_xgboost_dvc.py
+      hash: md5
+      md5: 2d8b5c5147517fb7ccd0bfc937715854
+      size: 1285
+    - path: src/fraudshield/features.py
+      hash: md5
+      md5: 303eba68bac270b9e162fc8de29838cc
+      size: 2051
+    outs:
+    - path: artifacts/xgboost_dvc_v1
+      hash: md5
+      md5: 380b230cf4dd6ffc3fbae90e1d0a780c.dir
+      size: 719278
+      nfiles: 3
