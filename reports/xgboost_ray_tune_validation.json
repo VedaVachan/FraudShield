@@ -1,0 +1,43 @@
+{
+  "evaluation_split": "validation",
+  "test_evaluated": false,
+  "source_sha256": "16910f90577b0d981bf8ff289714510bb89bc71bff7d3f220f024e287e4eea6b",
+  "split_sha256": {
+    "train": "3efb47c1a284052b85c9c794776a21415eb30ab162dce581222fcf5d419c4204",
+    "validation": "6750a526d889cd77c4edd14ba09a55a62f7a97293e9d9636e9db4ba4657f0538"
+  },
+  "baseline_average_precision": 0.9885092189234228,
+  "control_delta": 0.0,
+  "best_config": {
+    "max_depth": 4,
+    "min_child_weight": 10,
+    "average_precision": 0.9887370639828257,
+    "best_iteration_zero_based": 287
+  },
+  "trials": [
+    {
+      "max_depth": 4,
+      "min_child_weight": 10,
+      "average_precision": 0.9887370639828257,
+      "best_iteration_zero_based": 287
+    },
+    {
+      "max_depth": 4,
+      "min_child_weight": 5,
+      "average_precision": 0.9885092189234228,
+      "best_iteration_zero_based": 228
+    },
+    {
+      "max_depth": 6,
+      "min_child_weight": 5,
+      "average_precision": 0.9862136858945403,
+      "best_iteration_zero_based": 68
+    },
+    {
+      "max_depth": 6,
+      "min_child_weight": 10,
+      "average_precision": 0.9862057336460375,
+      "best_iteration_zero_based": 68
+    }
+  ]
+}
