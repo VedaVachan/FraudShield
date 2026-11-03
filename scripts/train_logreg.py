@@ -111,15 +111,16 @@ def classification_metrics(labels, scores, threshold):
     }
 
 
-def main():
+def main(*, manifest=None, split_loader=load_split):
     if OUTPUT.exists() or REPORT.exists():
         raise SystemExit("STOP: model output or validation report already exists.")
 
-    manifest = json.loads((DATA / "manifest.json").read_text())
+    if manifest is None:
+        manifest = json.loads((DATA / "manifest.json").read_text())
     started = time.perf_counter()
 
     print("Loading training data...", flush=True)
-    train_x, train_y, _ = load_split("train", manifest["splits"]["train"])
+    train_x, train_y, _ = split_loader("train", manifest["splits"]["train"])
 
     scaler = StandardScaler()
     for start in range(0, len(train_x), CHUNK_SIZE):
@@ -147,7 +148,7 @@ def main():
     del train_x, train_y
 
     print("Evaluating validation data...", flush=True)
-    val_x, val_y, sample = load_split(
+    val_x, val_y, sample = split_loader(
         "validation", manifest["splits"]["validation"]
     )
     scaler.transform(val_x, copy=False)

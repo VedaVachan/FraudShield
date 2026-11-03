@@ -11,3 +11,14 @@ stages:
       - requirements-spark.txt
     outs:
       - data/processed/paysim_spark_dvc_v1
+
+  logreg_train:
+    cmd: env PYTHONPATH=src .venv/bin/python scripts/train_logreg_dvc.py
+    deps:
+      - data/processed/paysim_spark_dvc_v1
+      - scripts/train_logreg.py
+      - scripts/train_logreg_dvc.py
+      - src/fraudshield/features.py
+      - requirements-ml.lock.txt
+    outs:
+      - artifacts/logreg_dvc_v1
