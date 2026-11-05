@@ -1,0 +1,47 @@
+{
+  "run_type": "historical_import",
+  "source_report_sha256": "cac2d6833d724dced97e255f54aca5a96d2d4075a3cf9b75e040c7293cd55615",
+  "training_code_commit": "not_established",
+  "trials": [
+    {
+      "max_depth": 4,
+      "min_child_weight": 10,
+      "average_precision": 0.9887370639828257,
+      "best_iteration_zero_based": 287,
+      "run_id": "1766e50b67424563b31b0fc82b4f2936",
+      "import_code_commit": "74fecf99319df5b9232344d041a6f061852b3391",
+      "metric_readback": "PASS",
+      "report_checksum": "PASS"
+    },
+    {
+      "max_depth": 4,
+      "min_child_weight": 5,
+      "average_precision": 0.9885092189234228,
+      "best_iteration_zero_based": 228,
+      "run_id": "9e78a872d591481aa0283a995d6d866b",
+      "import_code_commit": "74fecf99319df5b9232344d041a6f061852b3391",
+      "metric_readback": "PASS",
+      "report_checksum": "PASS"
+    },
+    {
+      "max_depth": 6,
+      "min_child_weight": 5,
+      "average_precision": 0.9862136858945403,
+      "best_iteration_zero_based": 68,
+      "run_id": "e0e7dae36dbb4a5cbbd0998c08a0ad9c",
+      "import_code_commit": "74fecf99319df5b9232344d041a6f061852b3391",
+      "metric_readback": "PASS",
+      "report_checksum": "PASS"
+    },
+    {
+      "max_depth": 6,
+      "min_child_weight": 10,
+      "average_precision": 0.9862057336460375,
+      "best_iteration_zero_based": 68,
+      "run_id": "0721d582050242919280994eb03c5863",
+      "import_code_commit": "74fecf99319df5b9232344d041a6f061852b3391",
+      "metric_readback": "PASS",
+      "report_checksum": "PASS"
+    }
+  ]
+}
