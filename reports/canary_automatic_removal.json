@@ -1,0 +1,11 @@
+{
+  "scope": "in-process router using real local MLflow HTTP services",
+  "evidence_basis": "operator-shared manual drill PASS output",
+  "challenger_failure_automatic_weight_zero": "PASS",
+  "subsequent_request_direct_to_champion": "PASS",
+  "elapsed_seconds": null,
+  "rollback_time_target_verified": false,
+  "live_fastapi_routing_changed": false,
+  "registry_alias_changed": false,
+  "alertmanager_triggered": false
+}

@@ -1,0 +1,73 @@
+/home/vedavachan/projects/fraudshield/.venv/lib/python3.11/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+  from starlette.testclient import TestClient as TestClient  # noqa
+test_explanation_matches_prediction (test_api.ApiTests.test_explanation_matches_prediction) ... ok
+test_health (test_api.ApiTests.test_health) ... ok
+test_prediction_matches_original_pipeline (test_api.ApiTests.test_prediction_matches_original_pipeline) ... ok
+test_rejects_invalid_inputs (test_api.ApiTests.test_rejects_invalid_inputs) ... ok
+test_rejects_nonfinite_number (test_api.ApiTests.test_rejects_nonfinite_number) ... ok
+test_zero_amount_and_balance (test_api.ApiTests.test_zero_amount_and_balance) ... ok
+test_both_fail_without_retry_loop (test_canary.CanaryRouterTests.test_both_fail_without_retry_loop) ... ok
+test_challenger_failure_falls_back (test_canary.CanaryRouterTests.test_challenger_failure_falls_back) ... ok
+test_champion_failure_propagates (test_canary.CanaryRouterTests.test_champion_failure_propagates) ... ok
+test_full_weight_uses_challenger (test_canary.CanaryRouterTests.test_full_weight_uses_challenger) ... ok
+test_invalid_transaction_id (test_canary.CanaryRouterTests.test_invalid_transaction_id) ... ok
+test_invalid_weight_preserves_configuration (test_canary.CanaryRouterTests.test_invalid_weight_preserves_configuration) ... ok
+test_missing_challenger_rejects_positive_weight (test_canary.CanaryRouterTests.test_missing_challenger_rejects_positive_weight) ... ok
+test_ten_percent_distribution_and_repeatability (test_canary.CanaryRouterTests.test_ten_percent_distribution_and_repeatability) ... ok
+test_weight_change_removes_challenger_traffic (test_canary.CanaryRouterTests.test_weight_change_removes_challenger_traffic) ... ok
+test_zero_weight_uses_champion (test_canary.CanaryRouterTests.test_zero_weight_uses_champion) ... ok
+test_champion_failure_does_not_count_as_canary_rollback (test_canary_rollback.CanaryRollbackTests.test_champion_failure_does_not_count_as_canary_rollback) ... ok
+test_disabled_policy_preserves_weight (test_canary_rollback.CanaryRollbackTests.test_disabled_policy_preserves_weight) ... ok
+test_disables_even_when_champion_fallback_fails (test_canary_rollback.CanaryRollbackTests.test_disables_even_when_champion_fallback_fails) ... ok
+test_failure_disables_challenger_before_next_request (test_canary_rollback.CanaryRollbackTests.test_failure_disables_challenger_before_next_request) ... ok
+test_old_failure_does_not_disable_new_configuration (test_canary_rollback.CanaryRollbackTests.test_old_failure_does_not_disable_new_configuration) ... ok
+test_policy_requires_boolean (test_canary_rollback.CanaryRollbackTests.test_policy_requires_boolean) ... ok
+test_success_does_not_trigger_removal (test_canary_rollback.CanaryRollbackTests.test_success_does_not_trigger_removal) ... ok
+test_column_order_and_input_preservation (test_features.FeatureTests.test_column_order_and_input_preservation) ... ok
+test_known_values_and_zero_balance (test_features.FeatureTests.test_known_values_and_zero_balance) ... ok
+test_large_finite_values (test_features.FeatureTests.test_large_finite_values) ... ok
+test_rejects_invalid_financial_values (test_features.FeatureTests.test_rejects_invalid_financial_values) ... ok
+test_rejects_leakage_columns (test_features.FeatureTests.test_rejects_leakage_columns) ... ok
+test_rejects_unknown_type_and_missing_column (test_features.FeatureTests.test_rejects_unknown_type_and_missing_column) ... ok
+test_invalid_inputs_are_not_decisions (test_metrics.MetricsTests.test_invalid_inputs_are_not_decisions) ... ok
+test_server_failure_is_counted (test_metrics.MetricsTests.test_server_failure_is_counted) ... ok
+test_success_and_endpoint_separation (test_metrics.MetricsTests.test_success_and_endpoint_separation) ... ok
+test_rejects_invalid_configuration (test_model_client.ModelClientTests.test_rejects_invalid_configuration) ... ok
+test_rejects_invalid_json (test_model_client.ModelClientTests.test_rejects_invalid_json) ... ok
+test_rejects_invalid_outputs (test_model_client.ModelClientTests.test_rejects_invalid_outputs) ... ok
+test_rejects_non_200_response (test_model_client.ModelClientTests.test_rejects_non_200_response) ... ok
+test_rejects_oversized_response (test_model_client.ModelClientTests.test_rejects_oversized_response) ... ok
+test_rejects_wrong_response_shape (test_model_client.ModelClientTests.test_rejects_wrong_response_shape) ... ok
+test_timeout (test_model_client.ModelClientTests.test_timeout) ... ok
+test_unavailable_service (test_model_client.ModelClientTests.test_unavailable_service) ... ok
+test_valid_prediction_and_request (test_model_client.ModelClientTests.test_valid_prediction_and_request) ... ok
+test_accepts_valid_report (test_model_gate.ModelGateTests.test_accepts_valid_report) ... ok
+test_rejects_changed_model (test_model_gate.ModelGateTests.test_rejects_changed_model) ... ok
+test_rejects_each_metric_below_floor (test_model_gate.ModelGateTests.test_rejects_each_metric_below_floor) ... ok
+test_rejects_missing_field (test_model_gate.ModelGateTests.test_rejects_missing_field) ... ok
+test_rejects_nonfinite_metric (test_model_gate.ModelGateTests.test_rejects_nonfinite_metric) ... ok
+test_rejects_test_evaluation (test_model_gate.ModelGateTests.test_rejects_test_evaluation) ... ok
+test_invalid_and_partial_records (test_pipeline.PipelineHistoryTests.test_invalid_and_partial_records) ... ok
+test_large_history_is_bounded (test_pipeline.PipelineHistoryTests.test_large_history_is_bounded) ... ok
+test_missing_history (test_pipeline.PipelineHistoryTests.test_missing_history) ... ok
+test_newest_first_and_limit (test_pipeline.PipelineHistoryTests.test_newest_first_and_limit) ... ok
+test_nonfinite_duration_rejected (test_pipeline.PipelineHistoryTests.test_nonfinite_duration_rejected) ... ok
+test_omits_raw_command_and_logs (test_pipeline.PipelineHistoryTests.test_omits_raw_command_and_logs) ... ok
+test_invalid_snapshot_returns_503 (test_pipeline_summary.PipelineSummaryTests.test_invalid_snapshot_returns_503) ... ok
+test_missing_snapshot_returns_503 (test_pipeline_summary.PipelineSummaryTests.test_missing_snapshot_returns_503) ... ok
+test_returns_saved_snapshot (test_pipeline_summary.PipelineSummaryTests.test_returns_saved_snapshot) ... ok
+Setting default log level to "WARN".
+To adjust logging level use sc.setLogLevel(newLevel). For SparkR, use setLogLevel(newLevel).
+26/11/05 19:50:07 WARN NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+test_parity_all_types_and_edge_values (test_spark_features.SparkFeatureTests.test_parity_all_types_and_edge_values) ... [Stage 0:>                                                          (0 + 2) / 2]                                                                                /home/vedavachan/miniconda3/envs/daai/lib/python3.11/socket.py:789: ResourceWarning: unclosed <socket.socket fd=9, family=2, type=1, proto=6, laddr=('127.0.0.1', 41976), raddr=('127.0.0.1', 44447)>
+  self._sock = None
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_rejects_extra_and_missing_columns (test_spark_features.SparkFeatureTests.test_rejects_extra_and_missing_columns) ... ok
+test_rejects_invalid_financial_values (test_spark_features.SparkFeatureTests.test_rejects_invalid_financial_values) ... [Stage 16:=============================>                            (1 + 1) / 2]                                                                                [Stage 19:=============================>                            (1 + 1) / 2]                                                                                ok
+test_rejects_invalid_types (test_spark_features.SparkFeatureTests.test_rejects_invalid_types) ... ok
+
+----------------------------------------------------------------------
+Ran 60 tests in 42.344s
+
+OK

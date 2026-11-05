@@ -9,12 +9,20 @@ from backend.model_client import ModelServerError
 class CanaryRouter:
     """Route requests without holding a configuration lock during HTTP calls."""
 
-    def __init__(self, champion, challenger=None, weight=0):
+    def __init__(
+        self, champion, challenger=None, weight=0,
+        rollback_on_failure=False,
+    ):
+        if type(rollback_on_failure) is not bool:
+            raise ValueError('rollback_on_failure must be a boolean.')
         self._champion = champion
         self._challenger = challenger
         self._lock = Lock()
         self._weight = 0
         self._fallback_attempts = 0
+        self._rollback_on_failure = rollback_on_failure
+        self._automatic_rollbacks = 0
+        self._generation = 0
         self.set_weight(weight)
 
     def set_weight(self, weight):
@@ -24,6 +32,7 @@ class CanaryRouter:
             if weight > 0 and self._challenger is None:
                 raise ValueError("A challenger is required for positive weight.")
             self._weight = weight
+            self._generation += 1
 
     def snapshot(self):
         with self._lock:
@@ -31,6 +40,8 @@ class CanaryRouter:
                 "canary_weight": self._weight,
                 "challenger_configured": self._challenger is not None,
                 "fallback_attempts": self._fallback_attempts,
+                "rollback_on_failure": self._rollback_on_failure,
+                "automatic_rollbacks": self._automatic_rollbacks,
             }
 
     def _choose(self, transaction_id):
@@ -45,11 +56,12 @@ class CanaryRouter:
         ) % 10000
         with self._lock:
             if self._challenger is not None and bucket < self._weight * 100:
-                return "challenger", self._challenger
-            return "champion", self._champion
+                return "challenger", self._challenger, self._generation
+            return "champion", self._champion, self._generation
 
     def predict(self, transaction_id, transaction):
-        requested_route, client = self._choose(transaction_id)
+        requested_route, client, generation = self._choose(transaction_id)
+        rollback_triggered = False
         try:
             prediction = client.predict(transaction)
             actual_route = requested_route
@@ -59,6 +71,16 @@ class CanaryRouter:
                 raise
             with self._lock:
                 self._fallback_attempts += 1
+                # Ignore failures from an older routing configuration.
+                if (
+                    self._rollback_on_failure
+                    and generation == self._generation
+                    and self._weight > 0
+                ):
+                    self._weight = 0
+                    self._generation += 1
+                    self._automatic_rollbacks += 1
+                    rollback_triggered = True
             # If champion also fails, propagate its error. Never retry in a loop.
             prediction = self._champion.predict(transaction)
             actual_route = "champion"
@@ -69,4 +91,5 @@ class CanaryRouter:
             "requested_route": requested_route,
             "route": actual_route,
             "fallback": fallback,
+            "rollback_triggered": rollback_triggered,
         }
