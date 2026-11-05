@@ -1,0 +1,11 @@
+{
+  "run_id": "588a0b8b83744c72823042dd53863871",
+  "run_type": "historical_import",
+  "artifact_family": "dvc_baseline",
+  "model_sha256": "3b0e19dab2cc73572173ab49a0b786d3d87f88f6e0879122d3cb8d041f2fcd46",
+  "validation_report_sha256": "bf2800f74f416e75dd7461b0c51ab9e6c1cffe8f91cf2114039fc900f3b62ada",
+  "metric_readback": "PASS",
+  "artifact_checksum": "PASS",
+  "training_code_commit": "not_established",
+  "import_code_commit": "8f7d622cabd771c7d9f7e418770ac2597bf0dfae"
+}
