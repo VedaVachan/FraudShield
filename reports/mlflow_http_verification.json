@@ -1,0 +1,17 @@
+{
+  "timestamp_utc": "2026-11-05T13:59:38.532494+00:00",
+  "verification_code_commit": "3a8d05e09236e64e99cb194fe54ada5a8a8be93c",
+  "verification_script_sha256": "2657a2f1888508e7b61440d5306f9e69f0875e1c4ea8ef727c8ea4bb48bb3db9",
+  "base_url": "http://127.0.0.1:5001",
+  "expected_registry_uri": "models:/FraudShield-XGBoost/1",
+  "reference_model_sha256": "1d2df49373788c5b1e554ec9ab9cfc346cc0feb1e13406bc0cd93b1594518bcb",
+  "registry_receipt_sha256": "9b7dfaf7683d7e1fa541f4bded03f8048b2dd1d7c2588ad2f381c19b264255dd",
+  "serving_lock_sha256": "f468ee9491fa38b79f447eee6abf1155dc4b68c0f1e1b54aabf9c3a01ef89f8f",
+  "synthetic_cases": 3,
+  "ping": "PASS",
+  "score_parity": "PASS",
+  "threshold_parity": "PASS",
+  "decision_parity": "PASS",
+  "scope": "HTTP outputs match the reference on three synthetic cases; sample parity alone does not prove server artifact identity.",
+  "fastapi_uses_mlflow_http": false
+}
