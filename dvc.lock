@@ -105,3 +105,25 @@ stages:
       md5: 380b230cf4dd6ffc3fbae90e1d0a780c.dir
       size: 719278
       nfiles: 3
+  xgboost_validation_gate:
+    cmd: .venv/bin/python scripts/run_model_gate.py >
+      reports/xgboost_validation_gate.json
+    deps:
+    - path: artifacts/xgboost_dvc_v1
+      hash: md5
+      md5: 380b230cf4dd6ffc3fbae90e1d0a780c.dir
+      size: 719278
+      nfiles: 3
+    - path: scripts/check_model_gate.py
+      hash: md5
+      md5: 2b5b687a6ec3968eb58fadc2c7a7c0c7
+      size: 3353
+    - path: scripts/run_model_gate.py
+      hash: md5
+      md5: aa0f701d74fa1491174b0fd1755ccc05
+      size: 2114
+    outs:
+    - path: reports/xgboost_validation_gate.json
+      hash: md5
+      md5: 52ac577616d93cae67c286d8bbaaf2a1
+      size: 1208

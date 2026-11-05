@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "run_id": "fec3d98c-7f54-4ead-be79-b51de740aae0",
+  "stage": "xgboost_validation_gate",
+  "status": "success",
+  "started_utc": "2026-11-05T12:16:52.553876+00:00",
+  "finished_utc": "2026-11-05T12:16:52.642346+00:00",
+  "duration_seconds": 0.08836828300013622,
+  "git_commit": "878acec133b9027e22b2dcfb379b1ddf67d158a8",
+  "git_dirty": true,
+  "command": [
+    "/home/vedavachan/projects/fraudshield/.venv/bin/python",
+    "/home/vedavachan/projects/fraudshield/scripts/check_model_gate.py",
+    "--min-ap",
+    "0.85"
+  ],
+  "exit_code": 0,
+  "gate": {
+    "status": "PASS",
+    "scope": "saved validation report and model checksum",
+    "policy": {
+      "average_precision": 0.85,
+      "precision": 0.7,
+      "recall": 0.9
+    },
+    "measured": {
+      "average_precision": 0.9885092189234228,
+      "precision": 0.9284028324154209,
+      "recall": 1.0,
+      "threshold": 0.9105643033981323
+    },
+    "identity": {
+      "report_sha256": "6a6c089455feedbdb17041efd3c8c3b18a1d181d95a763e2f7d4d0e4b9f48320",
+      "model_sha256": "4b1fa5cead6f0d8dedcab0d99ed66adfdfd9f5b023adba41c567ca3c0c77d106"
+    },
+    "failures": [],
+    "test_set_opened": false
+  },
+  "stderr": ""
+}

@@ -35,3 +35,13 @@ stages:
       - requirements-ml.lock.txt
     outs:
       - artifacts/xgboost_dvc_v1
+
+  xgboost_validation_gate:
+    cmd: .venv/bin/python scripts/run_model_gate.py > reports/xgboost_validation_gate.json
+    deps:
+      - artifacts/xgboost_dvc_v1
+      - scripts/check_model_gate.py
+      - scripts/run_model_gate.py
+    outs:
+      - reports/xgboost_validation_gate.json:
+          cache: false
