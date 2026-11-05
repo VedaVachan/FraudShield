@@ -1,0 +1,12 @@
+{
+  "scope": "manually executed router drill against local MLflow HTTP servers",
+  "champion_port": 5001,
+  "challenger_port": 5002,
+  "weight_zero_champion_route": "PASS",
+  "weight_100_challenger_route": "PASS",
+  "stopped_challenger_request_fallback": "PASS",
+  "manual_weight_zero_removal": "PASS",
+  "automatic_traffic_removal_tested": false,
+  "live_fastapi_routing_changed": false,
+  "evidence_basis": "operator-shared execution output; not an automated drill log"
+}
