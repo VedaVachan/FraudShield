@@ -1,0 +1,13 @@
+{
+  "run_id": "5dffe9abca2b46b3b777e8e7d98adbb4",
+  "run_type": "training",
+  "training_code_commit": "dcb3779cd017a11addd3bf0bb301b62148b9bf73",
+  "model_path": "artifacts/xgboost_tracked/5dffe9abca2b46b3b777e8e7d98adbb4/model.joblib",
+  "model_sha256": "023148a5cab70c1ac66bf4fd5b8b65fd0d6ac1090c4d9fe18b94f1263b72d1bf",
+  "validation_report": "artifacts/xgboost_tracked/5dffe9abca2b46b3b777e8e7d98adbb4/validation.json",
+  "validation_average_precision": 0.9885092189234228,
+  "metric_readback": "PASS",
+  "artifact_checksum": "PASS",
+  "test_evaluated": false,
+  "registered_or_promoted": false
+}
