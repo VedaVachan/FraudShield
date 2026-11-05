@@ -23,11 +23,12 @@ RUN python -m pip install --no-cache-dir --only-binary=:all: \
 COPY backend/app.py ./backend/app.py
 COPY backend/metrics.py ./backend/metrics.py
 COPY backend/drift.py ./backend/drift.py
+COPY backend/pipeline.py ./backend/pipeline.py
 COPY reports/drift_reference.json ./reports/drift_reference.json
 COPY src/fraudshield/features.py ./src/fraudshield/features.py
 COPY src/fraudshield/explanations.py ./src/fraudshield/explanations.py
 
-RUN mkdir -p /app/artifacts/xgboost_v1 /app/reports
+RUN mkdir -p /app/artifacts/xgboost_v1 /app/reports /app/runtime
 
 USER 10001:10001
 

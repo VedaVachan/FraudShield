@@ -16,6 +16,12 @@ services:
       - /tmp:size=64m,mode=1777
     volumes:
       - type: bind
+        source: ./runtime/pipeline_runs.jsonl
+        target: /app/runtime/pipeline_runs.jsonl
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
         source: ./artifacts/xgboost_v1/model.joblib
         target: /app/artifacts/xgboost_v1/model.joblib
         read_only: true

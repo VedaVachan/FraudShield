@@ -5,7 +5,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app/frontend
 
-COPY frontend/index.html ./index.html
+COPY frontend/index.html frontend/pipeline.html ./
 
 USER 10001:10001
 

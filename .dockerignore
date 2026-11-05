@@ -5,6 +5,7 @@
 !backend/app.py
 !backend/metrics.py
 !backend/drift.py
+!backend/pipeline.py
 !reports/
 !reports/drift_reference.json
 !src/
@@ -14,3 +15,4 @@
 !frontend/
 !frontend/Dockerfile
 !frontend/index.html
+!frontend/pipeline.html

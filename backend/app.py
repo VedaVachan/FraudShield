@@ -26,6 +26,7 @@ from threadpoolctl import threadpool_limits
 from fraudshield.explanations import FraudExplainer
 from fraudshield.features import INPUT_COLUMNS
 from backend.drift import DriftMonitor
+from backend.pipeline import router as pipeline_router
 from backend.metrics import configure_metrics, mark_drift_input, mark_prediction
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -112,6 +113,8 @@ app.add_middleware(
 )
 
 configure_metrics(app)
+app.include_router(pipeline_router)
+
 @app.exception_handler(RequestValidationError)
 async def invalid_request(request, exc):
     # Do not echo transaction values or arbitrary submitted field names.

@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FraudShield — Pipeline</title>
+<style>
+body{font:16px system-ui,sans-serif;background:#eef3f8;color:#17283b;margin:0}
+main{max-width:1100px;margin:auto;padding:24px}
+section{background:white;padding:22px;margin:20px 0;border-radius:12px}
+a{color:#1767a6}label{display:block;margin-bottom:8px}
+input,button{font:inherit;padding:10px;border:1px solid #aab9c8;border-radius:6px}
+input{width:min(420px,85%)}button{cursor:pointer}
+svg{width:100%;max-height:300px}rect{fill:#e6eef6;stroke:#1767a6}
+text{fill:#17283b;font:15px system-ui}path{stroke:#53677a;fill:none}
+.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:12px;border-bottom:1px solid #dbe4ed;vertical-align:top}
+.success{color:#17694d}.failed{color:#a52c26}
+.note{color:#53677a;line-height:1.6}#status{white-space:pre-wrap}
+</style>
+<main>
+<a href="/">← Transaction review</a>
+<h1>Pipeline and execution history</h1>
+<p class="note">Inspect how the model is built and what actually ran.
+This page cannot launch training or change deployment.</p>
+<section>
+<h2>Baseline DVC pipeline</h2>
+<p class="note">Configured topology. Diagram boxes do not imply a new run.</p>
+<svg viewBox="0 0 900 290" role="img" aria-label="Raw PaySim feeds Spark preparation, which feeds logistic regression and XGBoost. XGBoost feeds its validation gate.">
+<path d="M450 55 V85 M450 135 V155 H225 V180 M450 155 H675 V180 M675 230 V250"/>
+<rect x="340" y="5" width="220" height="50" rx="8"/>
+<text x="450" y="36" text-anchor="middle">paysim.dvc</text>
+<rect x="340" y="85" width="220" height="50" rx="8"/>
+<text x="450" y="116" text-anchor="middle">spark_prepare</text>
+<rect x="115" y="180" width="220" height="50" rx="8"/>
+<text x="225" y="211" text-anchor="middle">logreg_train</text>
+<rect x="565" y="180" width="220" height="50" rx="8"/>
+<text x="675" y="211" text-anchor="middle">xgboost_train</text>
+<rect x="545" y="250" width="260" height="38" rx="8"/>
+<text x="675" y="275" text-anchor="middle">xgboost_validation_gate</text>
+</svg>
+</section>
+<section>
+<h2>Recorded executions</h2>
+<form id="connection">
+<label for="api">API address</label>
+<input id="api" type="url" value="http://127.0.0.1:8000" required>
+<button type="submit">Refresh history</button>
+</form>
+<p id="status" role="status">Loading…</p>
+<p class="note">Newest records appear first. DVC reproduction duration measures
+the command, including cache checks; it is not training time.
+Detailed logs remain on the host. Only gate failure reasons are exposed here.</p>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Stage / run</th><th>Result</th><th>Started (UTC)</th>
+<th>Seconds</th><th>Code identity</th><th>Gate failures</th></tr></thead>
+<tbody id="runs"></tbody>
+</table>
+</div>
+</section>
+</main>
+<script>
+"use strict";
+const byId = id => document.getElementById(id);
+async function refresh() {
+  const button = document.querySelector("button");
+  button.disabled = true;
+  byId("runs").replaceChildren();
+  byId("status").textContent = "Loading execution history…";
+  try {
+    const base = new URL(byId("api").value);
+    if (!["http:", "https:"].includes(base.protocol) ||
+        base.username || base.password) {
+      throw new Error("Enter an HTTP API address without credentials.");
+    }
+    const response = await fetch(new URL("/pipeline/runs?limit=50", base), {
+      cache: "no-store", signal: AbortSignal.timeout(10000)
+    });
+    if (!response.ok) throw new Error(`API returned HTTP ${response.status}.`);
+    const data = await response.json();
+    if (!Array.isArray(data.runs)) throw new Error("Unexpected API response.");
+    for (const run of data.runs) {
+      const row = document.createElement("tr");
+      const values = [
+        `${run.stage}\n${run.run_id || ""}`, run.status, run.started_utc,
+        Number(run.duration_seconds).toFixed(3),
+        `${(run.git_commit || "").slice(0,12)} (${run.git_dirty ? "dirty" : "clean"})`,
+        (run.failure_reasons || []).join("; ") || "—"
+      ];
+      for (const value of values) {
+        const cell = document.createElement("td");
+        cell.textContent = value ?? "—";
+        row.append(cell);
+      }
+      row.children[1].className = run.status;
+      byId("runs").append(row);
+    }
+    byId("status").textContent = data.history_available
+      ? `${data.runs.length} records shown. Invalid records: ${data.invalid_records}.`
+        + (data.truncated ? " Showing a bounded tail of the history." : "")
+      : "No execution history is available yet.";
+  } catch (error) {
+    byId("status").textContent =
+      `Could not load history: ${error.message} Check the API address and service.`;
+  } finally {
+    button.disabled = false;
+  }
+}
+byId("connection").addEventListener("submit", event => {
+  event.preventDefault();
+  refresh();
+});
+refresh();
+</script>
+</html>
