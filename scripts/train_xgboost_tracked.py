@@ -124,7 +124,7 @@ def main():
         for name in SOURCES:
             mlflow.log_artifact(
                 str(ROOT / name),
-                "provenance/code/" + Path(name).parent.as_posix(),
+                (Path("provenance/code") / Path(name).parent).as_posix(),
             )
 
         with job.threadpool_limits(limits=2):
