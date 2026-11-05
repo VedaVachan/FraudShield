@@ -18,3 +18,11 @@
 !frontend/index.html
 !frontend/pipeline.html
 !frontend/pipeline_summary.js
+!docker/
+!docker/serving.Dockerfile
+!docker/gateway.Dockerfile
+!requirements-serving.lock.txt
+!backend/model_client.py
+!backend/canary.py
+!backend/gateway.py
+!backend/gateway_server.py

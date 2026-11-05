@@ -1,0 +1,27 @@
+{
+  "recorded_utc": "2026-11-05T18:26:58.594515+00:00",
+  "scope": "Operator-run local Docker Compose canary drill",
+  "evidence_basis": "Observed terminal assertions; final routing state queried live",
+  "gateway_url": "http://127.0.0.1:8020",
+  "observed_checks": {
+    "champion_http_prediction": "PASS",
+    "challenger_http_prediction": "PASS",
+    "stopped_challenger_triggers_fallback": "PASS",
+    "failure_automatically_sets_weight_zero": "PASS",
+    "subsequent_request_uses_champion_directly": "PASS",
+    "restarted_challenger_remains_at_weight_zero": "PASS"
+  },
+  "final_routing_state": {
+    "canary_weight": 0,
+    "challenger_configured": true,
+    "fallback_attempts": 1,
+    "rollback_on_failure": true,
+    "automatic_rollbacks": 1
+  },
+  "recovery_duration_seconds": null,
+  "limitations": [
+    "Recovery duration was not preserved for this container drill.",
+    "Automatic removal changes gateway traffic; it does not revert deployed artifacts.",
+    "The original API on port 8000 remains a separate serving path."
+  ]
+}

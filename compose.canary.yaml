@@ -1,0 +1,95 @@
+name: fraudshield-canary
+
+x-model: &model
+  user: "${GATEWAY_UID:?Set GATEWAY_UID}:${GATEWAY_GID:?Set GATEWAY_GID}"
+  image: fraudshield-model-server:local
+  build:
+    context: .
+    dockerfile: docker/serving.Dockerfile
+  profiles: [canary]
+  cpus: 2.0
+  mem_limit: 1g
+  init: true
+  read_only: true
+  tmpfs:
+    - /tmp:size=128m,mode=1777
+  healthcheck:
+    test:
+      - CMD
+      - python
+      - -c
+      - "import urllib.request; assert urllib.request.urlopen('http://127.0.0.1:5001/ping', timeout=3).status == 200"
+    interval: 10s
+    timeout: 5s
+    retries: 6
+    start_period: 40s
+
+services:
+  model-champion:
+    <<: *model
+    volumes:
+      - type: bind
+        source: ./runtime/mlflow-serving/champion-v1
+        target: /model
+        read_only: true
+        bind:
+          create_host_path: false
+
+  model-challenger:
+    <<: *model
+    volumes:
+      - type: bind
+        source: ./runtime/mlflow-serving/challenger-v1
+        target: /model
+        read_only: true
+        bind:
+          create_host_path: false
+
+  canary-gateway:
+    image: fraudshield-canary-gateway:local
+    build:
+      context: .
+      dockerfile: docker/gateway.Dockerfile
+    profiles: [canary]
+    user: "${GATEWAY_UID:?Set GATEWAY_UID}:${GATEWAY_GID:?Set GATEWAY_GID}"
+    ports:
+      - "127.0.0.1:8020:8010"
+    cpus: 1.0
+    mem_limit: 512m
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,mode=1777
+    environment:
+      CHAMPION_URL: http://model-champion:5001
+      CHALLENGER_URL: http://model-challenger:5001
+      CHALLENGER_THRESHOLD: "0.8567820191383362"
+      MODEL_TIMEOUT_SECONDS: "2.0"
+      GATEWAY_ADMIN_KEY_FILE: /run/secrets/gateway-admin.key
+      GATEWAY_REGISTRY_FILE: /app/reports/mlflow_registry.json
+    volumes:
+      - type: bind
+        source: ./runtime/gateway-admin.key
+        target: /run/secrets/gateway-admin.key
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./reports/mlflow_registry.json
+        target: /app/reports/mlflow_registry.json
+        read_only: true
+        bind:
+          create_host_path: false
+    depends_on:
+      model-champion:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; assert urllib.request.urlopen('http://127.0.0.1:8010/health', timeout=3).status == 200"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
