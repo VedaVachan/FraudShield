@@ -46,6 +46,11 @@ services:
           create_host_path: false
 
   canary-gateway:
+    networks:
+      default: {}
+      monitoring:
+        aliases:
+          - fraudshield-canary-gateway
     image: fraudshield-canary-gateway:local
     build:
       context: .
@@ -93,3 +98,8 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+
+networks:
+  monitoring:
+    external: true
+    name: fraudshield_default

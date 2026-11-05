@@ -26,3 +26,4 @@
 !backend/canary.py
 !backend/gateway.py
 !backend/gateway_server.py
+!backend/gateway_metrics.py

@@ -1,0 +1,38 @@
+# HELP fraudshield_gateway_requests_total POST prediction requests, including invalid inputs and failures.
+# TYPE fraudshield_gateway_requests_total counter
+# HELP fraudshield_gateway_request_duration_seconds Gateway prediction duration, including upstream HTTP and fallback.
+# TYPE fraudshield_gateway_request_duration_seconds histogram
+fraudshield_gateway_request_duration_seconds_bucket{le="0.005"} 0.0
+fraudshield_gateway_request_duration_seconds_bucket{le="0.01"} 0.0
+fraudshield_gateway_request_duration_seconds_bucket{le="0.025"} 0.0
+fraudshield_gateway_request_duration_seconds_bucket{le="0.05"} 0.0
+fraudshield_gateway_request_duration_seconds_bucket{le="0.1"} 0.0
+fraudshield_gateway_request_duration_seconds_bucket{le="0.25"} 0.0
+fraudshield_gateway_request_duration_seconds_bucket{le="0.5"} 0.0
+fraudshield_gateway_request_duration_seconds_bucket{le="1.0"} 0.0
+fraudshield_gateway_request_duration_seconds_bucket{le="2.5"} 0.0
+fraudshield_gateway_request_duration_seconds_bucket{le="5.0"} 0.0
+fraudshield_gateway_request_duration_seconds_bucket{le="10.0"} 0.0
+fraudshield_gateway_request_duration_seconds_bucket{le="+Inf"} 0.0
+fraudshield_gateway_request_duration_seconds_count 0.0
+fraudshield_gateway_request_duration_seconds_sum 0.0
+# HELP fraudshield_gateway_request_duration_seconds_created Gateway prediction duration, including upstream HTTP and fallback.
+# TYPE fraudshield_gateway_request_duration_seconds_created gauge
+fraudshield_gateway_request_duration_seconds_created 1.793904233143573e+09
+# HELP fraudshield_gateway_scoring_results_total Successful scoring results by requested and actual route.
+# TYPE fraudshield_gateway_scoring_results_total counter
+# HELP fraudshield_gateway_canary_weight_percent Configured challenger traffic percentage.
+# TYPE fraudshield_gateway_canary_weight_percent gauge
+fraudshield_gateway_canary_weight_percent 0.0
+# HELP fraudshield_gateway_fallback_attempts_total Challenger failures that initiated champion fallback.
+# TYPE fraudshield_gateway_fallback_attempts_total counter
+fraudshield_gateway_fallback_attempts_total 0.0
+# HELP fraudshield_gateway_fallback_attempts_created Challenger failures that initiated champion fallback.
+# TYPE fraudshield_gateway_fallback_attempts_created gauge
+fraudshield_gateway_fallback_attempts_created 1.7939044738042786e+09
+# HELP fraudshield_gateway_automatic_removals_total Automatic changes that removed challenger traffic.
+# TYPE fraudshield_gateway_automatic_removals_total counter
+fraudshield_gateway_automatic_removals_total 0.0
+# HELP fraudshield_gateway_automatic_removals_created Automatic changes that removed challenger traffic.
+# TYPE fraudshield_gateway_automatic_removals_created gauge
+fraudshield_gateway_automatic_removals_created 1.793904473804299e+09

@@ -1,0 +1,8 @@
+{
+  "verified_utc": "2026-11-05T18:47:53.838536+00:00",
+  "job": "fraudshield-gateway",
+  "scrape_url": "http://fraudshield-canary-gateway:8010/metrics",
+  "health": "up",
+  "last_error": "",
+  "scope": "Live scrape health and gateway metric snapshot"
+}

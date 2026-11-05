@@ -8,6 +8,9 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from backend.app import Transaction
 from backend.model_client import ModelServerError
+from backend.gateway_metrics import (
+    GatewayMetrics, GatewayMetricsMiddleware,
+)
 
 
 class CanaryWeight(BaseModel):
@@ -26,6 +29,13 @@ def create_app(routing, admin_key):
 
     app = FastAPI(title="FraudShield Canary Gateway", version="0.1.0")
     app.state.routing = routing
+    metrics = GatewayMetrics(routing)
+    app.state.gateway_metrics = metrics
+    app.add_middleware(GatewayMetricsMiddleware, metrics=metrics)
+
+    @app.get("/metrics", include_in_schema=False)
+    def prometheus_metrics():
+        return metrics.response()
 
     @app.get("/health")
     def health():
@@ -59,6 +69,7 @@ def create_app(routing, admin_key):
                 detail="Scoring service is temporarily unavailable.",
             ) from exc
 
+        metrics.observe_result(result)
         return {
             **result["prediction"],
             "transaction_id": identifier,
