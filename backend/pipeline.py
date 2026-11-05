@@ -92,3 +92,19 @@ def pipeline_runs(limit: int = Query(default=50, ge=1, le=100)):
             status_code=503,
             detail="Pipeline history is temporarily unavailable.",
         ) from exc
+
+SUMMARY = ROOT / "reports/pipeline_summary.json"
+
+
+@router.get("/pipeline/summary")
+def pipeline_summary():
+    try:
+        data = json.loads(SUMMARY.read_text())
+        if not isinstance(data, dict) or data.get("schema_version") != 1:
+            raise ValueError("Unsupported summary.")
+        return data
+    except (OSError, ValueError) as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="Historical pipeline summary is unavailable.",
+        ) from exc

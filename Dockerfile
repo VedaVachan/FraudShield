@@ -25,6 +25,7 @@ COPY backend/metrics.py ./backend/metrics.py
 COPY backend/drift.py ./backend/drift.py
 COPY backend/pipeline.py ./backend/pipeline.py
 COPY reports/drift_reference.json ./reports/drift_reference.json
+COPY reports/pipeline_summary.json ./reports/pipeline_summary.json
 COPY src/fraudshield/features.py ./src/fraudshield/features.py
 COPY src/fraudshield/explanations.py ./src/fraudshield/explanations.py
 

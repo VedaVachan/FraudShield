@@ -8,6 +8,7 @@
 !backend/pipeline.py
 !reports/
 !reports/drift_reference.json
+!reports/pipeline_summary.json
 !src/
 !src/fraudshield/
 !src/fraudshield/features.py
@@ -16,3 +17,4 @@
 !frontend/Dockerfile
 !frontend/index.html
 !frontend/pipeline.html
+!frontend/pipeline_summary.js

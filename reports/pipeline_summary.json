@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "generated_utc": "2026-11-05T12:48:48.204365+00:00",
+  "scope": "historical report snapshot; not live MLflow queries",
+  "spark": {
+    "scope": "original complete preparation job, not DVC rerun",
+    "rows": 6362620,
+    "total_seconds": 82.82915609499969,
+    "effective_rows_per_second": 76816.18768036808,
+    "timing_scope": "whole-job elapsed time including validation and readback; not individual-stage throughput",
+    "output": "data/processed/paysim_spark_v1",
+    "spark_version": "3.5.7"
+  },
+  "registered_original_models": [
+    {
+      "name": "FraudShield-LogisticRegression",
+      "version": "1",
+      "threshold": 0.9747662170152243,
+      "model_sha256": "72321c8ea964d44678bca48b62103fd969225340acec3332ef7517db4cf8f36a",
+      "historical_import_run_id": "93ccaf05bfa4401897837a97b508c8a0",
+      "packaging_run_id": "13d5cdbbea9d42c5b54c358c2d3ad74d",
+      "prediction_parity": "PASS"
+    },
+    {
+      "name": "FraudShield-XGBoost",
+      "version": "1",
+      "threshold": 0.9195699691772461,
+      "model_sha256": "1d2df49373788c5b1e554ec9ab9cfc346cc0feb1e13406bc0cd93b1594518bcb",
+      "historical_import_run_id": "116a3eb388a449bba425317645a84703",
+      "packaging_run_id": "323777a876f1444fa43893b4056c1bbf",
+      "prediction_parity": "PASS"
+    }
+  ],
+  "ray_tuning": {
+    "evaluation_split": "validation",
+    "test_evaluated": false,
+    "baseline_average_precision": 0.9885092189234228,
+    "best_config": {
+      "max_depth": 4,
+      "min_child_weight": 10,
+      "average_precision": 0.9887370639828257,
+      "best_iteration_zero_based": 287
+    },
+    "trials": [
+      {
+        "max_depth": 4,
+        "min_child_weight": 10,
+        "average_precision": 0.9887370639828257,
+        "best_iteration_zero_based": 287
+      },
+      {
+        "max_depth": 4,
+        "min_child_weight": 5,
+        "average_precision": 0.9885092189234228,
+        "best_iteration_zero_based": 228
+      },
+      {
+        "max_depth": 6,
+        "min_child_weight": 5,
+        "average_precision": 0.9862136858945403,
+        "best_iteration_zero_based": 68
+      },
+      {
+        "max_depth": 6,
+        "min_child_weight": 10,
+        "average_precision": 0.9862057336460375,
+        "best_iteration_zero_based": 68
+      }
+    ]
+  },
+  "source_report_sha256": {
+    "reports/spark_preparation.json": "d9e5d801c77f32561ac8452900a7a12b2a0a69136d4c0b6f986e73681c32534a",
+    "reports/mlflow_import.json": "08ecb4122116bb4a8c35a2f14d8299a40ecba902a07418fa1d2ba6cc02827188",
+    "reports/mlflow_registry.json": "9b7dfaf7683d7e1fa541f4bded03f8048b2dd1d7c2588ad2f381c19b264255dd",
+    "reports/xgboost_ray_tune_validation.json": "cac2d6833d724dced97e255f54aca5a96d2d4075a3cf9b75e040c7293cd55615"
+  }
+}

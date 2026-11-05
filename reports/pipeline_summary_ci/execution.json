@@ -1,0 +1,43 @@
+[
+  {
+    "schema_version": 1,
+    "run_id": "5ce9638b-bc80-4b5d-9e58-00a71f9824d5",
+    "stage": "automated_tests",
+    "status": "success",
+    "started_utc": "2026-11-05T13:13:57.374848+00:00",
+    "finished_utc": "2026-11-05T13:14:39.628483+00:00",
+    "duration_seconds": 42.25354417300059,
+    "git_commit": "5384b73bb436ca49d6593e683d1d576b7888c422",
+    "git_dirty": true,
+    "command": [
+      "/home/vedavachan/projects/fraudshield/.venv/bin/python",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests",
+      "-v"
+    ],
+    "exit_code": 0,
+    "log_path": "runtime/ci/5ce9638b-bc80-4b5d-9e58-00a71f9824d5/automated_tests.log",
+    "scope": "command execution; cached DVC stages may be skipped"
+  },
+  {
+    "schema_version": 1,
+    "run_id": "5ce9638b-bc80-4b5d-9e58-00a71f9824d5",
+    "stage": "dvc_reproduction",
+    "status": "success",
+    "started_utc": "2026-11-05T13:14:39.629575+00:00",
+    "finished_utc": "2026-11-05T13:14:42.401315+00:00",
+    "duration_seconds": 2.7717546000003495,
+    "git_commit": "5384b73bb436ca49d6593e683d1d576b7888c422",
+    "git_dirty": true,
+    "command": [
+      "/home/vedavachan/projects/fraudshield/runtime/dvc-venv/bin/dvc",
+      "repro"
+    ],
+    "exit_code": 0,
+    "log_path": "runtime/ci/5ce9638b-bc80-4b5d-9e58-00a71f9824d5/dvc_reproduction.log",
+    "scope": "command execution; cached DVC stages may be skipped"
+  }
+]
