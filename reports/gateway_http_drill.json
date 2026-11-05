@@ -1,0 +1,16 @@
+{
+  "scope": "separate local gateway HTTP circuit-breaker drill",
+  "evidence_basis": "operator-shared manual execution output",
+  "gateway_port": 8010,
+  "champion_port": 5001,
+  "stopped_challenger_port": 5002,
+  "champion_scoring": "PASS",
+  "unauthenticated_admin_change_rejected": "PASS",
+  "automatic_weight_zero": "PASS",
+  "subsequent_request_direct_to_champion": "PASS",
+  "observed_detection_and_http_fallback_seconds": 0.033,
+  "timing_is_single_observation_not_guarantee": true,
+  "original_api_routing_changed": false,
+  "registry_alias_changed": false,
+  "alertmanager_triggered": false
+}
