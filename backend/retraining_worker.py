@@ -13,6 +13,7 @@ from uuid import UUID
 
 from backend.retraining_queue import connect
 from backend.process_runner import run_process
+from backend.result_storage import publish_result
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -168,11 +169,7 @@ def execute_request(database, request_id, *, root=ROOT, runner=None):
 
             # Persist evidence before committing the terminal queue state.
             # A storage failure leaves 'running' for operator investigation.
-            with (destination / "result.json").open("x") as handle:
-                json.dump(outcome, handle, indent=2, allow_nan=False)
-                handle.write("\n")
-                handle.flush()
-                os.fsync(handle.fileno())
+            publish_result(destination / "result.json", outcome)
 
             connection.execute(
                 "UPDATE requests SET status = ? WHERE request_id = ?",

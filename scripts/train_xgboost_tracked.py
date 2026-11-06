@@ -18,6 +18,7 @@ from mlflow.tracking import MlflowClient
 ROOT = job.ROOT
 RECEIPT = ROOT / "reports/mlflow_tracked_xgboost.json"
 SOURCES = [
+    "backend/result_storage.py",
     "backend/process_runner.py",
     "scripts/train_xgboost_tracked.py",
     "scripts/check_model_gate.py",

@@ -38,6 +38,7 @@ def main():
         return 0
 
     sources = [
+        "backend/result_storage.py",
         "backend/process_runner.py",
         "backend/retraining_worker.py",
         "backend/retraining_queue.py",
