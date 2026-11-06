@@ -49,6 +49,26 @@ footer{margin:22px 0;font-size:13px;color:#53677a}
 </header>
 
 <main>
+<section class="card" style="margin-bottom:22px" aria-labelledby="connection-title">
+<h2 id="connection-title">API connection</h2>
+<form id="api-config">
+<fieldset id="connection-fields">
+<label for="api-origin">Local API address</label>
+<input id="api-origin" type="url" required
+       placeholder="http://127.0.0.1:8000"
+       aria-describedby="api-config-note">
+<p id="api-config-note" class="note">Use the prediction and explanation API,
+normally on port 8000. The address is remembered in this browser;
+transaction inputs are not saved.</p>
+<div class="actions">
+<button type="submit">Apply and check connection</button>
+<button id="api-reset" type="button" class="secondary">Restore default</button>
+</div>
+</fieldset>
+</form>
+<p id="api-config-message" class="note" role="status"></p>
+<p id="api-config-error" role="alert" style="color:#a52c26" hidden></p>
+</section>
 <div class="layout">
 <section class="card">
 <h2>Review a transaction</h2>
@@ -106,7 +126,32 @@ not real payment authorization.</footer>
 
 <script>
 "use strict";
-const API = "http://127.0.0.1:8000";
+const DEFAULT_API = "http://127.0.0.1:8000";
+const API_STORAGE_KEY = "fraudshield.apiOrigin";
+
+function normalizeAPI(value) {
+  let url;
+  try {
+    url = new URL(value.trim());
+  } catch {
+    throw new Error("Enter a complete local API address, such as http://127.0.0.1:8000.");
+  }
+  if (!["http:", "https:"].includes(url.protocol) ||
+      !["127.0.0.1", "localhost"].includes(url.hostname) ||
+      url.username || url.password || url.search || url.hash ||
+      url.pathname !== "/") {
+    throw new Error("Use an HTTP or HTTPS localhost address with an optional port, without credentials, a path, query or fragment.");
+  }
+  return url.origin;
+}
+
+let API = DEFAULT_API;
+try {
+  const saved = localStorage.getItem(API_STORAGE_KEY);
+  if (saved) API = normalizeAPI(saved);
+} catch {
+  API = DEFAULT_API;
+}
 const $ = id => document.getElementById(id);
 const names = {
   log_amount: "Log transaction amount",
@@ -120,6 +165,7 @@ const names = {
   type_DEBIT: "DEBIT indicator"
 };
 let busy = false;
+let healthGeneration = 0;
 
 function clearResult() {
   $("result").hidden = true;
@@ -153,13 +199,39 @@ async function request(path, payload) {
 }
 
 async function checkHealth() {
+  const origin = API;
+  const generation = ++healthGeneration;
+  $("status").textContent = `Checking API · ${origin}`;
   try {
     const data = await request("/health");
+    if (generation !== healthGeneration || origin !== API) return;
     $("status").textContent = data.status === "ready"
-      ? `API ready · ${data.model_name} · version ${data.model_version}`
-      : "API is not ready";
+      ? `API ready · ${data.model_name} · version ${data.model_version} · ${origin}`
+      : `API is not ready · ${origin}`;
   } catch {
-    $("status").textContent = "API unavailable — check the backend terminal";
+    if (generation !== healthGeneration || origin !== API) return;
+    $("status").textContent = `API unavailable · ${origin} — check the address and backend`;
+  }
+}
+
+function applyAPI(value) {
+  if (busy) return;
+  $("api-config-error").hidden = true;
+  try {
+    const normalized = normalizeAPI(value);
+    API = normalized;
+    $("api-origin").value = API;
+    clearResult();
+    try {
+      localStorage.setItem(API_STORAGE_KEY, API);
+      $("api-config-message").textContent = "API address applied and saved in this browser.";
+    } catch {
+      $("api-config-message").textContent = "API address applied for this page; browser storage is unavailable.";
+    }
+    checkHealth();
+  } catch (error) {
+    $("api-config-error").textContent = error.message;
+    $("api-config-error").hidden = false;
   }
 }
 
@@ -179,6 +251,7 @@ async function run(explain) {
   }
   busy = true;
   $("fields").disabled = true;
+  $("connection-fields").disabled = true;
   $("empty").textContent = explain ? "Calculating explanation…" : "Checking…";
   try {
     const data = await request(explain ? "/explain" : "/predict", payload);
@@ -220,8 +293,16 @@ async function run(explain) {
   } finally {
     busy = false;
     $("fields").disabled = false;
+    $("connection-fields").disabled = false;
   }
 }
+
+$("api-origin").value = API;
+$("api-config").addEventListener("submit", event => {
+  event.preventDefault();
+  applyAPI($("api-origin").value);
+});
+$("api-reset").addEventListener("click", () => applyAPI(DEFAULT_API));
 
 $("form").addEventListener("submit", event => {
   event.preventDefault();
