@@ -1,0 +1,38 @@
+{
+  "scope": "MLflow-managed Conda tests and validation gate",
+  "configuration_commit": "e789920",
+  "runs": {
+    "gate": {
+      "run_id": "9422b97a04f546d587e4fd10cdaad5c8",
+      "status": "FINISHED",
+      "start_time_ms": 1793990766536,
+      "end_time_ms": 1793991095347,
+      "recorded_git_commit": "9985b474b1a1a463954a161f04319c042b0cea75",
+      "entry_point": "gate"
+    },
+    "tests": {
+      "run_id": "63795696d775469b88acb8cd25ecc113",
+      "status": "FINISHED",
+      "start_time_ms": 1793991763422,
+      "end_time_ms": 1793991803304,
+      "recorded_git_commit": "9985b474b1a1a463954a161f04319c042b0cea75",
+      "entry_point": "tests"
+    }
+  },
+  "tests_observed": {
+    "total": 110,
+    "failures": 0,
+    "seconds": 28.363
+  },
+  "configuration_sha256": {
+    "MLproject": "04c9a23799b551214d4a9ded3da0062f9d1f9fd2c045cd8947c0ef0d3c5fa9ee",
+    "conda-project.yaml": "46241ef94edbb605518e70bba4da39e7b39b44b0927ec2bf0ea717f35968d7b7",
+    "requirements-project.lock.txt": "b2c20ef44164f43c4444fc448b6f46416c0d0f6c69c2b3d6afb43752818d1954"
+  },
+  "limitations": [
+    "Runs preceded the configuration commit.",
+    "Test count and duration come from observed console output.",
+    "CI and DVC pipeline entry points still use existing local environments.",
+    "Java and other host prerequisites are not provisioned by this Conda file."
+  ]
+}

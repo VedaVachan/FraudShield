@@ -137,3 +137,13 @@ Manual case U03 passed: after applying `http://localhost:8000` inside
 the transaction page and reloading, the address remained selected and
 the header showed API ready. The `/health` and `/docs` pages also loaded.
 This supersedes the earlier pending U03 status.
+
+## MLproject environment verification
+
+MLflow created the declared Conda environment and successfully ran the gate
+and all 110 tests (28.363 seconds, zero failures). Run records and configuration
+checksums are in `reports/mlproject_environment_verification.json`.
+The configuration was subsequently committed as `e789920`.
+CI and DVC retain their separate existing environments; host Java remains
+a prerequisite. This verifies the test/gate environment, not complete
+fresh-machine or deployment-environment parity.
