@@ -19,6 +19,11 @@ ROOT = job.ROOT
 RECEIPT = ROOT / "reports/mlflow_tracked_xgboost.json"
 SOURCES = [
     "scripts/train_xgboost_tracked.py",
+    "scripts/check_model_gate.py",
+    "scripts/run_retraining_worker.py",
+    "scripts/enqueue_drift_requests.py",
+    "backend/retraining_worker.py",
+    "backend/retraining_queue.py",
     "scripts/train_xgboost.py",
     "scripts/train_logreg.py",
     "scripts/train_logreg_dvc.py",
