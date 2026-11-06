@@ -1,0 +1,8 @@
+name: fraudshield-project
+channels:
+- defaults
+dependencies:
+- python=3.11.17
+- pip=24.0
+- pip:
+  - -r requirements-project.lock.txt

@@ -1,11 +1,13 @@
 name: FraudShield
-
 entry_points:
   ci:
-    command: ".venv/bin/python scripts/run_ci.py"
-
+    command: .venv/bin/python scripts/run_ci.py
   pipeline:
-    command: "runtime/dvc-venv/bin/dvc repro"
-
+    command: runtime/dvc-venv/bin/dvc repro
   gate:
-    command: ".venv/bin/python scripts/check_model_gate.py"
+    command: python scripts/check_model_gate.py
+  tests:
+    command: env PYTHONPATH=src:. SPARK_LOCAL_IP=127.0.0.1 PYSPARK_PYTHON=python PYSPARK_DRIVER_PYTHON=python
+      PYSPARK_SUBMIT_ARGS='--driver-memory 1g pyspark-shell' OMP_NUM_THREADS=2 OPENBLAS_NUM_THREADS=2
+      MKL_NUM_THREADS=2 python -m unittest discover -s tests -v
+conda_env: conda-project.yaml
