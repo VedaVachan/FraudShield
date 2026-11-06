@@ -1,10 +1,34 @@
 """Synchronous MLflow client for use from synchronous API handlers."""
 
 import json
+import logging
 import math
-from urllib.error import URLError
+from time import perf_counter
+from urllib.error import HTTPError, URLError
 from urllib.parse import urlsplit
 from urllib.request import ProxyHandler, Request, build_opener
+
+
+LOGGER = logging.getLogger(__name__)
+
+
+def log_failure(url, started, exc):
+    reason = getattr(exc, "reason", None)
+    if isinstance(exc, TimeoutError) or isinstance(reason, TimeoutError):
+        category = "timeout"
+    elif isinstance(exc, HTTPError):
+        category = "upstream_http_error"
+    elif isinstance(exc, URLError):
+        category = "connection_error"
+    elif isinstance(exc, OSError):
+        category = "transport_error"
+    else:
+        category = "invalid_response"
+    LOGGER.warning(
+        "Model upstream failure host=%s category=%s exception=%s elapsed_seconds=%.3f",
+        urlsplit(url).netloc, category, type(exc).__name__,
+        perf_counter() - started,
+    )
 
 
 class ModelServerError(RuntimeError):
@@ -54,6 +78,7 @@ class ModelClient:
             headers={"Content-Type": "application/json"},
             method="POST",
         )
+        started = perf_counter()
         try:
             with self.opener.open(request, timeout=self.timeout) as response:
                 if response.status != 200:
@@ -86,9 +111,11 @@ class ModelClient:
                 "threshold": float(threshold),
                 "predicted_fraud": decision,
             }
-        except ModelServerError:
+        except ModelServerError as exc:
+            log_failure(self.url, started, exc)
             raise
         except (URLError, OSError, ValueError, KeyError, TypeError) as exc:
+            log_failure(self.url, started, exc)
             raise ModelServerError(
                 "Model service is unavailable or returned an invalid response."
             ) from exc
