@@ -1,6 +1,7 @@
 """MLflow wrapper preserving the fitted pipeline and decision threshold."""
 
 import hashlib
+from io import BytesIO
 from pathlib import Path
 
 import joblib
@@ -15,15 +16,17 @@ class FraudShieldModel(mlflow.pyfunc.PythonModel):
 
     def load_context(self, context):
         path = Path(context.artifacts["bundle"])
-        actual = hashlib.sha256(path.read_bytes()).hexdigest()
+        payload = path.read_bytes()
+        actual = hashlib.sha256(payload).hexdigest()
         if actual != self.expected_sha256:
             raise ValueError("Model bundle checksum mismatch.")
 
-        bundle = joblib.load(path)
+        bundle = joblib.load(BytesIO(payload))
         self.pipeline = bundle["pipeline"]
         self.threshold = float(bundle["threshold"])
         if not np.isfinite(self.threshold) or not 0 <= self.threshold <= 1:
             raise ValueError("Invalid classification threshold.")
+        self.model_sha256 = actual
 
     def predict(self, context, model_input, params=None):
         scores = self.pipeline.predict_proba(model_input)[:, 1]
@@ -35,3 +38,12 @@ class FraudShieldModel(mlflow.pyfunc.PythonModel):
             "threshold": np.full(len(scores), self.threshold),
             "predicted_fraud": scores >= self.threshold,
         }, index=model_input.index)
+
+
+class IdentifiedFraudShieldModel(FraudShieldModel):
+    """Include the verified bundle hash in every prediction row."""
+
+    def predict(self, context, model_input, params=None):
+        result = super().predict(context, model_input, params)
+        result["model_sha256"] = self.model_sha256
+        return result
