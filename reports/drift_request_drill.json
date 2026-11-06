@@ -1,0 +1,59 @@
+{
+  "started_utc": "2026-11-06T10:17:40.237752+00:00",
+  "finished_utc": "2026-11-06T10:18:50.635974+00:00",
+  "scope": "Induced API input drift through alert delivery to request queue",
+  "shifted_predictions": 516,
+  "source_notification": {
+    "schema_version": 1,
+    "delivery_id": "85be3264-bc4f-4678-bc01-bc9d4b155785",
+    "received_utc": "2026-11-06T10:18:33.206555+00:00",
+    "status": "firing",
+    "alerts": [
+      {
+        "status": "firing",
+        "labels": {
+          "alertname": "FraudShieldInputDrift",
+          "severity": "warning",
+          "job": "fraudshield-api",
+          "instance": "api:8000",
+          "feature": "amount"
+        }
+      }
+    ]
+  },
+  "queued_request": {
+    "request_id": "418aa34f-fc6b-4228-9a26-f59be1879c26",
+    "scope": "fraudshield-api/api:8000",
+    "created_at": 1793960314.471749,
+    "status": "queued",
+    "source_delivery_id": "85be3264-bc4f-4678-bc01-bc9d4b155785",
+    "evidence_json": {
+      "alertname": "FraudShieldInputDrift",
+      "features": [
+        "amount"
+      ],
+      "receiver_delivery_id": "85be3264-bc4f-4678-bc01-bc9d4b155785",
+      "receiver_received_utc": "2026-11-06T10:18:33.206555+00:00",
+      "training_data_policy": "existing approved train/validation splits",
+      "automatic_promotion": false
+    }
+  },
+  "recovered_drift_scores": {
+    "type": 0.0014660446790015552,
+    "amount": 0.0012183876144831742,
+    "oldbalanceOrg": 0.001898443063284857
+  },
+  "api_model_before": {
+    "status": "ready",
+    "model_name": "FraudShield-XGBoost",
+    "model_version": "1",
+    "model_sha256": "1d2df49373788c5b1e554ec9ab9cfc346cc0feb1e13406bc0cd93b1594518bcb"
+  },
+  "api_model_after": {
+    "status": "ready",
+    "model_name": "FraudShield-XGBoost",
+    "model_version": "1",
+    "model_sha256": "1d2df49373788c5b1e554ec9ab9cfc346cc0feb1e13406bc0cd93b1594518bcb"
+  },
+  "training_started": false
+}

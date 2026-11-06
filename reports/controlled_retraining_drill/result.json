@@ -1,0 +1,29 @@
+{
+  "request_id": "418aa34f-fc6b-4228-9a26-f59be1879c26",
+  "started_utc": "2026-11-06T10:20:12.404977+00:00",
+  "status": "succeeded",
+  "scope": "candidate training and validation gate",
+  "registered_or_promoted": false,
+  "training_command": [
+    "/home/vedavachan/projects/fraudshield/.venv/bin/python",
+    "/home/vedavachan/projects/fraudshield/scripts/train_xgboost_tracked.py",
+    "--receipt",
+    "/home/vedavachan/projects/fraudshield/runtime/retraining/runs/418aa34f-fc6b-4228-9a26-f59be1879c26/training_receipt.json",
+    "--trigger",
+    "controlled_drift",
+    "--request-id",
+    "418aa34f-fc6b-4228-9a26-f59be1879c26"
+  ],
+  "training_exit_code": 0,
+  "gate_command": [
+    "/home/vedavachan/projects/fraudshield/.venv/bin/python",
+    "/home/vedavachan/projects/fraudshield/scripts/check_model_gate.py",
+    "--model-dir",
+    "/home/vedavachan/projects/fraudshield/artifacts/xgboost_tracked/6354dedb1a8f4360b22553f9e147fa06"
+  ],
+  "gate_exit_code": 0,
+  "mlflow_run_id": "6354dedb1a8f4360b22553f9e147fa06",
+  "model_sha256": "cb69091fce02570dd1fe85add2dd67caee400cc81633e3d62ac9d4ffddd27f66",
+  "finished_utc": "2026-11-06T10:23:34.237180+00:00",
+  "worker_sha256": "be48524b953cb726d1de821a5f96a9573bebacf678d85a777c4218493bd4ce0e"
+}

@@ -1,0 +1,128 @@
+2026/11/06 15:50:32 INFO mlflow.store.db.utils: Creating initial MLflow database tables...
+2026/11/06 15:50:32 INFO mlflow.store.db.utils: Updating database tables
+INFO  [alembic.runtime.migration] Context impl SQLiteImpl.
+INFO  [alembic.runtime.migration] Will assume non-transactional DDL.
+INFO  [alembic.runtime.migration] Context impl SQLiteImpl.
+INFO  [alembic.runtime.migration] Will assume non-transactional DDL.
+Loading training data...
+train: verified and loaded 6,082,007 Parquet rows
+Loading validation data...
+validation: verified and loaded 191,147 Parquet rows
+Training XGBoost on CPU...
+[0]	validation_0-aucpr:0.76350
+[25]	validation_0-aucpr:0.98405
+[50]	validation_0-aucpr:0.98598
+[75]	validation_0-aucpr:0.98653
+[100]	validation_0-aucpr:0.98737
+[125]	validation_0-aucpr:0.98784
+[150]	validation_0-aucpr:0.98822
+[175]	validation_0-aucpr:0.98835
+[200]	validation_0-aucpr:0.98864
+[225]	validation_0-aucpr:0.98882
+[250]	validation_0-aucpr:0.98864
+[253]	validation_0-aucpr:0.98869
+{
+  "model": "xgboost",
+  "evaluation_split": "validation",
+  "test_evaluated": false,
+  "threshold_selection": "maximum validation F1; higher threshold on ties",
+  "train_rows": 6082007,
+  "validation_rows": 191147,
+  "validation_fraud_rate": 0.006173259323975788,
+  "average_precision": 0.9885092189234228,
+  "pr_auc_trapezoidal": 0.9889429024225914,
+  "at_0_5": {
+    "threshold": 0.5,
+    "precision": 0.9284028324154209,
+    "recall": 1.0,
+    "f1": 0.9628722970216238,
+    "confusion_matrix": [
+      [
+        189876,
+        91
+      ],
+      [
+        0,
+        1180
+      ]
+    ],
+    "predicted_fraud_rate": 0.006649332712519684
+  },
+  "at_selected_threshold": {
+    "threshold": 0.9105643033981323,
+    "precision": 0.9284028324154209,
+    "recall": 1.0,
+    "f1": 0.9628722970216238,
+    "confusion_matrix": [
+      [
+        189876,
+        91
+      ],
+      [
+        0,
+        1180
+      ]
+    ],
+    "predicted_fraud_rate": 0.006649332712519684
+  },
+  "confusion_matrix_layout": "[[TN, FP], [FN, TP]]",
+  "fit_seconds": 127.35938466100015,
+  "best_iteration_zero_based": 228,
+  "best_validation_aucpr_xgboost": 0.9889381683437747,
+  "rounds_trained": 254,
+  "feature_names": [
+    "log_amount",
+    "log_sender_balance",
+    "amount_balance_fraction",
+    "amount_exceeds_balance",
+    "type_CASH_IN",
+    "type_CASH_OUT",
+    "type_DEBIT",
+    "type_PAYMENT",
+    "type_TRANSFER"
+  ],
+  "training_parameters": {
+    "objective": "binary:logistic",
+    "eval_metric": "aucpr",
+    "tree_method": "hist",
+    "device": "cpu",
+    "n_jobs": 2,
+    "n_estimators": 300,
+    "max_depth": 4,
+    "learning_rate": 0.05,
+    "min_child_weight": 5,
+    "subsample": 0.8,
+    "colsample_bytree": 1.0,
+    "max_bin": 256,
+    "reg_lambda": 1.0,
+    "scale_pos_weight": 32.42018394887693,
+    "early_stopping_rounds": 25,
+    "random_state": 42
+  },
+  "xgboost_version": "3.0.5",
+  "source_sha256": "16910f90577b0d981bf8ff289714510bb89bc71bff7d3f220f024e287e4eea6b",
+  "split_sha256": {
+    "train": "3efb47c1a284052b85c9c794776a21415eb30ab162dce581222fcf5d419c4204",
+    "validation": "6750a526d889cd77c4edd14ba09a55a62f7a97293e9d9636e9db4ba4657f0538"
+  },
+  "model_sha256": "cb69091fce02570dd1fe85add2dd67caee400cc81633e3d62ac9d4ffddd27f66",
+  "serialization_check": "PASS",
+  "total_seconds": 175.17396441900019
+}
+PASS: XGBoost training, validation, pipeline parity, and reload.
+Test set was not opened.
+{
+  "run_id": "6354dedb1a8f4360b22553f9e147fa06",
+  "run_type": "training",
+  "trigger": "controlled_drift",
+  "retraining_request_id": "418aa34f-fc6b-4228-9a26-f59be1879c26",
+  "training_code_commit": "98a4b5bce0384aed05883066e46a52e10a51e7fa",
+  "model_path": "artifacts/xgboost_tracked/6354dedb1a8f4360b22553f9e147fa06/model.joblib",
+  "model_sha256": "cb69091fce02570dd1fe85add2dd67caee400cc81633e3d62ac9d4ffddd27f66",
+  "validation_report": "artifacts/xgboost_tracked/6354dedb1a8f4360b22553f9e147fa06/validation.json",
+  "validation_average_precision": 0.9885092189234228,
+  "metric_readback": "PASS",
+  "artifact_checksum": "PASS",
+  "test_evaluated": false,
+  "registered_or_promoted": false
+}

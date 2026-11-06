@@ -1,0 +1,21 @@
+{
+  "status": "PASS",
+  "scope": "saved validation report and model checksum",
+  "policy": {
+    "average_precision": 0.85,
+    "precision": 0.7,
+    "recall": 0.9
+  },
+  "measured": {
+    "average_precision": 0.9885092189234228,
+    "precision": 0.9284028324154209,
+    "recall": 1.0,
+    "threshold": 0.9105643033981323
+  },
+  "identity": {
+    "report_sha256": "cf796e19e7c10a950b0e485592406a3ac3063990cf460a1f345a06626ea72fae",
+    "model_sha256": "cb69091fce02570dd1fe85add2dd67caee400cc81633e3d62ac9d4ffddd27f66"
+  },
+  "failures": [],
+  "test_set_opened": false
+}

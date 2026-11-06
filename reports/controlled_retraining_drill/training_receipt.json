@@ -1,0 +1,15 @@
+{
+  "run_id": "6354dedb1a8f4360b22553f9e147fa06",
+  "run_type": "training",
+  "trigger": "controlled_drift",
+  "retraining_request_id": "418aa34f-fc6b-4228-9a26-f59be1879c26",
+  "training_code_commit": "98a4b5bce0384aed05883066e46a52e10a51e7fa",
+  "model_path": "artifacts/xgboost_tracked/6354dedb1a8f4360b22553f9e147fa06/model.joblib",
+  "model_sha256": "cb69091fce02570dd1fe85add2dd67caee400cc81633e3d62ac9d4ffddd27f66",
+  "validation_report": "artifacts/xgboost_tracked/6354dedb1a8f4360b22553f9e147fa06/validation.json",
+  "validation_average_precision": 0.9885092189234228,
+  "metric_readback": "PASS",
+  "artifact_checksum": "PASS",
+  "test_evaluated": false,
+  "registered_or_promoted": false
+}

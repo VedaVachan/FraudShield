@@ -1,0 +1,29 @@
+{
+  "verified_utc": "2026-11-06T10:30:24.204057+00:00",
+  "request_id": "418aa34f-fc6b-4228-9a26-f59be1879c26",
+  "queue_status": "succeeded",
+  "candidate_sha256": "cb69091fce02570dd1fe85add2dd67caee400cc81633e3d62ac9d4ffddd27f66",
+  "gate_measured": {
+    "average_precision": 0.9885092189234228,
+    "precision": 0.9284028324154209,
+    "recall": 1.0,
+    "threshold": 0.9105643033981323
+  },
+  "deployed_api_health": {
+    "status": "ready",
+    "model_name": "FraudShield-XGBoost",
+    "model_version": "1",
+    "model_sha256": "1d2df49373788c5b1e554ec9ab9cfc346cc0feb1e13406bc0cd93b1594518bcb"
+  },
+  "gateway_routing": {
+    "canary_weight": 0,
+    "challenger_configured": true,
+    "fallback_attempts": 0,
+    "rollback_on_failure": true,
+    "automatic_rollbacks": 0
+  },
+  "deployed_api_model_unchanged": true,
+  "scope": "Drift-triggered request with operator-started candidate training",
+  "training_data": "Existing approved train/validation splits",
+  "drift_remediation_effectiveness_established": false
+}
