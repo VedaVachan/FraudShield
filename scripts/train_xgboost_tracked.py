@@ -3,6 +3,7 @@
 import train_xgboost as job
 from train_logreg_dvc import PREPARED, SPLITS, load_parquet_split
 
+import argparse
 import hashlib
 from importlib.metadata import version
 import json
@@ -39,8 +40,14 @@ def source_hashes():
     return {name: job.sha256(ROOT / name) for name in SOURCES}
 
 
-def main():
-    if RECEIPT.exists():
+def main(*, receipt_path=RECEIPT,
+         trigger="manual_reproducibility_check", request_id=None):
+    receipt_path = Path(receipt_path)
+    if trigger not in ("manual_reproducibility_check", "controlled_drift"):
+        raise ValueError("Unsupported training trigger.")
+    if trigger == "controlled_drift" and not request_id:
+        raise ValueError("Controlled retraining requires a request ID.")
+    if receipt_path.exists():
         raise SystemExit("STOP: tracked-training receipt already exists.")
 
     # Require the training sources to be committed and unchanged.
@@ -100,7 +107,8 @@ def main():
             "git_dirty": str(bool(git("status", "--porcelain"))).lower(),
             "evaluation_split": "validation",
             "test_evaluated": "false",
-            "trigger": "manual_reproducibility_check",
+            "trigger": trigger,
+            "retraining_request_id": request_id or "none",
         },
     ) as run:
         run_id = run.info.run_id
@@ -183,6 +191,8 @@ def main():
     receipt = {
         "run_id": run_id,
         "run_type": "training",
+        "trigger": trigger,
+        "retraining_request_id": request_id,
         "training_code_commit": commit,
         "model_path": model_path.relative_to(ROOT).as_posix(),
         "model_sha256": model_hash,
@@ -193,11 +203,20 @@ def main():
         "test_evaluated": False,
         "registered_or_promoted": False,
     }
-    with RECEIPT.open("x") as handle:
+    receipt_path.parent.mkdir(parents=True, exist_ok=True)
+    with receipt_path.open("x") as handle:
         json.dump(receipt, handle, indent=2)
         handle.write("\n")
     print(json.dumps(receipt, indent=2))
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--receipt", type=Path, default=RECEIPT)
+    parser.add_argument("--trigger", choices=(
+        "manual_reproducibility_check", "controlled_drift",
+    ), default="manual_reproducibility_check")
+    parser.add_argument("--request-id")
+    args = parser.parse_args()
+    main(receipt_path=args.receipt, trigger=args.trigger,
+         request_id=args.request_id)
