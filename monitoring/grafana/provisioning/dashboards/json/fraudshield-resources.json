@@ -1,0 +1,185 @@
+{
+  "uid": "fraudshield-resources",
+  "title": "FraudShield \u2014 VM and Container Resources",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "tags": [
+    "fraudshield",
+    "resources"
+  ],
+  "panels": [
+    {
+      "id": 1,
+      "title": "VM CPU busy",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "fraudshield-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "100 * (1 - avg(rate(node_cpu_seconds_total{job=\"fraudshield-node\",mode=\"idle\"}[5m])))",
+          "legendFormat": "VM"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "VM memory used",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "fraudshield-prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "100 * (1 - node_memory_MemAvailable_bytes{job=\"fraudshield-node\"} / node_memory_MemTotal_bytes{job=\"fraudshield-node\"})",
+          "legendFormat": "VM"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "VM root filesystem used",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "fraudshield-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "100 * (1 - node_filesystem_avail_bytes{job=\"fraudshield-node\",mountpoint=\"/\",fstype!~\"tmpfs|overlay\"} / node_filesystem_size_bytes{job=\"fraudshield-node\",mountpoint=\"/\",fstype!~\"tmpfs|overlay\"})",
+          "legendFormat": "Root filesystem"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Exporter scrape health",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "fraudshield-prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "up{job=~\"fraudshield-node|fraudshield-containers\"}",
+          "legendFormat": "{{job}}"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Container CPU usage \u2014 cores",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "fraudshield-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (name) (rate(container_cpu_usage_seconds_total{job=\"fraudshield-containers\",name!=\"\",container_label_com_docker_compose_project=~\"fraudshield|fraudshield-canary|fraudshield-alerts|fraudshield-resources\"}[5m]))",
+          "legendFormat": "{{name}}"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Container memory working set",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "fraudshield-prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max by (name) (container_memory_working_set_bytes{job=\"fraudshield-containers\",name!=\"\",container_label_com_docker_compose_project=~\"fraudshield|fraudshield-canary|fraudshield-alerts|fraudshield-resources\"})",
+          "legendFormat": "{{name}}"
+        }
+      ]
+    }
+  ]
+}

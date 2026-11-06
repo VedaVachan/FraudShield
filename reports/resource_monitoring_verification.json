@@ -1,0 +1,293 @@
+{
+  "checked_utc": "2026-11-06T19:21:26.656107+00:00",
+  "scope": "live resource metrics and dashboard query verification",
+  "dashboard_uid": "fraudshield-resources",
+  "panels": [
+    {
+      "panel": "VM CPU busy",
+      "query": "100 * (1 - avg(rate(node_cpu_seconds_total{job=\"fraudshield-node\",mode=\"idle\"}[5m])))",
+      "results": [
+        {
+          "metric": {},
+          "value": [
+            1793992886.597,
+            "34.31966175971412"
+          ]
+        }
+      ]
+    },
+    {
+      "panel": "VM memory used",
+      "query": "100 * (1 - node_memory_MemAvailable_bytes{job=\"fraudshield-node\"} / node_memory_MemTotal_bytes{job=\"fraudshield-node\"})",
+      "results": [
+        {
+          "metric": {
+            "instance": "fraudshield-node-exporter:9100",
+            "job": "fraudshield-node"
+          },
+          "value": [
+            1793992886.605,
+            "50.14170608415737"
+          ]
+        }
+      ]
+    },
+    {
+      "panel": "VM root filesystem used",
+      "query": "100 * (1 - node_filesystem_avail_bytes{job=\"fraudshield-node\",mountpoint=\"/\",fstype!~\"tmpfs|overlay\"} / node_filesystem_size_bytes{job=\"fraudshield-node\",mountpoint=\"/\",fstype!~\"tmpfs|overlay\"})",
+      "results": [
+        {
+          "metric": {
+            "device": "/dev/sda2",
+            "fstype": "ext4",
+            "instance": "fraudshield-node-exporter:9100",
+            "job": "fraudshield-node",
+            "mountpoint": "/"
+          },
+          "value": [
+            1793992886.609,
+            "60.14382254919719"
+          ]
+        }
+      ]
+    },
+    {
+      "panel": "Exporter scrape health",
+      "query": "up{job=~\"fraudshield-node|fraudshield-containers\"}",
+      "results": [
+        {
+          "metric": {
+            "__name__": "up",
+            "instance": "fraudshield-node-exporter:9100",
+            "job": "fraudshield-node"
+          },
+          "value": [
+            1793992886.634,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "__name__": "up",
+            "instance": "fraudshield-cadvisor:8080",
+            "job": "fraudshield-containers"
+          },
+          "value": [
+            1793992886.634,
+            "1"
+          ]
+        }
+      ]
+    },
+    {
+      "panel": "Container CPU usage \u2014 cores",
+      "query": "sum by (name) (rate(container_cpu_usage_seconds_total{job=\"fraudshield-containers\",name!=\"\",container_label_com_docker_compose_project=~\"fraudshield|fraudshield-canary|fraudshield-alerts|fraudshield-resources\"}[5m]))",
+      "results": [
+        {
+          "metric": {
+            "name": "fraudshield-api-1"
+          },
+          "value": [
+            1793992886.639,
+            "0.05019113668511513"
+          ]
+        },
+        {
+          "metric": {
+            "name": "fraudshield-canary-model-challenger-1"
+          },
+          "value": [
+            1793992886.639,
+            "0.04576199739420484"
+          ]
+        },
+        {
+          "metric": {
+            "name": "fraudshield-resources-cadvisor-1"
+          },
+          "value": [
+            1793992886.639,
+            "0.06446957846087789"
+          ]
+        },
+        {
+          "metric": {
+            "name": "fraudshield-frontend-1"
+          },
+          "value": [
+            1793992886.639,
+            "0.047975725919223354"
+          ]
+        },
+        {
+          "metric": {
+            "name": "fraudshield-alerts-fraudshield-alertmanager-1"
+          },
+          "value": [
+            1793992886.639,
+            "0.00023520269594454903"
+          ]
+        },
+        {
+          "metric": {
+            "name": "fraudshield-grafana-1"
+          },
+          "value": [
+            1793992886.639,
+            "0.06367381144225623"
+          ]
+        },
+        {
+          "metric": {
+            "name": "fraudshield-alerts-fraudshield-alert-receiver-1"
+          },
+          "value": [
+            1793992886.639,
+            "0.05014031329495169"
+          ]
+        },
+        {
+          "metric": {
+            "name": "fraudshield-canary-canary-gateway-1"
+          },
+          "value": [
+            1793992886.639,
+            "0.05361071561906055"
+          ]
+        },
+        {
+          "metric": {
+            "name": "fraudshield-canary-model-champion-1"
+          },
+          "value": [
+            1793992886.639,
+            "0.05492416461539628"
+          ]
+        },
+        {
+          "metric": {
+            "name": "fraudshield-prometheus-1"
+          },
+          "value": [
+            1793992886.639,
+            "0.019291315935804552"
+          ]
+        },
+        {
+          "metric": {
+            "name": "fraudshield-resources-node-exporter-1"
+          },
+          "value": [
+            1793992886.639,
+            "0.0005933186183010525"
+          ]
+        }
+      ]
+    },
+    {
+      "panel": "Container memory working set",
+      "query": "max by (name) (container_memory_working_set_bytes{job=\"fraudshield-containers\",name!=\"\",container_label_com_docker_compose_project=~\"fraudshield|fraudshield-canary|fraudshield-alerts|fraudshield-resources\"})",
+      "results": [
+        {
+          "metric": {
+            "name": "fraudshield-api-1"
+          },
+          "value": [
+            1793992886.653,
+            "151613440"
+          ]
+        },
+        {
+          "metric": {
+            "name": "fraudshield-canary-model-challenger-1"
+          },
+          "value": [
+            1793992886.653,
+            "318996480"
+          ]
+        },
+        {
+          "metric": {
+            "name": "fraudshield-resources-cadvisor-1"
+          },
+          "value": [
+            1793992886.653,
+            "201838592"
+          ]
+        },
+        {
+          "metric": {
+            "name": "fraudshield-frontend-1"
+          },
+          "value": [
+            1793992886.653,
+            "15925248"
+          ]
+        },
+        {
+          "metric": {
+            "name": "fraudshield-alerts-fraudshield-alertmanager-1"
+          },
+          "value": [
+            1793992886.653,
+            "11218944"
+          ]
+        },
+        {
+          "metric": {
+            "name": "fraudshield-grafana-1"
+          },
+          "value": [
+            1793992886.653,
+            "286306304"
+          ]
+        },
+        {
+          "metric": {
+            "name": "fraudshield-alerts-fraudshield-alert-receiver-1"
+          },
+          "value": [
+            1793992886.653,
+            "34062336"
+          ]
+        },
+        {
+          "metric": {
+            "name": "fraudshield-canary-canary-gateway-1"
+          },
+          "value": [
+            1793992886.653,
+            "121372672"
+          ]
+        },
+        {
+          "metric": {
+            "name": "fraudshield-canary-model-champion-1"
+          },
+          "value": [
+            1793992886.653,
+            "340783104"
+          ]
+        },
+        {
+          "metric": {
+            "name": "fraudshield-prometheus-1"
+          },
+          "value": [
+            1793992886.653,
+            "64937984"
+          ]
+        },
+        {
+          "metric": {
+            "name": "fraudshield-resources-node-exporter-1"
+          },
+          "value": [
+            1793992886.653,
+            "10616832"
+          ]
+        }
+      ]
+    }
+  ]
+}

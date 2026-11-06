@@ -1,0 +1,57 @@
+name: fraudshield-resources
+
+services:
+  node-exporter:
+    image: prom/node-exporter:v1.9.1
+    cpus: 0.25
+    mem_limit: 128m
+    read_only: true
+    pid: host
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    command:
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+      - --path.rootfs=/host/root
+      - --collector.disable-defaults
+      - --collector.cpu
+      - --collector.meminfo
+      - --collector.filesystem
+      - --collector.diskstats
+      - --collector.loadavg
+      - --collector.stat
+      - --collector.uname
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/host/root:ro,rslave
+    networks:
+      monitoring:
+        aliases:
+          - fraudshield-node-exporter
+
+  cadvisor:
+    image: ghcr.io/google/cadvisor:0.55.1
+    cpus: 0.5
+    mem_limit: 384m
+    privileged: true
+    cgroup: host
+    command:
+      - --docker_only=true
+      - --housekeeping_interval=30s
+      - --store_container_labels=true
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+    networks:
+      monitoring:
+        aliases:
+          - fraudshield-cadvisor
+
+networks:
+  monitoring:
+    external: true
+    name: fraudshield_default
