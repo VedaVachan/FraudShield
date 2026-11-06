@@ -1,6 +1,7 @@
 """Synchronous MLflow client for use from synchronous API handlers."""
 
 import json
+from http.client import HTTPException
 import logging
 import math
 from time import perf_counter
@@ -114,7 +115,7 @@ class ModelClient:
         except ModelServerError as exc:
             log_failure(self.url, started, exc)
             raise
-        except (URLError, OSError, ValueError, KeyError, TypeError) as exc:
+        except (HTTPException, URLError, OSError, ValueError, KeyError, TypeError) as exc:
             log_failure(self.url, started, exc)
             raise ModelServerError(
                 "Model service is unavailable or returned an invalid response."
