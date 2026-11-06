@@ -125,3 +125,15 @@ and review fresh-machine setup and course acceptance criteria against the actual
 rubric. Neither historical test counts nor later successful load runs resolve the
 earlier gateway failure finding. Container readiness and threshold consistency
 also do not establish per-response model artifact identity.
+
+## Final verification update
+
+At revision `187fb3a`, local CI run
+`bb6af575-7e9a-48a7-8046-aab57336728f` passed all 110 tests
+in 33.637 seconds. DVC reproduction succeeded with unchanged stages skipped.
+Records and logs are preserved in `reports/final_ci/`.
+
+Manual case U03 passed: after applying `http://localhost:8000` inside
+the transaction page and reloading, the address remained selected and
+the header showed API ready. The `/health` and `/docs` pages also loaded.
+This supersedes the earlier pending U03 status.
