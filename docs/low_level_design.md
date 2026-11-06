@@ -1,183 +1,241 @@
 # FraudShield Low-Level Design
 
-## API address and input
+## Direct API request contract
 
-Base URL: http://127.0.0.1:8000
-Scoring requests use Content-Type: application/json.
+Base URL: `http://127.0.0.1:8000`. Scoring uses JSON with exactly these fields:
 
-POST /predict and POST /explain require exactly these fields:
-
-| Field | Type | Constraint |
-|---|---|---|
-| type | string | CASH_IN, CASH_OUT, DEBIT, PAYMENT or TRANSFER |
-| amount | number | Finite and nonnegative |
-| oldbalanceOrg | number | Finite and nonnegative |
+| Field | Constraint |
+|---|---|
+| `type` | CASH_IN, CASH_OUT, DEBIT, PAYMENT or TRANSFER |
+| `amount` | Finite, nonnegative number |
+| `oldbalanceOrg` | Finite, nonnegative number |
 
 Additional fields are forbidden. Amount and balance use the same monetary unit.
+Example: `{"type":"TRANSFER","amount":100000,"oldbalanceOrg":100000}`.
 
-Example request:
-{"type":"TRANSFER","amount":100000,"oldbalanceOrg":100000}
-
-## Endpoint catalogue
-
-| Method | Path | Purpose | Expected status |
-|---|---|---|---|
-| POST | /predict | Score one transaction | 200; invalid input 422 |
-| POST | /explain | Score and explain one transaction | 200; invalid input 422 |
-| GET | /health | Readiness and model identity | 200 ready; 503 not ready |
-| GET | /metrics | Prometheus text exposition | 200 |
-| GET | /docs | Interactive API documentation | 200 |
-| GET | /redoc | Alternative API documentation | 200 |
-| GET | /openapi.json | Generated OpenAPI schema | 200 |
-
-Unexpected inference failures can produce HTTP 500.
-A startup failure can prevent the server from accepting requests at all.
-
-Batch, feedback, pipeline-management and deployment-admin endpoints
-are planned extensions and are not part of this current contract.
-
-## Prediction response
-
-POST /predict returns:
-
-| Field | Type | Meaning |
+| Method | Path | Purpose and errors |
 |---|---|---|
-| score | number | Finite model score in [0, 1] |
-| threshold | number | Loaded decision threshold |
-| predicted_fraud | boolean | score >= threshold |
-| model_name | string | Model name from the verified receipt |
-| model_version | string | Model version from the verified receipt |
+| POST | `/predict` | Score one transaction; invalid input 422 |
+| POST | `/explain` | Score and explain; invalid input 422 |
+| GET | `/health` | Ready/model identity; not-ready 503 |
+| GET | `/metrics` | API Prometheus exposition |
+| GET | `/pipeline/runs` | Bounded, sanitized history; unavailable storage 503 |
+| GET | `/pipeline/summary` | Historical snapshot; missing/invalid snapshot 503 |
+| GET | `/docs`, `/redoc`, `/openapi.json` | API specification |
 
-The score is not represented as a calibrated fraud probability.
-The decision is a model assessment, not a confirmed fraud label.
+There is no API root homepage. Unexpected inference failures can return 500;
+startup failure can prevent connection entirely. Batch scoring, feedback and UI
+pipeline-launch endpoints are not implemented.
 
-## Explanation response
+## Response and explanation contracts
 
-POST /explain returns all prediction fields, plus:
+Prediction returns `score`, `threshold`, boolean `predicted_fraud`, `model_name`
+and `model_version`. Score and threshold are finite in [0,1]; decision is
+`score >= threshold`. Score is not claimed to be a calibrated fraud probability.
 
-| Field | Type | Meaning |
+Explanation adds `base_value`, `raw_margin`, `contribution_units` and
+`contributions`. Units are raw model log-odds. Each contribution has `feature`
+and `shap_log_odds`, sorted by descending absolute magnitude. Base value plus
+contributions approximately reconstructs raw margin. Contributions explain model
+behavior, not causality or confirmed fraud.
+
+Ready health contains `status="ready"`, model name/version and `model_sha256`.
+The documented direct-API not-ready body is `{"status":"not_ready"}` with 503.
+Invalid scoring input returns 422 with `{"detail":"Invalid transaction input."}`.
+Clients must not assume a structured JSON contract for unexpected 500 responses.
+
+## Direct API startup
+
+1. Read the XGBoost registry receipt and hash the original model bundle.
+2. Reject a checksum mismatch before loading the trusted bundle.
+3. Validate the threshold and its equality to the receipt threshold.
+4. Initialize pipeline, explainer, model identity and drift monitor.
+5. Set readiness; clear inference references and readiness at shutdown.
+
+This API loads its bundle directly. The optional gateway uses separate MLflow
+HTTP servers; the paths must not be conflated.
+
+## Feature order
+
+Inputs: `type`, `amount`, `oldbalanceOrg`.
+
+Output order: `log_amount`, `log_sender_balance`, `amount_balance_fraction`,
+`amount_exceeds_balance`, `type_CASH_IN`, `type_CASH_OUT`, `type_DEBIT`,
+`type_PAYMENT`, `type_TRANSFER`.
+
+The Python feature builder rejects schema and value violations. Spark parity
+checks cover supported transaction types and edge values.
+
+## Frontend connection and request state
+
+The page defaults to `http://127.0.0.1:8000`. `normalizeAPI` accepts HTTP(S)
+origins with hostname `localhost` or `127.0.0.1`, optional port and root path.
+It rejects credentials, non-root paths, queries and fragments. The normalized
+origin is persisted under `fraudshield.apiOrigin` when localStorage is available.
+Storage failure permits page-local use; invalid saved settings fall back to default.
+
+Applying a valid address clears the old assessment and checks health. Rejected
+input leaves the active connection unchanged. Health-check generations prevent
+older responses from overwriting newer state. Scoring disables transaction and
+connection controls; changing transaction inputs clears the previous result.
+Only the origin is persisted, not transaction values. The browser timeout is 20s.
+
+The UI is for the direct prediction/explanation API. Gateway responses do not
+contain the same model identity and explanation fields.
+
+Direct API CORS permits `http://127.0.0.1:8080` and `http://localhost:8080`, GET/POST,
+Content-Type, and no credentials. Changing the API destination does not add new
+browser origins to the server's CORS policy.
+
+## Direct API metrics and drift
+
+Request and latency metrics distinguish `/predict` and `/explain`. Request counts
+include invalid inputs and server failures. Successful decision counts are model
+outputs, not ground-truth fraud counts. Drift updates only after successful,
+completed direct `/predict` responses, excluding explanations and invalid inputs.
+
+The 500-observation window publishes after 100 samples and retains bucket indices.
+Each score is total variation: half the sum of absolute differences between recent
+and training bucket proportions. Numeric bucketing uses right-side cut insertion;
+type has fixed categories. Process restart clears the window.
+
+`FraudShieldInputDrift` requires a score above 0.20, recent prediction activity,
+API scrape health, and a 30-second sustained condition. See the actual PromQL in
+`monitoring/drift_rules.yml`. This policy is a demonstration, not calibrated accuracy
+monitoring. Gateway predictions do not enter this window.
+
+## Gateway routes and state
+
+Base URL: `http://127.0.0.1:8020`. One worker owns routing state.
+
+| Method | Path | Contract |
 |---|---|---|
-| base_value | number | Explanation baseline in raw model log-odds |
-| raw_margin | number | Explained model margin |
-| contribution_units | string | raw model log-odds |
-| contributions | array | Feature contributions |
+| GET | `/health` | Configuration status; does not probe scoring upstreams |
+| GET | `/routing` | Weight, challenger configuration and recovery counters |
+| GET | `/metrics` | Gateway Prometheus registry |
+| POST | `/predict` | Three transaction inputs; optional X-Transaction-ID |
+| POST | `/admin/canary` | Strict integer `weight` 0–100; X-API-Key required |
 
-Each contribution contains feature (string) and shap_log_odds (number).
-Contributions are sorted by descending absolute magnitude.
+Prediction adds `transaction_id`, `requested_route`, `route`, `fallback` and
+`rollback_triggered` to score/threshold/decision. Missing IDs are generated;
+supplied IDs must be nonblank and at most 128 characters. IDs select a route and
+are not passed to model servers. Gateway responses do not prove artifact identity.
 
-The base value plus contributions approximately reconstructs the raw margin.
-These contributions explain model behavior, not causal effects.
+Invalid transactions/IDs return 422. Model-client failures return generic 503.
+Invalid admin credentials return 401; unavailable canary configuration returns 409.
+The configured admin key must contain at least 32 characters; values are not logged.
 
-## Health and errors
+SHA-256 transaction-ID buckets determine traffic selection. A lock protects
+configuration; HTTP calls run outside it. On eligible challenger failure, automatic
+removal occurs before one champion fallback attempt. If champion also fails, the
+error propagates without a retry loop. Configuration generations prevent stale
+failures from disabling a newer routing configuration. In-flight calls can finish.
 
-Ready health response contains:
-status="ready", model_name, model_version and model_sha256.
+## Upstream client and gateway metric semantics
 
-Not-ready response:
-HTTP 503 with {"status":"not_ready"}.
+The synchronous client ignores proxy environment variables for local upstreams.
+It bounds response bytes, checks one-row shape, finite score/threshold, exact
+expected threshold and boolean decision consistency. Configured timeout is separate
+from browser timeout. Sanitized warnings expose host, error category, exception
+class and elapsed time, without transaction values or exception-message text.
 
-Invalid scoring input:
-HTTP 422 with {"detail":"Invalid transaction input."}.
+| Metric | Meaning |
+|---|---|
+| `fraudshield_gateway_requests_total` | POST prediction requests by HTTP status |
+| `fraudshield_gateway_request_duration_seconds` | Duration including upstream HTTP and fallback |
+| `fraudshield_gateway_scoring_results_total` | Successful scoring results by requested/actual route and fallback |
+| `fraudshield_gateway_canary_weight_percent` | Configured challenger percentage |
+| `fraudshield_gateway_fallback_attempts_total` | Fallback attempts, even if champion also fails |
+| `fraudshield_gateway_automatic_removals_total` | Automatic changes removing challenger traffic |
 
-Validation errors do not echo transaction values or arbitrary field names.
-Clients must not assume a structured JSON contract for unexpected HTTP 500 errors.
+Scoring-result counts are not guaranteed client delivery or confirmed fraud counts.
+Routing state and counters reset with the gateway process. Metrics scrapes are not
+prediction requests; each app instance has an isolated metrics registry.
 
-## Startup and shutdown
+## Alert receiver and request scanner
 
-1. Read reports/mlflow_registry.json and its XGBoost receipt.
-2. Hash artifacts/xgboost_v1/model.joblib.
-3. Reject a checksum mismatch.
-4. Load the trusted bundle.
-5. Validate that its threshold is finite, in [0, 1], and matches the receipt.
-6. Initialize the pipeline, explainer, identity and drift monitor.
-7. Set readiness to true.
-8. On shutdown, clear readiness and inference references.
+The internal receiver accepts POST `/alerts`, at most 65536 body bytes and 1–20
+alerts. Notification and alert status must be firing/resolved. It retains approved
+labels, assigns a delivery UUID, appends JSONL, flushes and fsyncs before replying.
+Malformed input returns 422, oversized input 413, storage failure generic 503.
+Its `/health` reports configuration, not a storage-write guarantee. Retries can
+produce multiple delivery records; the receiver is not an exactly-once transport.
 
-The API directly loads the bundle; it currently does not call a separate
-MLflow model-serving process.
+Alertmanager routes local notifications with resolved delivery enabled. No host
+ports are published for these services. Actual config is in `monitoring/alertmanager.yml`.
 
-## Features
+The host scanner reads the latest 1 MiB of history, skips incomplete/invalid records
+and naive timestamps, and accepts a 15-minute age window with up to 60s future skew.
+It accepts firing `FraudShieldInputDrift`, job `fraudshield-api`, supported features
+and a valid instance. Synthetic delivery checks and resolved notifications are ignored.
 
-Input columns: type, amount, oldbalanceOrg.
+## Queue and worker state machine
 
-Output order:
-log_amount, log_sender_balance, amount_balance_fraction,
-amount_exceeds_balance, type_CASH_IN, type_CASH_OUT, type_DEBIT,
-type_PAYMENT, type_TRANSFER.
+SQLite transactions deduplicate delivery IDs. A partial unique index enforces one
+queued/running request per API instance. A one-hour cooldown uses request creation
+time, including after terminal completion. Evidence groups supported features from
+the same instance within a notification. New deliveries during an active request
+are suppressed rather than launching parallel work.
 
-The Python feature builder rejects extra or missing columns and invalid values.
-Spark feature parity is checked separately.
+```mermaid
+stateDiagram-v2
+    [*] --> queued: Eligible notification
+    queued --> running: Explicit worker claim
+    running --> succeeded: Training and gate pass
+    running --> rejected: Gate returns FAIL
+    running --> failed: Training or verification error
+```
 
-## Frontend behavior
+The worker takes an explicit request ID and a global process lock. CLI preflight
+requires tracked, unchanged worker/gate/trainer sources. It trains into a new MLflow
+artifact directory with a separate receipt, checks request identity and confines
+candidate paths. Training timeout is 900s; gate timeout is 60s. Logs and result
+are saved under `runtime/retraining/runs/REQUEST_ID/`.
 
-The frontend currently uses http://127.0.0.1:8000 as a hardcoded base URL.
-The browser sends requests directly to the API.
+Terminal evidence is flushed before updating queue state. Storage failure or process
+interruption can leave `running` for operator investigation; no automatic replay or
+resume is implemented. A non-queued request is refused. `succeeded` means candidate
+training and gate success, not registration, promotion or deployment.
 
-The page checks health when loaded.
-Users choose Check transaction or Check + explain.
-Form controls are disabled while a scoring request runs.
-Requests have a 20-second browser timeout.
-Changing inputs clears the previous assessment.
+Gate floors: AP 0.85, precision 0.70, recall 0.90. It checks saved validation scope,
+finite values, serialization status and model checksum. It does not independently
+re-evaluate the dataset, establish superiority over champion or establish drift repair.
 
-The frontend uses browser validation and finite-number checks.
-Backend validation remains authoritative.
-Errors are displayed as text, with a further health check after scoring failures.
+## DVC and evidence contracts
 
-## CORS
+| Stage | Main output |
+|---|---|
+| spark_prepare | `data/processed/paysim_spark_dvc_v1` |
+| logreg_train | `artifacts/logreg_dvc_v1` |
+| xgboost_train | `artifacts/xgboost_dvc_v1` |
+| xgboost_validation_gate | `reports/xgboost_validation_gate.json` |
 
-Allowed origins:
-- http://127.0.0.1:8080
-- http://localhost:8080
+Exact dependency declarations are in `dvc.yaml`; recorded identities are in `dvc.lock`.
+Local CI appends actual command records and saves logs. Pipeline history exposes
+bounded sanitized fields, not raw commands/logs. The summary endpoint serves a saved
+report snapshot. Held-out evaluation, tuning and registration remain separate scripts.
 
-Allowed methods: GET and POST.
-Allowed request header: Content-Type.
-Credentials are disabled.
-
-## Metrics and drift semantics
-
-Scoring metrics distinguish /predict and /explain.
-Request counts include invalid inputs and server errors.
-Successful decision counts are not ground-truth fraud counts.
-
-Drift is updated from successful completed /predict requests.
-Explanations and invalid requests do not enter the drift window.
-
-The window holds 500 observations and requires 100 before publishing scores.
-Scores compare type, amount and sender-balance bucket distributions against
-the training reference using total variation.
-
-The service uses one worker. Drift state is in memory and resets on restart.
-
-## DVC stage contracts
-
-| Stage | Principal inputs | Output |
-|---|---|---|
-| spark_prepare | Raw CSV, preparation/feature code, dependency records | data/processed/paysim_spark_dvc_v1 |
-| logreg_train | Prepared data, training/feature code, dependency record | artifacts/logreg_dvc_v1 |
-| xgboost_train | Prepared data, training/helper/feature code, dependency record | artifacts/xgboost_dvc_v1 |
-
-The exact dependency declarations are in dvc.yaml.
-Content identities of the recorded run are in dvc.lock.
-Tuning, held-out evaluation and registration are currently separate scripts.
-
-## Source mapping
+## Configuration and source mapping
 
 | Responsibility | Source |
 |---|---|
-| Routes, schemas and lifecycle | backend/app.py |
-| Scoring middleware and metrics | backend/metrics.py |
-| Rolling drift | backend/drift.py |
-| Shared features | src/fraudshield/features.py |
-| Explanation engine | src/fraudshield/explanations.py |
+| Direct routes/schema/lifecycle | backend/app.py |
+| API metrics and drift | backend/metrics.py, backend/drift.py |
+| Pipeline history and snapshot | backend/pipeline.py |
+| Upstream client | backend/model_client.py |
+| Routing and gateway | backend/canary.py, backend/gateway.py, backend/gateway_server.py |
+| Gateway metrics | backend/gateway_metrics.py |
+| Receiver | backend/alert_receiver.py |
+| Queue/scanner | backend/retraining_queue.py, scripts/enqueue_drift_requests.py |
+| Worker | backend/retraining_worker.py, scripts/run_retraining_worker.py |
+| Features/explanations | src/fraudshield/features.py, src/fraudshield/explanations.py |
 | MLflow wrapper | src/fraudshield/mlflow_model.py |
-| Browser UI | frontend/index.html |
-| Deployment | compose.yaml |
+| Frontend/console | frontend/index.html, frontend/pipeline.html, frontend/pipeline_summary.js |
+| Deployment | compose.yaml, compose.canary.yaml, compose.alerts.yaml |
 
-## Configuration and specification follow-up
-
-The current model paths, CORS origins and browser API URL are defined in code.
-Compose defines ports, resource limits, health checks and artifact mounts.
-Its Grafana setup requires GRAFANA_ADMIN_PASSWORD from the local environment.
-
-A complete configuration reference, detailed metric catalogue and exported
-OpenAPI appendix will be updated as the planned management features are built.
+Direct API model paths/CORS remain code-defined. Gateway environment configuration
+includes CHAMPION_URL, CHALLENGER_URL, CHALLENGER_THRESHOLD, MODEL_TIMEOUT_SECONDS,
+GATEWAY_REGISTRY_FILE and GATEWAY_ADMIN_KEY_FILE. ALERT_HISTORY_FILE controls receiver
+storage. Compose defines resources, mounts and ports. Local UID/GID variables allow
+the canary/receiver services to access their bind mounts without running as root.
+Grafana's initial password comes from the ignored local environment.

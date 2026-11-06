@@ -1,107 +1,150 @@
 # FraudShield Architecture
 
-## Purpose
+## Purpose and verified scope
 
-FraudShield demonstrates local fraud scoring of synthetic PaySim transactions,
-with explanations, reproducible training, service monitoring and input drift
-detection. It does not authorize real payments.
+FraudShield is a local, CPU-based demonstration of fraud screening on synthetic
+PaySim transactions. It provides model assessments, SHAP explanations,
+reproducible baseline pipelines, monitored serving and controlled operations.
+It does not authorize real payments.
 
-## Offline training
+The main application and optional canary gateway are separate serving paths.
+The transaction frontend uses the direct API. Retraining produces a separate
+candidate and does not change either deployed model automatically.
 
-```mermaid
-flowchart TD
-    A["PaySim CSV: DVC tracked"] --> B["Spark validation and feature preparation"]
-    B --> C["Chronological Parquet splits"]
-    C --> D["Logistic regression"]
-    C --> E["XGBoost baseline"]
-    C --> F["Ray Tune experiments"]
-    D --> G["Model bundles and reports"]
-    E --> G
-    F --> G
-```
+## Data and baseline training
 
-DVC orchestrates Spark preparation and the two baseline training stages.
-Ray tuning and candidate refitting currently run through separate scripts.
-Validation data supports model and threshold selection.
-The frozen DVC XGBoost baseline was subsequently evaluated on held-out test data.
-
-## Online application
+Only `type`, `amount` and `oldbalanceOrg` enter the model. Shared Python and Spark
+feature implementations produce nine features with parity checks. Chronological
+splits separate training, validation and held-out evaluation.
 
 ```mermaid
 flowchart TD
-    U["User browser"] -->|"Load page"| F["Frontend container"]
-    U -->|"REST requests from page"| A["FastAPI container"]
-    M["Original model and registry receipt"] --> A
-    R["Training drift reference"] --> A
-    P["Prometheus"] -->|"Scrape metrics"| A
-    G["Grafana"] -->|"Query metrics"| P
+    D["DVC-tracked PaySim CSV"] --> S["Spark validation and Parquet preparation"]
+    S --> L["Logistic regression baseline"]
+    S --> X["XGBoost baseline"]
+    S --> R["Separate validation-only Ray Tune scripts"]
+    X --> A["DVC XGBoost artifact"]
+    A --> G["Saved-report validation gate"]
 ```
 
-The browser executes the frontend JavaScript and calls FastAPI directly.
-Frontend and inference are separate services connected through REST.
-The API base URL is currently hardcoded in the frontend.
+DVC orchestrates preparation, baseline training and the XGBoost validation gate.
+Tuning, held-out evaluation and registration use separate scripts. The local CI
+runner records test and DVC command outcomes; a cache hit is not a fresh training
+execution. MLproject supplies local CI, pipeline and gate entry points.
 
-## Components
+MLflow distinguishes historical imports, packaging runs and actual tracked
+training. Tracked training records code identity, source/data checksums, package
+versions, validation metrics and model artifacts.
 
-| Component | Responsibility |
-|---|---|
-| Validation scripts | Check dataset checksum, schema, values and statistics |
-| Spark preparation | Construct features and verify chronological Parquet outputs |
-| DVC | Version raw data and baseline preparation/training outputs |
-| Training scripts | Fit models and select thresholds on validation data |
-| Ray Tune | Compare four XGBoost configurations on validation data |
-| MLflow | Track historical original-model results and register packaged models |
-| FastAPI | Validate requests, score inputs, explain results and expose metrics |
-| Frontend | Collect transaction inputs and display assessments |
-| Drift monitor | Compare recent prediction-input buckets with training references |
-| Prometheus | Scrape metrics and evaluate input drift alerts |
-| Grafana | Display service and drift metrics |
+## Main application and read-only console
 
-## Local ports and connections
+The browser loads the static frontend on port 8080 and calls the direct FastAPI
+service on port 8000. The API verifies the original model bundle's checksum and
+threshold against its registry receipt before becoming ready. It loads the
+pipeline directly and serves prediction, explanation, readiness and metrics.
 
-| Service | Host address |
-|---|---|
-| Frontend | http://127.0.0.1:8080 |
-| FastAPI | http://127.0.0.1:8000 |
-| Prometheus | http://127.0.0.1:9095 |
-| Grafana | http://127.0.0.1:3010 |
+The transaction page accepts an HTTP(S) API origin whose hostname is `localhost`
+or `127.0.0.1`. It persists only that origin in browser localStorage, clears old
+assessments when the active origin changes and checks the selected API's health.
+It does not persist transaction inputs. The gateway is not a drop-in backend for
+this UI because its response and explanation contracts differ.
 
-Inside Compose, Prometheus scrapes api:8000 and Grafana queries prometheus:9090.
-Published service ports bind to localhost.
+The pipeline page displays sanitized command execution records and historical
+report snapshots. Its diagram describes configured DVC topology, not evidence
+that a new run occurred. Its MLflow evidence is a saved snapshot, not live queries.
 
-## Request flow
+## Optional canary serving path
 
-1. The browser collects type, amount and sender balance.
-2. FastAPI validates the three-field request.
-3. Shared feature logic transforms the input for the loaded model.
-4. The API returns a score, threshold, decision and model identity.
-5. The explanation endpoint also returns raw-log-odds feature contributions.
-6. Middleware records aggregate request metrics.
-7. Successful prediction requests update the process-local drift window.
+```mermaid
+flowchart TD
+    C["HTTP client"] --> W["Canary gateway"]
+    K["Local admin key"] --> W
+    W --> A["Champion MLflow server"]
+    W --> B["Challenger MLflow server"]
+    B -->|"Failure: one fallback attempt"| A
+    W --> S["Process-local traffic weight and counters"]
+```
 
-## State and persistence
+The gateway publishes port 8020. The two model servers have internal Docker
+addresses and no published host ports in this stack. Deterministic transaction-ID
+buckets select routes. Authorized changes set challenger weight. An eligible
+challenger failure removes subsequent challenger traffic and attempts one champion
+fallback. In-flight requests are not cancelled.
 
-- Model bundles and the registry receipt are read-only API bind mounts.
-- Prometheus time-series data uses the prometheus_data named volume.
-- Grafana settings and account state use the grafana_data named volume.
-- MLflow tracking and artifacts are stored under runtime/mlflow.
-- DVC maintains a local cache; off-machine recovery is not established.
-- The API drift window is process-local and resets on restart.
+This is automatic traffic removal, not artifact rollback or candidate promotion.
+Response validation checks numerical and decision consistency. A matching threshold
+does not establish upstream artifact identity. Startup challenger weight is zero.
+
+## Monitoring, delivery and controlled candidate training
+
+```mermaid
+flowchart TD
+    A["API and gateway metrics"] --> P["Prometheus"]
+    G["Grafana dashboards"] -->|"Query"| P
+    P --> M["Alertmanager"]
+    M --> R["Local notification receiver"]
+    R --> H["JSONL delivery history"]
+    H --> S["Host notification scanner"]
+    S --> Q["SQLite request queue"]
+    Q --> W["Operator-started worker"]
+    L["Global worker lock"] --> W
+    W --> T["Separate tracked candidate training"]
+    T --> V["Validation gate and saved outcome"]
+```
+
+The direct API's input drift monitor compares the last 500 successful prediction
+inputs with training bucket proportions, using total variation. It publishes
+scores after 100 observations. Gateway traffic does not update that window.
+
+Prometheus evaluates the drift rule; Alertmanager delivers firing and resolved
+notifications. The receiver persists approved fields. A host scanner queues
+recent firing drift notifications, deduplicates deliveries, permits one active
+request per API instance and applies a one-hour creation-time cooldown.
+
+An operator explicitly starts one queued request. The worker trains on approved
+train/validation data in a separate MLflow run and checks the saved validation
+report and candidate identity. It does not use the test split for decisions.
+Gate success leaves deployment unchanged. Continuous scanner/worker services and
+automatic promotion have not been installed and verified. The demonstration does
+not establish that retraining on existing data remedies a shifted distribution.
+
+## Deployment and persistence
+
+| Component group | Host endpoints | Persistent state |
+|---|---|---|
+| Main Compose stack | Frontend 8080, API 8000, Prometheus 9095, Grafana 3010 | Read-only model/receipt mounts; Prometheus and Grafana volumes |
+| Canary Compose stack | Gateway 8020; model servers internal | Exported MLflow packages and ignored admin key |
+| Alert Compose stack | Internal services; no host ports | Alertmanager volume and notification JSONL |
+| Host-side training | Explicit CLI commands | MLflow database/artifacts, SQLite queue and worker logs |
+
+Published ports bind to localhost. Optional stacks join `fraudshield_default`,
+so the main stack creates that network first. Grafana queries `prometheus:9090`.
+Prometheus scrapes `api:8000` and the gateway's monitoring-network alias on 8010.
+
+- API drift state and gateway weight/counters reset with their processes.
+- Notification deliveries live in `runtime/alerts/notifications.jsonl`.
+- Queue state lives in `runtime/retraining/queue.db`.
+- Worker evidence lives in `runtime/retraining/runs/REQUEST_ID/`.
+- MLflow tracking and artifacts live under `runtime/mlflow/`.
+- Exported serving packages live under `runtime/mlflow-serving/`.
+- Local DVC cache and runtime state are not an off-machine backup.
 
 ## Model identity boundaries
 
-The deployed API loads artifacts/xgboost_v1/model.joblib and verifies its
-checksum and threshold against reports/mlflow_registry.json.
+| Artifact | Role |
+|---|---|
+| `artifacts/xgboost_v1/model.joblib` | Original registered model served by the direct API and exported champion |
+| `artifacts/xgboost_dvc_v1/model.joblib` | Frozen baseline to which held-out results apply |
+| `artifacts/xgboost_tuned_v1/model.joblib` | Tuned challenger candidate |
+| `artifacts/xgboost_tracked/MLFLOW_RUN_ID/` | Separate tracked training candidates |
 
-The held-out evaluation concerns artifacts/xgboost_dvc_v1/model.joblib.
-The tuned candidate is artifacts/xgboost_tuned_v1/model.joblib.
-These are distinct artifacts; their results must not be conflated.
+These are distinct artifacts. Held-out baseline results must not be attributed
+to another artifact. See [the test report](test_report.md) for evidence boundaries.
 
-## Planned extensions
+## Remaining limits
 
-Pipeline run recording, quality gates, a pipeline console, MLflow serving,
-automated canary routing, alert delivery and controlled retraining are planned.
-They are not represented as implemented components in these diagrams.
-
-The completed local canary drill used separate candidate serving and test-client
-routing. It did not perform automated promotion or deployment rollback.
+Batch scoring, feedback labels, automatic promotion and artifact deployment
+rollback are outside the verified implementation. Fresh-machine restoration and
+off-machine recovery have not been demonstrated. Concurrent tests observed gateway
+503 failures and variability; later successes do not establish a fix or SLA.
+See [the load-test report](load_test_report.md).
