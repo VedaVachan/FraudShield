@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "created_utc": "2026-11-06T19:57:09.287263+00:00",
+  "scope": "local identity-aware packages; in-process restored prediction checks",
+  "packaging_git_commit": "9d5a35394a369a74e86624a93bb86c344835ce58",
+  "source_sha256": {
+    "reports/mlflow_registry.json": "9b7dfaf7683d7e1fa541f4bded03f8048b2dd1d7c2588ad2f381c19b264255dd",
+    "requirements-serving.lock.txt": "f468ee9491fa38b79f447eee6abf1155dc4b68c0f1e1b54aabf9c3a01ef89f8f",
+    "scripts/package_identity_models.py": "643796bb90e52f7c4b5e54232584915cdca51cf911ac23e46786e4d0db4b0306",
+    "src/fraudshield/explanations.py": "957a7eab9a7bd7f8c679f8872c38082c621e44733af2fc55bd28ef4ba531d887",
+    "src/fraudshield/features.py": "0cab39285965c67947659d8216bff95022082b8052fb4c271eb49bace95e6fa7",
+    "src/fraudshield/mlflow_model.py": "734422ba4084682aef42ef0be5be16368396b775eead598489c6ad84422926f3",
+    "src/fraudshield/spark_features.py": "6189e0bdc138c2546c607d26dc2369b40b39af14ad4fd416da1302b6db9902e2"
+  },
+  "models": {
+    "champion": {
+      "package": "runtime/mlflow-serving/identity-v1/champion",
+      "source_bundle": "artifacts/xgboost_v1/model.joblib",
+      "model_sha256": "1d2df49373788c5b1e554ec9ab9cfc346cc0feb1e13406bc0cd93b1594518bcb",
+      "threshold": 0.9195699691772461,
+      "verification_rows": 5,
+      "prediction_parity": "PASS",
+      "identity": "PASS",
+      "package_file_sha256": {
+        "MLmodel": "7177f5af5c3732388f0bee5b1a2ae86cc9857b2184f97ee1655f94a40a846ab6",
+        "artifacts/model.joblib": "1d2df49373788c5b1e554ec9ab9cfc346cc0feb1e13406bc0cd93b1594518bcb",
+        "code/fraudshield/explanations.py": "957a7eab9a7bd7f8c679f8872c38082c621e44733af2fc55bd28ef4ba531d887",
+        "code/fraudshield/features.py": "0cab39285965c67947659d8216bff95022082b8052fb4c271eb49bace95e6fa7",
+        "code/fraudshield/mlflow_model.py": "734422ba4084682aef42ef0be5be16368396b775eead598489c6ad84422926f3",
+        "code/fraudshield/spark_features.py": "6189e0bdc138c2546c607d26dc2369b40b39af14ad4fd416da1302b6db9902e2",
+        "conda.yaml": "d72a22b77a8fcdd7fded4b820f31e58501f174f30ac92dfb17d529ed06dcd855",
+        "input_example.json": "67b65d7afa0b6e3b2257ff6c95b777fcc6cee98ed2e7505a43f3f9c9af2be3b4",
+        "python_env.yaml": "2edd4d51b8f1d53c1b484f716b837b8393dd02a5fc7803d6029ba9a9ba7ca518",
+        "python_model.pkl": "2a13f7488e6bd61c5af045f9196ef8208e22a89dc03d4a5a21f251aa93d58407",
+        "requirements.txt": "a54ccc1c30c95e8452827dac3b3e6dd07586326a2523f9967c5951de5e5dd6b7",
+        "serving_input_example.json": "bddcd6a4458793e72c3dc67c0808a22d80c95bfdd2e45ec510fb547f0e3ed98b"
+      }
+    },
+    "challenger": {
+      "package": "runtime/mlflow-serving/identity-v1/challenger",
+      "source_bundle": "artifacts/xgboost_tuned_v1/model.joblib",
+      "model_sha256": "53e1e56d5109d850ee3ae5e35cc2abd3af2cc70d75ea70b5683203265814a3f0",
+      "threshold": 0.8567820191383362,
+      "verification_rows": 5,
+      "prediction_parity": "PASS",
+      "identity": "PASS",
+      "package_file_sha256": {
+        "MLmodel": "f899c1dc30aee4c9d10357673444bbc6312ccd01e1631fd227e75b1c58d58880",
+        "artifacts/model.joblib": "53e1e56d5109d850ee3ae5e35cc2abd3af2cc70d75ea70b5683203265814a3f0",
+        "code/fraudshield/explanations.py": "957a7eab9a7bd7f8c679f8872c38082c621e44733af2fc55bd28ef4ba531d887",
+        "code/fraudshield/features.py": "0cab39285965c67947659d8216bff95022082b8052fb4c271eb49bace95e6fa7",
+        "code/fraudshield/mlflow_model.py": "734422ba4084682aef42ef0be5be16368396b775eead598489c6ad84422926f3",
+        "code/fraudshield/spark_features.py": "6189e0bdc138c2546c607d26dc2369b40b39af14ad4fd416da1302b6db9902e2",
+        "conda.yaml": "d72a22b77a8fcdd7fded4b820f31e58501f174f30ac92dfb17d529ed06dcd855",
+        "input_example.json": "67b65d7afa0b6e3b2257ff6c95b777fcc6cee98ed2e7505a43f3f9c9af2be3b4",
+        "python_env.yaml": "2edd4d51b8f1d53c1b484f716b837b8393dd02a5fc7803d6029ba9a9ba7ca518",
+        "python_model.pkl": "aecbce1ab5874cafd9f6266fc39038c3248195615a248c8a9c2f5cacb331483c",
+        "requirements.txt": "a54ccc1c30c95e8452827dac3b3e6dd07586326a2523f9967c5951de5e5dd6b7",
+        "serving_input_example.json": "bddcd6a4458793e72c3dc67c0808a22d80c95bfdd2e45ec510fb547f0e3ed98b"
+      }
+    }
+  },
+  "test_set_opened": false,
+  "retrained": false,
+  "registered_or_promoted": false,
+  "deployment_changed": false,
+  "limitations": [
+    "Five synthetic cases check parity; they do not evaluate model accuracy.",
+    "HTTP and serving-container verification must be performed separately.",
+    "A reported SHA256 provides local consistency checking, not remote attestation.",
+    "Package files are checksummed, not guaranteed byte-identical across rebuilds."
+  ]
+}

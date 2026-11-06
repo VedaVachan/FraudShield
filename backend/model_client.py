@@ -4,6 +4,7 @@ import json
 from http.client import HTTPException
 import logging
 import math
+import re
 from time import perf_counter
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlsplit
@@ -43,7 +44,8 @@ class ModelClient:
     Proxy environment variables are intentionally ignored for local serving.
     """
 
-    def __init__(self, base_url, expected_threshold, timeout=3.0):
+    def __init__(self, base_url, expected_threshold, timeout=3.0, *,
+                 expected_sha256=None):
         parts = urlsplit(base_url)
         if (
             parts.scheme not in ("http", "https")
@@ -65,6 +67,12 @@ class ModelClient:
         if not math.isfinite(timeout) or timeout <= 0:
             raise ValueError("Timeout must be finite and positive.")
 
+        if expected_sha256 is not None and (
+            not isinstance(expected_sha256, str)
+            or re.fullmatch(r"[0-9a-f]{64}", expected_sha256) is None
+        ):
+            raise ValueError("Expected SHA256 must be 64 lowercase hex characters.")
+        self.expected_sha256 = expected_sha256
         self.url = base_url.rstrip("/") + "/invocations"
         self.threshold = float(expected_threshold)
         self.timeout = timeout
@@ -107,11 +115,17 @@ class ModelClient:
                 raise ValueError("Unexpected model threshold.")
             if type(decision) is not bool or decision != (score >= threshold):
                 raise ValueError("Inconsistent model decision.")
-            return {
+            if self.expected_sha256 is not None:
+                if row.get("model_sha256") != self.expected_sha256:
+                    raise ValueError("Unexpected model identity.")
+            prediction = {
                 "score": float(score),
                 "threshold": float(threshold),
                 "predicted_fraud": decision,
             }
+            if self.expected_sha256 is not None:
+                prediction["model_sha256"] = self.expected_sha256
+            return prediction
         except ModelServerError as exc:
             log_failure(self.url, started, exc)
             raise
