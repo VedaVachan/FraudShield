@@ -1,0 +1,44 @@
+{
+  "verified_utc": "2026-11-06T09:35:06.308093+00:00",
+  "scope": "Synthetic Prometheus rule through Alertmanager to local receiver",
+  "drill_id": "delivery-2885f571f1c345a9a283c832b863a0d8",
+  "resolution_method": "Same rule changed from vector(1) > 0 to vector(0) > 0",
+  "firing": {
+    "schema_version": 1,
+    "delivery_id": "4e4201fe-1d1f-4beb-ad58-c19892eb9a38",
+    "received_utc": "2026-11-06T09:34:53.605234+00:00",
+    "status": "firing",
+    "alerts": [
+      {
+        "status": "firing",
+        "labels": {
+          "alertname": "FraudShieldDeliveryCheck",
+          "severity": "info",
+          "job": "delivery-drill",
+          "instance": "delivery-2885f571f1c345a9a283c832b863a0d8"
+        }
+      }
+    ]
+  },
+  "resolved": {
+    "schema_version": 1,
+    "delivery_id": "b930b2d1-0f4f-4a82-b60c-5fc280e0ab37",
+    "received_utc": "2026-11-06T09:35:03.606872+00:00",
+    "status": "resolved",
+    "alerts": [
+      {
+        "status": "resolved",
+        "labels": {
+          "alertname": "FraudShieldDeliveryCheck",
+          "severity": "info",
+          "job": "delivery-drill",
+          "instance": "delivery-2885f571f1c345a9a283c832b863a0d8"
+        }
+      }
+    ]
+  },
+  "original_rules_restored": true,
+  "original_rules_sha256": "5310c13757a313565756efcdf8bbe1d39be038132eb8b85473a3cd200112b162",
+  "drift_detection_tested": false,
+  "retraining_triggered": false
+}

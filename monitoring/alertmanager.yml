@@ -1,0 +1,16 @@
+global:
+  resolve_timeout: 1m
+
+route:
+  receiver: local-evidence
+  group_by: ['...']
+  group_wait: 5s
+  group_interval: 10s
+  repeat_interval: 1h
+
+receivers:
+  - name: local-evidence
+    webhook_configs:
+      - url: http://fraudshield-alert-receiver:8030/alerts
+        send_resolved: true
+        max_alerts: 20

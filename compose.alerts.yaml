@@ -1,0 +1,67 @@
+name: fraudshield-alerts
+
+services:
+  fraudshield-alert-receiver:
+    image: fraudshield-alert-receiver:local
+    build:
+      context: .
+      dockerfile: docker/alert-receiver.Dockerfile
+    user: "${LOCAL_UID:?Set LOCAL_UID}:${LOCAL_GID:?Set LOCAL_GID}"
+    cpus: 0.5
+    mem_limit: 256m
+    init: true
+    read_only: true
+    environment:
+      ALERT_HISTORY_FILE: /app/runtime/alerts/notifications.jsonl
+    volumes:
+      - type: bind
+        source: ./runtime/alerts
+        target: /app/runtime/alerts
+        bind:
+          create_host_path: false
+    networks:
+      - monitoring
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; assert urllib.request.urlopen('http://127.0.0.1:8030/health', timeout=3).status == 200"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  fraudshield-alertmanager:
+    image: prom/alertmanager:v0.34.1
+    cpus: 0.5
+    mem_limit: 128m
+    init: true
+    read_only: true
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --storage.path=/alertmanager
+      - --data.retention=24h
+      - --web.listen-address=0.0.0.0:9093
+      - --cluster.listen-address=
+    volumes:
+      - type: bind
+        source: ./monitoring/alertmanager.yml
+        target: /etc/alertmanager/alertmanager.yml
+        read_only: true
+        bind:
+          create_host_path: false
+      - alertmanager_data:/alertmanager
+    networks:
+      - monitoring
+    depends_on:
+      fraudshield-alert-receiver:
+        condition: service_healthy
+
+networks:
+  monitoring:
+    external: true
+    name: fraudshield_default
+
+volumes:
+  alertmanager_data:
