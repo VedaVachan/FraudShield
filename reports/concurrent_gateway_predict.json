@@ -1,0 +1,32 @@
+{
+  "started_utc": "2026-11-06T10:57:31.693685+00:00",
+  "git_commit": "5a244127f8f65fb300b5660755c7989262de0267",
+  "script_sha256": "91004ef11a2f9c725acd534530581495b7c4963a6e3cb0266606d7bb0b1156c9",
+  "platform": "Linux-7.0.0-38-generic-x86_64-with-glibc2.39",
+  "base_url": "http://127.0.0.1:8020",
+  "endpoint": "/predict",
+  "workload": "closed-loop clients, one transaction per request",
+  "sample": "first 1000 validation input rows; no labels or test data",
+  "sample_sha256": "3d868adce10c475b7248693797ab4a6674b662859af4e2f238ba13975d1ca016",
+  "connection_reuse": true,
+  "includes": "JSON encoding, local HTTP, server work and response decoding",
+  "excludes": "warmup, browser rendering and remote networking",
+  "scope": "observed local performance; no capacity or SLA claim",
+  "scenarios": [],
+  "status": "failed",
+  "api_identity_before": {
+    "status": "ready",
+    "model_name": "FraudShield-XGBoost",
+    "model_version": "1",
+    "model_sha256": "1d2df49373788c5b1e554ec9ab9cfc346cc0feb1e13406bc0cd93b1594518bcb"
+  },
+  "routing_before": {
+    "canary_weight": 0,
+    "challenger_configured": true,
+    "fallback_attempts": 0,
+    "rollback_on_failure": true,
+    "automatic_rollbacks": 0
+  },
+  "error": "Server error '503 Service Unavailable' for url 'http://127.0.0.1:8020/predict'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/503",
+  "finished_utc": "2026-11-06T10:57:40.072232+00:00"
+}

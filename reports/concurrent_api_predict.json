@@ -1,0 +1,104 @@
+{
+  "started_utc": "2026-11-06T10:50:15.084491+00:00",
+  "git_commit": "5a244127f8f65fb300b5660755c7989262de0267",
+  "script_sha256": "91004ef11a2f9c725acd534530581495b7c4963a6e3cb0266606d7bb0b1156c9",
+  "platform": "Linux-7.0.0-38-generic-x86_64-with-glibc2.39",
+  "base_url": "http://127.0.0.1:8000",
+  "endpoint": "/predict",
+  "workload": "closed-loop clients, one transaction per request",
+  "sample": "first 1000 validation input rows; no labels or test data",
+  "sample_sha256": "3d868adce10c475b7248693797ab4a6674b662859af4e2f238ba13975d1ca016",
+  "connection_reuse": true,
+  "includes": "JSON encoding, local HTTP, server work and response decoding",
+  "excludes": "warmup, browser rendering and remote networking",
+  "scope": "observed local performance; no capacity or SLA claim",
+  "scenarios": [
+    {
+      "concurrent_clients": 1,
+      "warmup_requests": 5,
+      "attempted_requests": 1000,
+      "successful_requests": 1000,
+      "failed_requests": 0,
+      "failure_types": {},
+      "measured_wall_seconds": 12.115926329999638,
+      "successful_requests_per_second": 82.5359921118,
+      "success_latency_ms": {
+        "median_ms": 10.951881,
+        "p95_ms": 19.938659249999986,
+        "p99_ms": 32.03457316,
+        "mean_ms": 12.099630802,
+        "max_ms": 89.198654
+      },
+      "all_attempt_latency_ms": {
+        "median_ms": 10.951881,
+        "p95_ms": 19.938659249999986,
+        "p99_ms": 32.03457316,
+        "mean_ms": 12.099630802,
+        "max_ms": 89.198654
+      }
+    },
+    {
+      "concurrent_clients": 4,
+      "warmup_requests": 20,
+      "attempted_requests": 1000,
+      "successful_requests": 1000,
+      "failed_requests": 0,
+      "failure_types": {},
+      "measured_wall_seconds": 13.456641900999784,
+      "successful_requests_per_second": 74.31274513782694,
+      "success_latency_ms": {
+        "median_ms": 48.175923499999996,
+        "p95_ms": 96.15270115,
+        "p99_ms": 160.58833732999997,
+        "mean_ms": 53.28026363399999,
+        "max_ms": 195.954752
+      },
+      "all_attempt_latency_ms": {
+        "median_ms": 48.175923499999996,
+        "p95_ms": 96.15270115,
+        "p99_ms": 160.58833732999997,
+        "mean_ms": 53.28026363399999,
+        "max_ms": 195.954752
+      }
+    },
+    {
+      "concurrent_clients": 8,
+      "warmup_requests": 40,
+      "attempted_requests": 1000,
+      "successful_requests": 1000,
+      "failed_requests": 0,
+      "failure_types": {},
+      "measured_wall_seconds": 19.008486861000165,
+      "successful_requests_per_second": 52.60808013349587,
+      "success_latency_ms": {
+        "median_ms": 144.4951825,
+        "p95_ms": 252.59102059999998,
+        "p99_ms": 319.65855152,
+        "mean_ms": 151.42334977500002,
+        "max_ms": 443.851935
+      },
+      "all_attempt_latency_ms": {
+        "median_ms": 144.4951825,
+        "p95_ms": 252.59102059999998,
+        "p99_ms": 319.65855152,
+        "mean_ms": 151.42334977500002,
+        "max_ms": 443.851935
+      }
+    }
+  ],
+  "status": "completed_without_request_failures",
+  "api_identity_before": {
+    "status": "ready",
+    "model_name": "FraudShield-XGBoost",
+    "model_version": "1",
+    "model_sha256": "1d2df49373788c5b1e554ec9ab9cfc346cc0feb1e13406bc0cd93b1594518bcb"
+  },
+  "api_identity_after": {
+    "status": "ready",
+    "model_name": "FraudShield-XGBoost",
+    "model_version": "1",
+    "model_sha256": "1d2df49373788c5b1e554ec9ab9cfc346cc0feb1e13406bc0cd93b1594518bcb"
+  },
+  "recovery_predictions_sent": 500,
+  "finished_utc": "2026-11-06T10:51:09.213753+00:00"
+}

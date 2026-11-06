@@ -1,0 +1,432 @@
+{
+  "generated_utc": "2026-11-06T11:28:30.859474+00:00",
+  "scope": "Local closed-loop concurrency measurements",
+  "sources": [
+    {
+      "file": "reports/concurrent_smoke.json",
+      "sha256": "71e928dc1c2beaa5e1105dadd39913abc495309f28aa90355da60f8f286baa5c",
+      "git_commit": "5a244127f8f65fb300b5660755c7989262de0267",
+      "script_sha256": "91004ef11a2f9c725acd534530581495b7c4963a6e3cb0266606d7bb0b1156c9",
+      "status": "completed_without_request_failures",
+      "error": null,
+      "sample_sha256": "3d868adce10c475b7248693797ab4a6674b662859af4e2f238ba13975d1ca016",
+      "scenarios": [
+        {
+          "concurrent_clients": 1,
+          "warmup_requests": 5,
+          "attempted_requests": 40,
+          "successful_requests": 40,
+          "failed_requests": 0,
+          "failure_types": {},
+          "measured_wall_seconds": 0.4649148790003892,
+          "successful_requests_per_second": 86.03725500462315,
+          "success_latency_ms": {
+            "median_ms": 11.064150999999999,
+            "p95_ms": 16.239492399999993,
+            "p99_ms": 20.185733759999998,
+            "mean_ms": 11.586797125,
+            "max_ms": 21.198687
+          },
+          "all_attempt_latency_ms": {
+            "median_ms": 11.064150999999999,
+            "p95_ms": 16.239492399999993,
+            "p99_ms": 20.185733759999998,
+            "mean_ms": 11.586797125,
+            "max_ms": 21.198687
+          }
+        },
+        {
+          "concurrent_clients": 4,
+          "warmup_requests": 20,
+          "attempted_requests": 40,
+          "successful_requests": 40,
+          "failed_requests": 0,
+          "failure_types": {},
+          "measured_wall_seconds": 0.4911594490004063,
+          "successful_requests_per_second": 81.43994802788964,
+          "success_latency_ms": {
+            "median_ms": 47.6179685,
+            "p95_ms": 67.31214185,
+            "p99_ms": 70.80216842,
+            "mean_ms": 47.701690674999995,
+            "max_ms": 72.832712
+          },
+          "all_attempt_latency_ms": {
+            "median_ms": 47.6179685,
+            "p95_ms": 67.31214185,
+            "p99_ms": 70.80216842,
+            "mean_ms": 47.701690674999995,
+            "max_ms": 72.832712
+          }
+        }
+      ]
+    },
+    {
+      "file": "reports/concurrent_api_predict.json",
+      "sha256": "4182771cfe6dd25a5542d23dc645a8d028e784438653ac9bdf05c098aaa88df5",
+      "git_commit": "5a244127f8f65fb300b5660755c7989262de0267",
+      "script_sha256": "91004ef11a2f9c725acd534530581495b7c4963a6e3cb0266606d7bb0b1156c9",
+      "status": "completed_without_request_failures",
+      "error": null,
+      "sample_sha256": "3d868adce10c475b7248693797ab4a6674b662859af4e2f238ba13975d1ca016",
+      "scenarios": [
+        {
+          "concurrent_clients": 1,
+          "warmup_requests": 5,
+          "attempted_requests": 1000,
+          "successful_requests": 1000,
+          "failed_requests": 0,
+          "failure_types": {},
+          "measured_wall_seconds": 12.115926329999638,
+          "successful_requests_per_second": 82.5359921118,
+          "success_latency_ms": {
+            "median_ms": 10.951881,
+            "p95_ms": 19.938659249999986,
+            "p99_ms": 32.03457316,
+            "mean_ms": 12.099630802,
+            "max_ms": 89.198654
+          },
+          "all_attempt_latency_ms": {
+            "median_ms": 10.951881,
+            "p95_ms": 19.938659249999986,
+            "p99_ms": 32.03457316,
+            "mean_ms": 12.099630802,
+            "max_ms": 89.198654
+          }
+        },
+        {
+          "concurrent_clients": 4,
+          "warmup_requests": 20,
+          "attempted_requests": 1000,
+          "successful_requests": 1000,
+          "failed_requests": 0,
+          "failure_types": {},
+          "measured_wall_seconds": 13.456641900999784,
+          "successful_requests_per_second": 74.31274513782694,
+          "success_latency_ms": {
+            "median_ms": 48.175923499999996,
+            "p95_ms": 96.15270115,
+            "p99_ms": 160.58833732999997,
+            "mean_ms": 53.28026363399999,
+            "max_ms": 195.954752
+          },
+          "all_attempt_latency_ms": {
+            "median_ms": 48.175923499999996,
+            "p95_ms": 96.15270115,
+            "p99_ms": 160.58833732999997,
+            "mean_ms": 53.28026363399999,
+            "max_ms": 195.954752
+          }
+        },
+        {
+          "concurrent_clients": 8,
+          "warmup_requests": 40,
+          "attempted_requests": 1000,
+          "successful_requests": 1000,
+          "failed_requests": 0,
+          "failure_types": {},
+          "measured_wall_seconds": 19.008486861000165,
+          "successful_requests_per_second": 52.60808013349587,
+          "success_latency_ms": {
+            "median_ms": 144.4951825,
+            "p95_ms": 252.59102059999998,
+            "p99_ms": 319.65855152,
+            "mean_ms": 151.42334977500002,
+            "max_ms": 443.851935
+          },
+          "all_attempt_latency_ms": {
+            "median_ms": 144.4951825,
+            "p95_ms": 252.59102059999998,
+            "p99_ms": 319.65855152,
+            "mean_ms": 151.42334977500002,
+            "max_ms": 443.851935
+          }
+        }
+      ]
+    },
+    {
+      "file": "reports/concurrent_api_explain.json",
+      "sha256": "38890134497bfd58c503eb68401134663d46b83938893d8e91c816de08767dc2",
+      "git_commit": "5a244127f8f65fb300b5660755c7989262de0267",
+      "script_sha256": "91004ef11a2f9c725acd534530581495b7c4963a6e3cb0266606d7bb0b1156c9",
+      "status": "completed_without_request_failures",
+      "error": null,
+      "sample_sha256": "3d868adce10c475b7248693797ab4a6674b662859af4e2f238ba13975d1ca016",
+      "scenarios": [
+        {
+          "concurrent_clients": 1,
+          "warmup_requests": 5,
+          "attempted_requests": 1000,
+          "successful_requests": 1000,
+          "failed_requests": 0,
+          "failure_types": {},
+          "measured_wall_seconds": 22.29615920299966,
+          "successful_requests_per_second": 44.8507741129451,
+          "success_latency_ms": {
+            "median_ms": 19.833245,
+            "p95_ms": 38.179783150000006,
+            "p99_ms": 59.312062139999995,
+            "mean_ms": 22.274750533,
+            "max_ms": 306.024772
+          },
+          "all_attempt_latency_ms": {
+            "median_ms": 19.833245,
+            "p95_ms": 38.179783150000006,
+            "p99_ms": 59.312062139999995,
+            "mean_ms": 22.274750533,
+            "max_ms": 306.024772
+          }
+        },
+        {
+          "concurrent_clients": 4,
+          "warmup_requests": 20,
+          "attempted_requests": 1000,
+          "successful_requests": 1000,
+          "failed_requests": 0,
+          "failure_types": {},
+          "measured_wall_seconds": 35.13799137099977,
+          "successful_requests_per_second": 28.459224929553717,
+          "success_latency_ms": {
+            "median_ms": 133.6039835,
+            "p95_ms": 247.5078517,
+            "p99_ms": 350.86209791,
+            "mean_ms": 139.74519096600002,
+            "max_ms": 544.667981
+          },
+          "all_attempt_latency_ms": {
+            "median_ms": 133.6039835,
+            "p95_ms": 247.5078517,
+            "p99_ms": 350.86209791,
+            "mean_ms": 139.74519096600002,
+            "max_ms": 544.667981
+          }
+        },
+        {
+          "concurrent_clients": 8,
+          "warmup_requests": 40,
+          "attempted_requests": 1000,
+          "successful_requests": 1000,
+          "failed_requests": 0,
+          "failure_types": {},
+          "measured_wall_seconds": 35.14655862299969,
+          "successful_requests_per_second": 28.452287768100465,
+          "success_latency_ms": {
+            "median_ms": 241.12212399999999,
+            "p95_ms": 379.73557795,
+            "p99_ms": 561.4915042999999,
+            "mean_ms": 279.326967299,
+            "max_ms": 4904.077623
+          },
+          "all_attempt_latency_ms": {
+            "median_ms": 241.12212399999999,
+            "p95_ms": 379.73557795,
+            "p99_ms": 561.4915042999999,
+            "mean_ms": 279.326967299,
+            "max_ms": 4904.077623
+          }
+        }
+      ]
+    },
+    {
+      "file": "reports/concurrent_gateway_predict.json",
+      "sha256": "e12540533309424332105c416239d0f5d6fbb252f72de126821289b2cfcc7642",
+      "git_commit": "5a244127f8f65fb300b5660755c7989262de0267",
+      "script_sha256": "91004ef11a2f9c725acd534530581495b7c4963a6e3cb0266606d7bb0b1156c9",
+      "status": "failed",
+      "error": "Server error '503 Service Unavailable' for url 'http://127.0.0.1:8020/predict'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/503",
+      "sample_sha256": "3d868adce10c475b7248693797ab4a6674b662859af4e2f238ba13975d1ca016",
+      "scenarios": []
+    },
+    {
+      "file": "reports/concurrent_gateway_smoke.json",
+      "sha256": "8b437efe4e85219d4f50222b663e5e080c3d5e4941376e5dcda0fcddf75d9281",
+      "git_commit": "5a244127f8f65fb300b5660755c7989262de0267",
+      "script_sha256": "91004ef11a2f9c725acd534530581495b7c4963a6e3cb0266606d7bb0b1156c9",
+      "status": "completed_without_request_failures",
+      "error": null,
+      "sample_sha256": "3d868adce10c475b7248693797ab4a6674b662859af4e2f238ba13975d1ca016",
+      "scenarios": [
+        {
+          "concurrent_clients": 1,
+          "warmup_requests": 5,
+          "attempted_requests": 40,
+          "successful_requests": 40,
+          "failed_requests": 0,
+          "failure_types": {},
+          "measured_wall_seconds": 1.3597847950004507,
+          "successful_requests_per_second": 29.416419529817393,
+          "success_latency_ms": {
+            "median_ms": 33.9131565,
+            "p95_ms": 48.08097254999998,
+            "p99_ms": 76.11612054999998,
+            "mean_ms": 33.971740450000006,
+            "max_ms": 88.856857
+          },
+          "all_attempt_latency_ms": {
+            "median_ms": 33.9131565,
+            "p95_ms": 48.08097254999998,
+            "p99_ms": 76.11612054999998,
+            "mean_ms": 33.971740450000006,
+            "max_ms": 88.856857
+          }
+        },
+        {
+          "concurrent_clients": 4,
+          "warmup_requests": 20,
+          "attempted_requests": 40,
+          "successful_requests": 40,
+          "failed_requests": 0,
+          "failure_types": {},
+          "measured_wall_seconds": 1.5589072970005873,
+          "successful_requests_per_second": 25.65899850296546,
+          "success_latency_ms": {
+            "median_ms": 107.36251899999999,
+            "p95_ms": 215.05412939999928,
+            "p99_ms": 484.41615641,
+            "mean_ms": 131.101211775,
+            "max_ms": 505.968134
+          },
+          "all_attempt_latency_ms": {
+            "median_ms": 107.36251899999999,
+            "p95_ms": 215.05412939999928,
+            "p99_ms": 484.41615641,
+            "mean_ms": 131.101211775,
+            "max_ms": 505.968134
+          }
+        }
+      ]
+    },
+    {
+      "file": "reports/concurrent_gateway_predict_run2.json",
+      "sha256": "a48f90abd7251bf7ca718640264998aa8d0e39062ae3daf3d6e22c1f14ccca22",
+      "git_commit": "5a244127f8f65fb300b5660755c7989262de0267",
+      "script_sha256": "91004ef11a2f9c725acd534530581495b7c4963a6e3cb0266606d7bb0b1156c9",
+      "status": "failed",
+      "error": "Failures observed; higher concurrency skipped.",
+      "sample_sha256": "3d868adce10c475b7248693797ab4a6674b662859af4e2f238ba13975d1ca016",
+      "scenarios": [
+        {
+          "concurrent_clients": 1,
+          "warmup_requests": 5,
+          "attempted_requests": 1000,
+          "successful_requests": 1000,
+          "failed_requests": 0,
+          "failure_types": {},
+          "measured_wall_seconds": 24.95993767299933,
+          "successful_requests_per_second": 40.064202607435206,
+          "success_latency_ms": {
+            "median_ms": 22.3530855,
+            "p95_ms": 38.51163179999999,
+            "p99_ms": 54.31524762999998,
+            "mean_ms": 24.947151691,
+            "max_ms": 459.535653
+          },
+          "all_attempt_latency_ms": {
+            "median_ms": 22.3530855,
+            "p95_ms": 38.51163179999999,
+            "p99_ms": 54.31524762999998,
+            "mean_ms": 24.947151691,
+            "max_ms": 459.535653
+          }
+        },
+        {
+          "concurrent_clients": 4,
+          "warmup_requests": 20,
+          "attempted_requests": 1000,
+          "successful_requests": 984,
+          "failed_requests": 16,
+          "failure_types": {
+            "HTTPStatusError:503": 16
+          },
+          "measured_wall_seconds": 25.54064938600004,
+          "successful_requests_per_second": 38.526819938234375,
+          "success_latency_ms": {
+            "median_ms": 65.719132,
+            "p95_ms": 101.28165309999999,
+            "p99_ms": 137.80993782999954,
+            "mean_ms": 70.32035354471545,
+            "max_ms": 928.560028
+          },
+          "all_attempt_latency_ms": {
+            "median_ms": 66.126482,
+            "p95_ms": 108.76252154999999,
+            "p99_ms": 2013.05506471,
+            "mean_ms": 101.88302902400001,
+            "max_ms": 2176.345924
+          }
+        }
+      ]
+    },
+    {
+      "file": "reports/concurrent_gateway_diagnostic.json",
+      "sha256": "41b6ad5374649304b1cfa677e8927c477da3b53a41777df5f47637296c6adce1",
+      "git_commit": "16fb0866abc2c827c8e15535638ca5078a4b6c2d",
+      "script_sha256": "91004ef11a2f9c725acd534530581495b7c4963a6e3cb0266606d7bb0b1156c9",
+      "status": "completed_without_request_failures",
+      "error": null,
+      "sample_sha256": "3d868adce10c475b7248693797ab4a6674b662859af4e2f238ba13975d1ca016",
+      "scenarios": [
+        {
+          "concurrent_clients": 4,
+          "warmup_requests": 20,
+          "attempted_requests": 1000,
+          "successful_requests": 1000,
+          "failed_requests": 0,
+          "failure_types": {},
+          "measured_wall_seconds": 11.799009869999281,
+          "successful_requests_per_second": 84.75287426808983,
+          "success_latency_ms": {
+            "median_ms": 44.547025000000005,
+            "p95_ms": 76.51264635,
+            "p99_ms": 99.34711242999998,
+            "mean_ms": 47.013432574999996,
+            "max_ms": 160.24209
+          },
+          "all_attempt_latency_ms": {
+            "median_ms": 44.547025000000005,
+            "p95_ms": 76.51264635,
+            "p99_ms": 99.34711242999998,
+            "mean_ms": 47.013432574999996,
+            "max_ms": 160.24209
+          }
+        }
+      ]
+    },
+    {
+      "file": "reports/concurrent_gateway_eight_clients.json",
+      "sha256": "c5740692e1aa9db1f1dbb255035aff4e23e94e1a60ff894fb0e185896724ce26",
+      "git_commit": "16fb0866abc2c827c8e15535638ca5078a4b6c2d",
+      "script_sha256": "91004ef11a2f9c725acd534530581495b7c4963a6e3cb0266606d7bb0b1156c9",
+      "status": "completed_without_request_failures",
+      "error": null,
+      "sample_sha256": "3d868adce10c475b7248693797ab4a6674b662859af4e2f238ba13975d1ca016",
+      "scenarios": [
+        {
+          "concurrent_clients": 8,
+          "warmup_requests": 40,
+          "attempted_requests": 1000,
+          "successful_requests": 1000,
+          "failed_requests": 0,
+          "failure_types": {},
+          "measured_wall_seconds": 12.738134131999686,
+          "successful_requests_per_second": 78.50443319543031,
+          "success_latency_ms": {
+            "median_ms": 94.7245925,
+            "p95_ms": 162.77893794999994,
+            "p99_ms": 245.21290620999986,
+            "mean_ms": 100.94936916500001,
+            "max_ms": 333.38815
+          },
+          "all_attempt_latency_ms": {
+            "median_ms": 94.7245925,
+            "p95_ms": 162.77893794999994,
+            "p99_ms": 245.21290620999986,
+            "mean_ms": 100.94936916500001,
+            "max_ms": 333.38815
+          }
+        }
+      ]
+    }
+  ],
+  "sla_or_capacity_established": false
+}
