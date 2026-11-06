@@ -12,6 +12,7 @@ import sys
 from uuid import UUID
 
 from backend.retraining_queue import connect
+from backend.process_runner import run_process
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -22,7 +23,7 @@ def execute_request(database, request_id, *, root=ROOT, runner=None):
     root = Path(root).resolve()
     database = Path(database)
     database.parent.mkdir(parents=True, exist_ok=True)
-    runner = subprocess.run if runner is None else runner
+    runner = run_process if runner is None else runner
 
     with (database.parent / "worker.lock").open("a") as lock:
         try:
@@ -81,6 +82,7 @@ def execute_request(database, request_id, *, root=ROOT, runner=None):
                         train_command, cwd=root, env=environment,
                         stdout=log, stderr=subprocess.STDOUT,
                         timeout=900, check=False,
+                        pass_fds=(lock.fileno(),),
                     )
                 outcome["training_exit_code"] = trained.returncode
                 if trained.returncode != 0:
@@ -131,6 +133,7 @@ def execute_request(database, request_id, *, root=ROOT, runner=None):
                         gate_command, cwd=root, env=environment,
                         stdout=output, stderr=errors,
                         timeout=60, check=False,
+                        pass_fds=(lock.fileno(),),
                     )
 
                 outcome["gate_exit_code"] = gated.returncode
