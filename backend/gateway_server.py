@@ -28,6 +28,7 @@ def create_gateway():
         champion=ModelClient(
             os.environ.get("CHAMPION_URL", "http://127.0.0.1:5001"),
             expected_threshold=registry["threshold"],
+            expected_sha256=registry["model_sha256"],
             timeout=timeout,
         ),
         challenger=ModelClient(
@@ -35,6 +36,7 @@ def create_gateway():
             expected_threshold=float(os.environ.get(
                 "CHALLENGER_THRESHOLD", "0.8567820191383362"
             )),
+            expected_sha256=os.environ["CHALLENGER_MODEL_SHA256"],
             timeout=timeout,
         ),
         weight=0,

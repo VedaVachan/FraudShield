@@ -29,7 +29,7 @@ services:
     <<: *model
     volumes:
       - type: bind
-        source: ./runtime/mlflow-serving/champion-v1
+        source: ./runtime/mlflow-serving/identity-v1/champion
         target: /model
         read_only: true
         bind:
@@ -39,7 +39,7 @@ services:
     <<: *model
     volumes:
       - type: bind
-        source: ./runtime/mlflow-serving/challenger-v1
+        source: ./runtime/mlflow-serving/identity-v1/challenger
         target: /model
         read_only: true
         bind:
@@ -70,6 +70,7 @@ services:
       CHALLENGER_URL: http://model-challenger:5001
       CHALLENGER_THRESHOLD: "0.8567820191383362"
       MODEL_TIMEOUT_SECONDS: "2.0"
+      CHALLENGER_MODEL_SHA256: "53e1e56d5109d850ee3ae5e35cc2abd3af2cc70d75ea70b5683203265814a3f0"
       GATEWAY_ADMIN_KEY_FILE: /run/secrets/gateway-admin.key
       GATEWAY_REGISTRY_FILE: /app/reports/mlflow_registry.json
     volumes:
