@@ -1,0 +1,32 @@
+{
+  "verified_utc": "2026-11-06T10:32:05.202411+00:00",
+  "request_id": "418aa34f-fc6b-4228-9a26-f59be1879c26",
+  "resolved_notifications": [
+    {
+      "schema_version": 1,
+      "delivery_id": "2b9fa4f2-e92c-4c20-ac15-5cba112e8ee4",
+      "received_utc": "2026-11-06T10:19:02.729872+00:00",
+      "status": "resolved",
+      "alerts": [
+        {
+          "status": "resolved",
+          "labels": {
+            "alertname": "FraudShieldInputDrift",
+            "severity": "warning",
+            "job": "fraudshield-api",
+            "instance": "api:8000",
+            "feature": "amount"
+          }
+        }
+      ]
+    }
+  ],
+  "replay_response": {
+    "request_id": "418aa34f-fc6b-4228-9a26-f59be1879c26",
+    "status": "not_queued",
+    "request_status": "succeeded"
+  },
+  "replay_exit_code": 1,
+  "training_log_unchanged": true,
+  "training_log_sha256": "8b06d9b9a9c7db6319ec35b9b396bd9346d72fc558acd78b6371200fcdce6a15"
+}
