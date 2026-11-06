@@ -216,3 +216,25 @@ docker compose stop
 
 Do not use `down -v` when you want to preserve monitoring data. Keep untracked
 backups such as `compose.yaml.before-grafana` separate from intended commits.
+
+## VM and container resource monitoring
+
+Start the main stack first, then run:
+`docker compose -f compose.resources.yaml up -d`
+
+Dashboard: http://127.0.0.1:3010/d/fraudshield-resources
+
+Six panels show VM CPU, memory, root disk usage, exporter health,
+and container CPU and memory. Scrapes occur every 30 seconds.
+CPU rates use a five-minute window.
+
+Node Exporter reads host metrics. cAdvisor requires privileged host access.
+Neither exporter publishes a host port. The existing Ubuntu VM and
+fraudshield_default Docker network are required.
+
+Stop with: `docker compose -f compose.resources.yaml stop`
+
+Evidence: reports/resource_monitoring_verification.json.
+Both exporters were up; all six queries passed. Container CPU and memory
+queries each returned 11 series at verification time.
+Resource metrics do not prove application correctness or model accuracy.
