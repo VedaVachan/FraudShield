@@ -6,6 +6,7 @@ from pathlib import Path
 import subprocess
 
 from backend.retraining_queue import connect
+from backend.retraining_recovery import exit_code, reconcile
 from backend.retraining_worker import execute_request
 
 
@@ -21,7 +22,16 @@ def main():
     action = parser.add_mutually_exclusive_group(required=True)
     action.add_argument("--list", action="store_true")
     action.add_argument("--request-id")
+    action.add_argument("--inspect-recovery", metavar="REQUEST_ID")
+    action.add_argument("--recover", metavar="REQUEST_ID")
+    parser.add_argument("--confirm-result-sha256")
+    parser.add_argument("--reason")
     args = parser.parse_args()
+    extras = (args.confirm_result_sha256, args.reason)
+    if args.recover and not all(extras):
+        parser.error("--recover needs --confirm-result-sha256 and --reason.")
+    if not args.recover and any(extras):
+        parser.error("--confirm-result-sha256/--reason are only for --recover.")
 
     if args.list:
         connection = connect(args.database)
@@ -37,11 +47,17 @@ def main():
         print(json.dumps(rows, indent=2))
         return 0
 
+    if args.inspect_recovery:
+        result = reconcile(args.database, args.inspect_recovery)
+        print(json.dumps(result, indent=2, allow_nan=False))
+        return exit_code(result)
+
     sources = [
         "backend/result_storage.py",
         "backend/process_runner.py",
         "backend/retraining_worker.py",
         "backend/retraining_queue.py",
+        "backend/retraining_recovery.py",
         "scripts/run_retraining_worker.py",
         "scripts/train_xgboost_tracked.py",
         "scripts/check_model_gate.py",
@@ -54,6 +70,15 @@ def main():
         ["git", "diff", "--exit-code", "HEAD", "--", *sources],
         cwd=ROOT, check=True,
     )
+
+    if args.recover:
+        result = reconcile(
+            args.database, args.recover, apply=True,
+            confirm_result_sha256=args.confirm_result_sha256,
+            reason=args.reason,
+        )
+        print(json.dumps(result, indent=2, allow_nan=False))
+        return exit_code(result)
 
     result = execute_request(args.database, args.request_id)
     print(json.dumps(result, indent=2, allow_nan=False))

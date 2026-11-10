@@ -26,6 +26,7 @@ SOURCES = [
     "scripts/enqueue_drift_requests.py",
     "backend/retraining_worker.py",
     "backend/retraining_queue.py",
+    "backend/retraining_recovery.py",
     "scripts/train_xgboost.py",
     "scripts/train_logreg.py",
     "scripts/train_logreg_dvc.py",
