@@ -209,15 +209,18 @@ them. It was tested on a throwaway database and not run against the real registr
 
 ## Current results
 
-- Tests: 265 tests pass in local CI run `113fe711-1fff-4c3c-b516-330d92a54548` (exit 0);
-  `dvc repro` reported the pipeline up to date.
+- Tests: 348 tests pass in local CI run `a6784025-ae57-4ba8-8915-c1e939fba489` (exit 0);
+  `dvc repro` reported the pipeline up to date (every stage skipped as unchanged).
 - Coverage: 93% of `backend/` and `src/fraudshield/` (1,275 statements, lowest file 82%),
   measured at 217 tests; see [reports/coverage_summary.txt](reports/coverage_summary.txt).
-  The 48 tests added since (265 minus 217) exercise only `scripts/`, the dashboard JSON and
-  the frontend pages, so this figure was not re-measured. `scripts/` is not measured.
+  The 131 tests added since (348 minus 217) include integration tests that run the API
+  and gateway code, so this figure was **not re-measured** and may differ. `scripts/` is
+  not measured.
 - Model gate floors on validation: average precision 0.85, precision 0.70, recall 0.90.
-  The frozen DVC baseline measured 0.9885 / 0.9284 / 1.0
-  (`reports/xgboost_validation_gate.json`).
+  The frozen DVC baseline (`xgboost_dvc_v1`) measured 0.9885 / 0.9284 / 1.0
+  (`reports/xgboost_validation_gate.json`). **That gate file describes `xgboost_dvc_v1`
+  (model hash starting `4b1fa5ce`), not the deployed model** (`artifacts/xgboost_v1`, hash
+  starting `1d2df493`), so it is not evidence about the deployed file.
 - Held-out test split, frozen DVC baseline only: average precision 0.9927, precision
   0.9579, recall 0.9992 (`reports/xgboost_heldout_evaluation.json`). The deployed model
   (`artifacts/xgboost_v1`) has no held-out result.
@@ -260,6 +263,18 @@ them. It was tested on a throwaway database and not run against the real registr
 | [docs/retraining_recovery.md](docs/retraining_recovery.md) | Recovering an interrupted retraining request |
 | [docs/dataset.md](docs/dataset.md) | PaySim source, hashes and validation |
 | [AI_DISCLOSURE.md](AI_DISCLOSURE.md) | Use of AI tools in this project |
+
+### What was and was not verified
+
+| Item | Status |
+|---|---|
+| Registry alias rollback (`scripts/promote_model.py --rollback`) | **Drilled on a temporary copy** of the MLflow database with `scripts/rollback_drill.py` (`reports/rollback_drill.json`, passed; the real database's hash was unchanged). Not run on the real registry; the second version used in the drill is synthetic |
+| Serving rollback (restore `model.joblib` and its receipt, restart the API) | **Documented only.** Never executed or drilled ([operator guide](docs/operator_guide.md)) |
+| Automatic retraining execution (`--watch`) | **Tested with fake training commands only.** Never run against real training. Off by default |
+| Validation gate file | Describes `xgboost_dvc_v1`, not the deployed model (see above) |
+| Which commit and run produced the deployed model | `reports/reproducibility_manifest.json`: the linked runs record no `training_code_commit` (`missing`); historical imports could not establish it |
+| End-to-end smoke check (`scripts/e2e_smoke.py`) | Needs the running stack and is not part of CI. The committed `reports/e2e_smoke_result.json` records a run against the running stack on 2026-11-11 (started 19:56:02 UTC, finished 19:56:08 UTC): 9 of 9 checks passed, 0 failed. It shows the stack answered at that moment only; it is not a load test and does not cover the canary gateway |
+| Browser rendering, Grafana viewing, 50-user load test, fresh-clone setup | Not verified |
 
 ## Known limitations
 

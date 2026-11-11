@@ -1,82 +1,72 @@
 {
   "schema_version": 1,
   "scope": "running stack only; not part of unit tests or scripts/run_ci.py",
-  "started_utc": "2026-11-11T19:26:16.654226+00:00",
-  "finished_utc": "2026-11-11T19:26:16.664650+00:00",
+  "started_utc": "2026-11-11T19:56:02.620175+00:00",
+  "finished_utc": "2026-11-11T19:56:08.934965+00:00",
   "addresses": {
     "frontend": "http://127.0.0.1:8080",
     "api": "http://127.0.0.1:8000",
     "prometheus": "http://127.0.0.1:9095",
     "grafana": "http://127.0.0.1:3010"
   },
-  "passed": false,
+  "passed": true,
   "checks_run": 9,
-  "checks_failed": 9,
-  "failed_checks": [
-    "frontend serves both pages",
-    "API /health is ready",
-    "API /predict returns a consistent score",
-    "API /explain returns additive contributions",
-    "API rejects bad input with 422",
-    "API /pipeline/summary and /pipeline/runs",
-    "Prometheus reports the API target up",
-    "Prometheus has scraped the request counter",
-    "Grafana /api/health is ok"
-  ],
+  "checks_failed": 0,
+  "failed_checks": [],
   "checks": [
     {
       "name": "frontend serves both pages",
-      "passed": false,
-      "detail": "not reachable: http://127.0.0.1:8080/: [Errno 111] Connection refused",
-      "seconds": 0.004
+      "passed": true,
+      "detail": "index, pipeline page and pipeline_summary.js served",
+      "seconds": 0.038
     },
     {
       "name": "API /health is ready",
-      "passed": false,
-      "detail": "not reachable: http://127.0.0.1:8000/health: [Errno 111] Connection refused",
-      "seconds": 0.001
+      "passed": true,
+      "detail": "ready, FraudShield-XGBoost v1",
+      "seconds": 0.014
     },
     {
       "name": "API /predict returns a consistent score",
-      "passed": false,
-      "detail": "not reachable: http://127.0.0.1:8000/predict: [Errno 111] Connection refused",
-      "seconds": 0.001
+      "passed": true,
+      "detail": "score 0.000006, predicted_fraud=False",
+      "seconds": 0.028
     },
     {
       "name": "API /explain returns additive contributions",
-      "passed": false,
-      "detail": "not reachable: http://127.0.0.1:8000/explain: [Errno 111] Connection refused",
-      "seconds": 0.001
+      "passed": true,
+      "detail": "nine contributions, additive to the raw margin",
+      "seconds": 0.029
     },
     {
       "name": "API rejects bad input with 422",
-      "passed": false,
-      "detail": "not reachable: http://127.0.0.1:8000/predict: [Errno 111] Connection refused",
-      "seconds": 0.001
+      "passed": true,
+      "detail": "HTTP 422 with the generic message",
+      "seconds": 0.008
     },
     {
       "name": "API /pipeline/summary and /pipeline/runs",
-      "passed": false,
-      "detail": "not reachable: http://127.0.0.1:8000/pipeline/summary: [Errno 111] Connection refused",
-      "seconds": 0.0
+      "passed": true,
+      "detail": "summary schema 1; history_available=True",
+      "seconds": 0.054
     },
     {
       "name": "Prometheus reports the API target up",
-      "passed": false,
-      "detail": "not reachable: http://127.0.0.1:9095/api/v1/targets: [Errno 111] Connection refused",
-      "seconds": 0.0
+      "passed": true,
+      "detail": "fraudshield-api target is up",
+      "seconds": 0.028
     },
     {
       "name": "Prometheus has scraped the request counter",
-      "passed": false,
-      "detail": "not reachable: http://127.0.0.1:8000/metrics: [Errno 111] Connection refused",
-      "seconds": 0.0
+      "passed": true,
+      "detail": "Prometheus counter 31 reached the API's 31",
+      "seconds": 6.094
     },
     {
       "name": "Grafana /api/health is ok",
-      "passed": false,
-      "detail": "not reachable: http://127.0.0.1:3010/api/health: [Errno 111] Connection refused",
-      "seconds": 0.0
+      "passed": true,
+      "detail": "database ok, version 13.2.3",
+      "seconds": 0.02
     }
   ],
   "requests_sent_to_api": {
