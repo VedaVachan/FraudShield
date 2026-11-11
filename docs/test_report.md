@@ -68,24 +68,31 @@ verified, not predictions.
 
 ## Screenshots
 
-Placeholders only. The images are to be added by the author under `docs/evidence/`; none of
-these files exists yet, so nothing in this report depends on them. Each file should show the
-state named in the last column.
+Evidence images stored in `docs/evidence/` (there is no image numbered 4).
 
-| File | What it should show |
-|---|---|
-| `docs/evidence/01_transaction_page_ready.png` | Transaction page just after opening, status chip reading "API ready" |
-| `docs/evidence/02_flagged_result_with_explanation.png` | "Full-drain transfer" example checked with "Check + explain": flagged banner, score meter and contribution bars |
-| `docs/evidence/03_not_flagged_result.png` | "Normal payment" example: "Not flagged by the model" and the meter below the threshold |
-| `docs/evidence/04_inline_validation_error.png` | An empty or negative field with its red border and message under the field |
-| `docs/evidence/05_connection_settings_open.png` | "Connection settings" expanded with the API address field and its buttons |
-| `docs/evidence/06_pipeline_diagram_and_table.png` | Pipeline page: DVC diagram with key, and the recorded-executions table |
-| `docs/evidence/07_pipeline_failed_run_row.png` | A failed run shown with its FAILED pill and reason text, if one is in the history |
-| `docs/evidence/08_grafana_service_monitoring.png` | Grafana dashboard "FraudShield — Service Monitoring" |
-| `docs/evidence/09_grafana_resources.png` | Grafana dashboard "FraudShield — VM and Container Resources" |
-| `docs/evidence/10_prometheus_targets.png` | Prometheus targets page with the scrape jobs and their state |
-| `docs/evidence/11_ci_run_output.png` | Terminal output of `scripts/run_ci.py` ending in "PASS: local CI completed" |
-| `docs/evidence/12_coverage_report.png` | The per-file coverage table from `reports/coverage_summary.txt` |
+| File | Image | Description |
+|---|---|---|
+| `docs/evidence/1_ci_tests.png` | ![1_ci_tests](evidence/1_ci_tests.png) | Terminal output of the CI run executing the unit tests |
+| `docs/evidence/2_dvc_status_dag.png` | ![2_dvc_status_dag](evidence/2_dvc_status_dag.png) | `dvc status` and the pipeline DAG |
+| `docs/evidence/3_dvc_metrics.png` | ![3_dvc_metrics](evidence/3_dvc_metrics.png) | DVC metrics output |
+| `docs/evidence/5_compose_ps.png` | ![5_compose_ps](evidence/5_compose_ps.png) | `docker compose ps` listing the running services |
+| `docs/evidence/6_docker_images.png` | ![6_docker_images](evidence/6_docker_images.png) | `docker images` listing the built images |
+| `docs/evidence/7_api_health.png` | ![7_api_health](evidence/7_api_health.png) | API `/health` response |
+| `docs/evidence/8_api_docs.png` | ![8_api_docs](evidence/8_api_docs.png) | API interactive documentation page |
+| `docs/evidence/9_ui_landing.png` | ![9_ui_landing](evidence/9_ui_landing.png) | Transaction page on first load |
+| `docs/evidence/10_ui_normal.png` | ![10_ui_normal](evidence/10_ui_normal.png) | Transaction page with a normal payment result |
+| `docs/evidence/11_ui_fraud.png` | ![11_ui_fraud](evidence/11_ui_fraud.png) | Transaction page with a flagged (fraud) result |
+| `docs/evidence/12_ui_invalid.png` | ![12_ui_invalid](evidence/12_ui_invalid.png) | Transaction page showing input validation errors |
+| `docs/evidence/13_ui_pipeline.png` | ![13_ui_pipeline](evidence/13_ui_pipeline.png) | Pipeline page with the DVC diagram and execution history |
+| `docs/evidence/14_prometheus_targets.png` | ![14_prometheus_targets](evidence/14_prometheus_targets.png) | Prometheus targets page |
+| `docs/evidence/15_prometheus_query.png` | ![15_prometheus_query](evidence/15_prometheus_query.png) | A Prometheus query result |
+| `docs/evidence/16_grafana_service.png` | ![16_grafana_service](evidence/16_grafana_service.png) | Grafana service monitoring dashboard |
+| `docs/evidence/17_grafana_resources.png` | ![17_grafana_resources](evidence/17_grafana_resources.png) | Grafana VM and container resources dashboard |
+| `docs/evidence/18_grafana_datasource.png` | ![18_grafana_datasource](evidence/18_grafana_datasource.png) | Grafana Prometheus data source settings |
+| `docs/evidence/19_mlflow_runs.png` | ![19_mlflow_runs](evidence/19_mlflow_runs.png) | MLflow experiment runs list |
+| `docs/evidence/20_mlflow_run_detail.png` | ![20_mlflow_run_detail](evidence/20_mlflow_run_detail.png) | MLflow run detail page |
+| `docs/evidence/21_mlflow_models.png` | ![21_mlflow_models](evidence/21_mlflow_models.png) | MLflow registered models page |
+| `docs/evidence/22_promote_dry_run.png` | ![22_promote_dry_run](evidence/22_promote_dry_run.png) | `promote_model.py` dry-run output |
 
 ## Earlier recorded verification (110 tests)
 
