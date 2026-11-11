@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "command": "unittest discover -s tests",
+  "tests_run": 239,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "successful": true,
+  "python_version": "3.11.17",
+  "git_commit": "90363c4ef0f18a5138225d2d032b889bc429cf8b",
+  "git_dirty": true,
+  "duration_seconds": 111.432,
+  "finished_utc": "2026-11-10T13:43:36.586421+00:00"
+}

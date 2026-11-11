@@ -106,7 +106,7 @@ stages:
       size: 719278
       nfiles: 3
   xgboost_validation_gate:
-    cmd: .venv/bin/python scripts/run_model_gate.py >
+    cmd: .venv/bin/python scripts/run_model_gate.py > 
       reports/xgboost_validation_gate.json
     deps:
     - path: artifacts/xgboost_dvc_v1
@@ -127,3 +127,42 @@ stages:
       hash: md5
       md5: 52ac577616d93cae67c286d8bbaaf2a1
       size: 1208
+  unit_tests:
+    cmd: .venv/bin/python scripts/run_unit_tests.py
+    deps:
+    - path: artifacts/xgboost_v1/model.joblib
+      hash: md5
+      md5: 858a06f811e7a47964684ac5a3a4d3da
+      size: 341443
+    - path: backend
+      hash: md5
+      md5: dfa85a3ec0eeeb77acba682b3f26a3c2.dir
+      size: 84972
+      nfiles: 16
+    - path: reports/drift_reference.json
+      hash: md5
+      md5: ecf7de640cb97c1c21640c81619fb16c
+      size: 902
+    - path: reports/mlflow_registry.json
+      hash: md5
+      md5: 891f7ec017dc4f8035ea6e4af4f47815
+      size: 1024
+    - path: scripts/run_unit_tests.py
+      hash: md5
+      md5: 420a22378c8058ba889540b39e959cda
+      size: 2841
+    - path: src
+      hash: md5
+      md5: f27eda3f7c5306cec125351b8e116d7c.dir
+      size: 8336
+      nfiles: 4
+    - path: tests
+      hash: md5
+      md5: e9dcc4735f76a4c2857427c9e669be94.dir
+      size: 173762
+      nfiles: 31
+    outs:
+    - path: reports/unit_tests_result.json
+      hash: md5
+      md5: 2d8614fd1b9b9946977e8f0746aa8588
+      size: 356

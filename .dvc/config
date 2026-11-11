@@ -1,4 +1,7 @@
 [core]
     analytics = false
+    remote = localstore
 [cache]
     type = copy
+['remote "localstore"']
+    url = ../../fraudshield-dvc-remote

@@ -42,6 +42,20 @@ stages:
       - artifacts/xgboost_dvc_v1
       - scripts/check_model_gate.py
       - scripts/run_model_gate.py
-    outs:
+    metrics:
       - reports/xgboost_validation_gate.json:
+          cache: false
+
+  unit_tests:
+    cmd: .venv/bin/python scripts/run_unit_tests.py
+    deps:
+      - backend
+      - src
+      - tests
+      - scripts/run_unit_tests.py
+      - artifacts/xgboost_v1/model.joblib
+      - reports/mlflow_registry.json
+      - reports/drift_reference.json
+    metrics:
+      - reports/unit_tests_result.json:
           cache: false
