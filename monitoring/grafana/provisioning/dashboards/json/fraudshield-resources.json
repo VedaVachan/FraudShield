@@ -2,7 +2,7 @@
   "uid": "fraudshield-resources",
   "title": "FraudShield \u2014 VM and Container Resources",
   "schemaVersion": 39,
-  "version": 1,
+  "version": 2,
   "refresh": "30s",
   "time": {
     "from": "now-15m",
@@ -29,7 +29,14 @@
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "percent"
+          "unit": "percent",
+          "custom": {
+            "axisLabel": "CPU busy (%)"
+          },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#0072B2"
+          }
         },
         "overrides": []
       },
@@ -39,7 +46,15 @@
           "expr": "100 * (1 - avg(rate(node_cpu_seconds_total{job=\"fraudshield-node\",mode=\"idle\"}[5m])))",
           "legendFormat": "VM"
         }
-      ]
+      ],
+      "description": "Share of CPU time the VM was busy over the last 5 minutes: 100 minus the idle share, averaged over all CPUs (Node Exporter).",
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        }
+      }
     },
     {
       "id": 2,
@@ -57,7 +72,14 @@
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "percent"
+          "unit": "percent",
+          "custom": {
+            "axisLabel": "Memory used (%)"
+          },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#0072B2"
+          }
         },
         "overrides": []
       },
@@ -67,7 +89,15 @@
           "expr": "100 * (1 - node_memory_MemAvailable_bytes{job=\"fraudshield-node\"} / node_memory_MemTotal_bytes{job=\"fraudshield-node\"})",
           "legendFormat": "VM"
         }
-      ]
+      ],
+      "description": "Percentage of VM memory not available to programs: 100 x (1 - MemAvailable / MemTotal) (Node Exporter).",
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        }
+      }
     },
     {
       "id": 3,
@@ -85,7 +115,14 @@
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "percent"
+          "unit": "percent",
+          "custom": {
+            "axisLabel": "Filesystem used (%)"
+          },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#0072B2"
+          }
         },
         "overrides": []
       },
@@ -95,7 +132,15 @@
           "expr": "100 * (1 - node_filesystem_avail_bytes{job=\"fraudshield-node\",mountpoint=\"/\",fstype!~\"tmpfs|overlay\"} / node_filesystem_size_bytes{job=\"fraudshield-node\",mountpoint=\"/\",fstype!~\"tmpfs|overlay\"})",
           "legendFormat": "Root filesystem"
         }
-      ]
+      ],
+      "description": "Percentage of the root filesystem (/) in use, excluding tmpfs and overlay filesystems (Node Exporter).",
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        }
+      }
     },
     {
       "id": 4,
@@ -113,9 +158,43 @@
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "short"
+          "unit": "short",
+          "custom": {
+            "axisLabel": "Scrape up (1) or down (0)"
+          }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "fraudshield-node"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#0072B2"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "fraudshield-containers"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#E69F00"
+                }
+              }
+            ]
+          }
+        ]
       },
       "targets": [
         {
@@ -123,7 +202,15 @@
           "expr": "up{job=~\"fraudshield-node|fraudshield-containers\"}",
           "legendFormat": "{{job}}"
         }
-      ]
+      ],
+      "description": "Whether Prometheus can scrape the Node Exporter (VM) and cAdvisor (containers). 1 means up, 0 means down.",
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      }
     },
     {
       "id": 5,
@@ -141,7 +228,10 @@
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "short"
+          "unit": "short",
+          "custom": {
+            "axisLabel": "CPU cores in use"
+          }
         },
         "overrides": []
       },
@@ -151,7 +241,15 @@
           "expr": "sum by (name) (rate(container_cpu_usage_seconds_total{job=\"fraudshield-containers\",name!=\"\",container_label_com_docker_compose_project=~\"fraudshield|fraudshield-canary|fraudshield-alerts|fraudshield-resources\"}[5m]))",
           "legendFormat": "{{name}}"
         }
-      ]
+      ],
+      "description": "CPU used by each container, in cores, averaged over 5 minutes (cAdvisor). Only the FraudShield compose projects are included.",
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      }
     },
     {
       "id": 6,
@@ -169,7 +267,10 @@
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "bytes"
+          "unit": "bytes",
+          "custom": {
+            "axisLabel": "Memory (bytes)"
+          }
         },
         "overrides": []
       },
@@ -179,7 +280,15 @@
           "expr": "max by (name) (container_memory_working_set_bytes{job=\"fraudshield-containers\",name!=\"\",container_label_com_docker_compose_project=~\"fraudshield|fraudshield-canary|fraudshield-alerts|fraudshield-resources\"})",
           "legendFormat": "{{name}}"
         }
-      ]
+      ],
+      "description": "Working-set memory of each container (cAdvisor), highest value per container name. Only the FraudShield compose projects are included.",
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      }
     }
   ]
 }
