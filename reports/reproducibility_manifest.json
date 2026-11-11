@@ -1,0 +1,276 @@
+{
+  "schema_version": 1,
+  "generated_utc": "2026-11-11T19:26:06.833279+00:00",
+  "generator": "scripts/build_reproducibility_manifest.py",
+  "repository": {
+    "head_commit": "0b314c29af80ed4025c8ae311e022f9981661ec3",
+    "uncommitted_changes": false
+  },
+  "deployed_model": {
+    "path": "artifacts/xgboost_v1/model.joblib",
+    "sha256": "1d2df49373788c5b1e554ec9ab9cfc346cc0feb1e13406bc0cd93b1594518bcb",
+    "size_bytes": 341443,
+    "registry_receipt": {
+      "file": "mlflow_registry.json",
+      "name": "FraudShield-XGBoost",
+      "version": 1,
+      "model_sha256": "1d2df49373788c5b1e554ec9ab9cfc346cc0feb1e13406bc0cd93b1594518bcb",
+      "matches_deployed_file": true
+    }
+  },
+  "registry": {
+    "tracking_database": "tracking.db",
+    "opened_read_only": true,
+    "versions": [
+      {
+        "registry_name": "FraudShield-LogisticRegression",
+        "registry_version": "1",
+        "status": "READY",
+        "aliases": [],
+        "runs": [
+          {
+            "run_id": "13d5cdbbea9d42c5b54c358c2d3ad74d",
+            "role": "registered_run",
+            "found": true,
+            "run_name": "logreg-v1-model-packaging",
+            "status": "FINISHED",
+            "lifecycle_stage": "active",
+            "experiment_id": 2,
+            "git_commit": "2fe7cb0378d01cbada4a4379211f6ba410a50cdf",
+            "git_commit_exists_in_repository": true,
+            "commit_tags": {
+              "mlflow.source.git.commit": "2fe7cb0378d01cbada4a4379211f6ba410a50cdf"
+            },
+            "training_code_commit": "missing",
+            "git_dirty": "missing",
+            "model_sha256_tag": "72321c8ea964d44678bca48b62103fd969225340acec3332ef7517db4cf8f36a",
+            "source_run_id": "93ccaf05bfa4401897837a97b508c8a0"
+          },
+          {
+            "run_id": "93ccaf05bfa4401897837a97b508c8a0",
+            "role": "linked_by_source_run_id",
+            "found": true,
+            "run_name": "logreg-v1-historical-import",
+            "status": "FINISHED",
+            "lifecycle_stage": "active",
+            "experiment_id": 2,
+            "git_commit": "2be5b95f42e01f95d3c095dc4554e535e3caa8a0",
+            "git_commit_exists_in_repository": true,
+            "commit_tags": {
+              "mlflow.source.git.commit": "2be5b95f42e01f95d3c095dc4554e535e3caa8a0",
+              "import_code_commit": "2be5b95f42e01f95d3c095dc4554e535e3caa8a0"
+            },
+            "training_code_commit": "missing",
+            "git_dirty": "missing",
+            "model_sha256_tag": "72321c8ea964d44678bca48b62103fd969225340acec3332ef7517db4cf8f36a",
+            "source_run_id": "missing"
+          }
+        ],
+        "model_sha256_tags_on_runs": [
+          "72321c8ea964d44678bca48b62103fd969225340acec3332ef7517db4cf8f36a"
+        ],
+        "is_deployed_model": false
+      },
+      {
+        "registry_name": "FraudShield-XGBoost",
+        "registry_version": "1",
+        "status": "READY",
+        "aliases": [],
+        "runs": [
+          {
+            "run_id": "323777a876f1444fa43893b4056c1bbf",
+            "role": "registered_run",
+            "found": true,
+            "run_name": "xgboost-v1-model-packaging",
+            "status": "FINISHED",
+            "lifecycle_stage": "active",
+            "experiment_id": 2,
+            "git_commit": "2fe7cb0378d01cbada4a4379211f6ba410a50cdf",
+            "git_commit_exists_in_repository": true,
+            "commit_tags": {
+              "mlflow.source.git.commit": "2fe7cb0378d01cbada4a4379211f6ba410a50cdf"
+            },
+            "training_code_commit": "missing",
+            "git_dirty": "missing",
+            "model_sha256_tag": "1d2df49373788c5b1e554ec9ab9cfc346cc0feb1e13406bc0cd93b1594518bcb",
+            "source_run_id": "116a3eb388a449bba425317645a84703"
+          },
+          {
+            "run_id": "116a3eb388a449bba425317645a84703",
+            "role": "linked_by_source_run_id",
+            "found": true,
+            "run_name": "xgboost-v1-historical-import",
+            "status": "FINISHED",
+            "lifecycle_stage": "active",
+            "experiment_id": 2,
+            "git_commit": "2be5b95f42e01f95d3c095dc4554e535e3caa8a0",
+            "git_commit_exists_in_repository": true,
+            "commit_tags": {
+              "mlflow.source.git.commit": "2be5b95f42e01f95d3c095dc4554e535e3caa8a0",
+              "import_code_commit": "2be5b95f42e01f95d3c095dc4554e535e3caa8a0"
+            },
+            "training_code_commit": "missing",
+            "git_dirty": "missing",
+            "model_sha256_tag": "1d2df49373788c5b1e554ec9ab9cfc346cc0feb1e13406bc0cd93b1594518bcb",
+            "source_run_id": "missing"
+          }
+        ],
+        "model_sha256_tags_on_runs": [
+          "1d2df49373788c5b1e554ec9ab9cfc346cc0feb1e13406bc0cd93b1594518bcb"
+        ],
+        "is_deployed_model": true
+      }
+    ],
+    "other_runs_tagged_with_model_sha256": [
+      {
+        "run_id": "afef198de2d0444487758770e13826a7",
+        "role": "tagged_with_model_sha256",
+        "found": true,
+        "run_name": "deployed-model-feature-importance",
+        "status": "FINISHED",
+        "lifecycle_stage": "active",
+        "experiment_id": 2,
+        "git_commit": "86bdc4d5ed385a3f6f4e6decd8b148198b717c46",
+        "git_commit_exists_in_repository": true,
+        "commit_tags": {
+          "git_commit": "86bdc4d5ed385a3f6f4e6decd8b148198b717c46"
+        },
+        "training_code_commit": "missing",
+        "git_dirty": "false",
+        "model_sha256_tag": "1d2df49373788c5b1e554ec9ab9cfc346cc0feb1e13406bc0cd93b1594518bcb",
+        "source_run_id": "missing"
+      }
+    ]
+  },
+  "data": {
+    "pointer_file": "paysim.dvc",
+    "lock_file": "dvc.lock",
+    "raw_data": {
+      "path": "data/raw/paysim.csv",
+      "md5": "e92a5f7447f43712f1dca473d0b0fa85",
+      "size": 493534783
+    },
+    "dvc_lock_stages": {
+      "spark_prepare": {
+        "dependencies": {
+          "data/raw/paysim.csv": "e92a5f7447f43712f1dca473d0b0fa85",
+          "scripts/prepare_spark.py": "6da9f1ed4cc91234d3147226e05aaf0e",
+          "scripts/prepare_spark_dvc.py": "f68aa895a640d8680bba39df9a5d8c40",
+          "src/fraudshield/features.py": "303eba68bac270b9e162fc8de29838cc",
+          "src/fraudshield/spark_features.py": "cf4cd1860f3ca27e1376adb5f4438237"
+        },
+        "outputs": {
+          "data/processed/paysim_spark_dvc_v1": "3282e49266ac0f63c3954fdd23fd14a3.dir"
+        }
+      },
+      "logreg_train": {
+        "dependencies": {
+          "data/processed/paysim_spark_dvc_v1": "3282e49266ac0f63c3954fdd23fd14a3.dir",
+          "scripts/train_logreg.py": "0d3e731ac7cf00d66f2aa690c05c5a4c",
+          "scripts/train_logreg_dvc.py": "57fc287d49c78ac8ef488afddbbbfc40",
+          "src/fraudshield/features.py": "303eba68bac270b9e162fc8de29838cc"
+        },
+        "outputs": {
+          "artifacts/logreg_dvc_v1": "75b6f180798b4ec5415ce7387f5160e8.dir"
+        }
+      },
+      "xgboost_train": {
+        "dependencies": {
+          "data/processed/paysim_spark_dvc_v1": "3282e49266ac0f63c3954fdd23fd14a3.dir",
+          "scripts/train_logreg.py": "0d3e731ac7cf00d66f2aa690c05c5a4c",
+          "scripts/train_logreg_dvc.py": "57fc287d49c78ac8ef488afddbbbfc40",
+          "scripts/train_xgboost.py": "91d413f01b3335eb00f5bac59ec59b46",
+          "scripts/train_xgboost_dvc.py": "2d8b5c5147517fb7ccd0bfc937715854",
+          "src/fraudshield/features.py": "303eba68bac270b9e162fc8de29838cc"
+        },
+        "outputs": {
+          "artifacts/xgboost_dvc_v1": "380b230cf4dd6ffc3fbae90e1d0a780c.dir"
+        }
+      },
+      "xgboost_validation_gate": {
+        "dependencies": {
+          "scripts/check_model_gate.py": "2b5b687a6ec3968eb58fadc2c7a7c0c7",
+          "scripts/run_model_gate.py": "aa0f701d74fa1491174b0fd1755ccc05"
+        },
+        "outputs": {
+          "reports/xgboost_validation_gate.json": "52ac577616d93cae67c286d8bbaaf2a1"
+        }
+      },
+      "unit_tests": {
+        "dependencies": {
+          "scripts/run_unit_tests.py": "420a22378c8058ba889540b39e959cda"
+        },
+        "outputs": {
+          "reports/unit_tests_result.json": "266a0e4221a6bcc6f8529fd9c8ebd916"
+        }
+      }
+    },
+    "raw_data_md5_in_dvc_lock": "e92a5f7447f43712f1dca473d0b0fa85",
+    "pointer_and_lock_agree": true
+  },
+  "validation_gate": {
+    "gate_file_model_sha256": "4b1fa5cead6f0d8dedcab0d99ed66adfdfd9f5b023adba41c567ca3c0c77d106",
+    "gate_file_recorded_git_commit": "878acec133b9027e22b2dcfb379b1ddf67d158a8",
+    "describes_deployed_model": false
+  },
+  "report_files": {
+    "reports/xgboost_validation_gate.json": {
+      "present": true,
+      "sha256": "0327ec8ba4da814ef67369ad4c08ec968d4f4f3105cada67920978af23512ca3",
+      "last_commit": "9b92ff786082b614499c7cd7f2d8ab0f404930ca",
+      "uncommitted_changes": false
+    },
+    "reports/mlflow_registry.json": {
+      "present": true,
+      "sha256": "9b7dfaf7683d7e1fa541f4bded03f8048b2dd1d7c2588ad2f381c19b264255dd",
+      "last_commit": "2aef6f8170952f018bd10903a004c3947c6620e2",
+      "uncommitted_changes": false
+    },
+    "reports/drift_reference.json": {
+      "present": true,
+      "sha256": "5fd53728563dee4a1ad15c66d1f21115b12f7acfd983eee2d7a78b0cb6d9c925",
+      "last_commit": "969b34f0e83fcc690903a7ca54cf0f9009435b5e",
+      "uncommitted_changes": false
+    },
+    "reports/xgboost_validation.json": {
+      "present": true,
+      "sha256": "0f77da7f4f0fa365c7e7a9b418526ba70f0f9aa03c3bd3ad9b4630f76f007c01",
+      "last_commit": "83885a01cf532c8f9ad397fe6ca773c48dccda5b",
+      "uncommitted_changes": false
+    },
+    "reports/xgboost_model_selection.json": {
+      "present": true,
+      "sha256": "f7d1f99f700393f1eddfe645e4d073e3d54ceb54fdff8e88b95d3f332a6f3272",
+      "last_commit": "0dfacb73b1588506afb5bfdeafbf93d4d87225f8",
+      "uncommitted_changes": false
+    }
+  },
+  "dependency_lock_files": {
+    "requirements-ml.lock.txt": "9f2fce6eaae3596675dd0f311805f40bb326fba52c58188afc34614f3c7c9591",
+    "requirements-serving.lock.txt": "f468ee9491fa38b79f447eee6abf1155dc4b68c0f1e1b54aabf9c3a01ef89f8f"
+  },
+  "environment": {
+    "python": "3.11.17",
+    "packages": {
+      "mlflow": "3.4.0",
+      "scikit-learn": "1.7.2",
+      "xgboost": "not installed in this environment",
+      "pandas": "2.3.3",
+      "numpy": "2.2.6",
+      "scipy": "1.17.1",
+      "joblib": "1.6.0",
+      "shap": "not installed in this environment",
+      "fastapi": "0.146.0",
+      "pydantic": "2.14.1",
+      "prometheus-client": "0.26.0",
+      "pyspark": "3.5.7",
+      "dvc": "not installed in this environment"
+    },
+    "note": "Versions are those of the environment that ran this script; they are not proof of the versions used when the model was trained."
+  },
+  "limitations": [
+    "Values come from files, git and the MLflow database; none were inferred.",
+    "'missing' means the source holds no value for that field.",
+    "A commit tag records the code state at logging time, not necessarily the code that trained the model; see training_code_commit."
+  ]
+}

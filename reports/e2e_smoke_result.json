@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "scope": "running stack only; not part of unit tests or scripts/run_ci.py",
+  "started_utc": "2026-11-11T19:26:16.654226+00:00",
+  "finished_utc": "2026-11-11T19:26:16.664650+00:00",
+  "addresses": {
+    "frontend": "http://127.0.0.1:8080",
+    "api": "http://127.0.0.1:8000",
+    "prometheus": "http://127.0.0.1:9095",
+    "grafana": "http://127.0.0.1:3010"
+  },
+  "passed": false,
+  "checks_run": 9,
+  "checks_failed": 9,
+  "failed_checks": [
+    "frontend serves both pages",
+    "API /health is ready",
+    "API /predict returns a consistent score",
+    "API /explain returns additive contributions",
+    "API rejects bad input with 422",
+    "API /pipeline/summary and /pipeline/runs",
+    "Prometheus reports the API target up",
+    "Prometheus has scraped the request counter",
+    "Grafana /api/health is ok"
+  ],
+  "checks": [
+    {
+      "name": "frontend serves both pages",
+      "passed": false,
+      "detail": "not reachable: http://127.0.0.1:8080/: [Errno 111] Connection refused",
+      "seconds": 0.004
+    },
+    {
+      "name": "API /health is ready",
+      "passed": false,
+      "detail": "not reachable: http://127.0.0.1:8000/health: [Errno 111] Connection refused",
+      "seconds": 0.001
+    },
+    {
+      "name": "API /predict returns a consistent score",
+      "passed": false,
+      "detail": "not reachable: http://127.0.0.1:8000/predict: [Errno 111] Connection refused",
+      "seconds": 0.001
+    },
+    {
+      "name": "API /explain returns additive contributions",
+      "passed": false,
+      "detail": "not reachable: http://127.0.0.1:8000/explain: [Errno 111] Connection refused",
+      "seconds": 0.001
+    },
+    {
+      "name": "API rejects bad input with 422",
+      "passed": false,
+      "detail": "not reachable: http://127.0.0.1:8000/predict: [Errno 111] Connection refused",
+      "seconds": 0.001
+    },
+    {
+      "name": "API /pipeline/summary and /pipeline/runs",
+      "passed": false,
+      "detail": "not reachable: http://127.0.0.1:8000/pipeline/summary: [Errno 111] Connection refused",
+      "seconds": 0.0
+    },
+    {
+      "name": "Prometheus reports the API target up",
+      "passed": false,
+      "detail": "not reachable: http://127.0.0.1:9095/api/v1/targets: [Errno 111] Connection refused",
+      "seconds": 0.0
+    },
+    {
+      "name": "Prometheus has scraped the request counter",
+      "passed": false,
+      "detail": "not reachable: http://127.0.0.1:8000/metrics: [Errno 111] Connection refused",
+      "seconds": 0.0
+    },
+    {
+      "name": "Grafana /api/health is ok",
+      "passed": false,
+      "detail": "not reachable: http://127.0.0.1:3010/api/health: [Errno 111] Connection refused",
+      "seconds": 0.0
+    }
+  ],
+  "requests_sent_to_api": {
+    "predict_valid": 1,
+    "explain_valid": 1,
+    "predict_invalid": 1,
+    "note": "the counter check reads /metrics only"
+  }
+}
