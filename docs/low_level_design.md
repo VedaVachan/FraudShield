@@ -44,6 +44,297 @@ The documented direct-API not-ready body is `{"status":"not_ready"}` with 503.
 Invalid scoring input returns 422 with `{"detail":"Invalid transaction input."}`.
 Clients must not assume a structured JSON contract for unexpected 500 responses.
 
+## Example requests and responses
+
+Illustrative values. The direct-API examples are real outputs of the deployed model from a
+local run on 2026-11-10; identifiers and timestamps differ on every run, and the scores
+depend on the input. The gateway and receiver bodies follow the code in `backend/gateway.py`
+and `backend/alert_receiver.py` and were checked with the in-process test client. Error
+bodies are the ones specified above. `docs/openapi.json` is the machine-readable
+description of the direct API (generated with `app.openapi()` on 2026-11-10). It lists
+FastAPI's default 422 schema, whereas the direct API actually returns the generic body
+shown below.
+
+### Direct API (`http://127.0.0.1:8000`)
+
+**POST /predict**, request and a flagged result:
+
+```json
+{
+  "type": "TRANSFER",
+  "amount": 100000,
+  "oldbalanceOrg": 100000
+}
+```
+
+```json
+{
+  "score": 0.9916079044342041,
+  "threshold": 0.9195699691772461,
+  "predicted_fraud": true,
+  "model_name": "FraudShield-XGBoost",
+  "model_version": "1"
+}
+```
+
+A low-risk example (`{"type":"PAYMENT","amount":50,"oldbalanceOrg":1000}`) returned
+`score` 5.64e-06 with `predicted_fraud: false` and the same `threshold`.
+
+**POST /explain**, same request; the response adds `base_value`, `raw_margin`,
+`contribution_units` and nine contributions sorted by absolute size:
+
+```json
+{
+  "score": 0.9916079044342041,
+  "threshold": 0.9195699691772461,
+  "predicted_fraud": true,
+  "model_name": "FraudShield-XGBoost",
+  "model_version": "1",
+  "base_value": -5.609713077545166,
+  "raw_margin": 4.772031784057617,
+  "contribution_units": "raw model log-odds",
+  "contributions": [
+    {
+      "feature": "amount_exceeds_balance",
+      "shap_log_odds": 4.380070209503174
+    },
+    {
+      "feature": "amount_balance_fraction",
+      "shap_log_odds": 4.200893402099609
+    },
+    {
+      "feature": "type_TRANSFER",
+      "shap_log_odds": 2.510343313217163
+    },
+    {
+      "feature": "type_CASH_OUT",
+      "shap_log_odds": -0.4414238929748535
+    },
+    {
+      "feature": "log_amount",
+      "shap_log_odds": -0.3235665261745453
+    },
+    {
+      "feature": "log_sender_balance",
+      "shap_log_odds": -0.1936536431312561
+    },
+    {
+      "feature": "type_PAYMENT",
+      "shap_log_odds": 0.1470889002084732
+    },
+    {
+      "feature": "type_CASH_IN",
+      "shap_log_odds": 0.10191535949707031
+    },
+    {
+      "feature": "type_DEBIT",
+      "shap_log_odds": 8.002507092896849e-05
+    }
+  ]
+}
+```
+
+**Invalid input** (unknown type, negative amount, extra or missing fields), status 422 for
+both POST endpoints. The body never repeats the submitted values:
+
+```json
+{
+  "detail": "Invalid transaction input."
+}
+```
+
+**GET /health**, status 200 when ready:
+
+```json
+{
+  "status": "ready",
+  "model_name": "FraudShield-XGBoost",
+  "model_version": "1",
+  "model_sha256": "1d2df49373788c5b1e554ec9ab9cfc346cc0feb1e13406bc0cd93b1594518bcb"
+}
+```
+
+When the model is not loaded the status is 503 with `{"status": "not_ready"}`.
+
+**GET /metrics** returns Prometheus text. A few real lines (counters also have `_created`
+lines and histograms `_bucket` lines):
+
+```text
+fraudshield_requests_total{endpoint="/predict",status="200"} 2.0
+fraudshield_requests_total{endpoint="/explain",status="200"} 1.0
+fraudshield_requests_total{endpoint="/predict",status="422"} 1.0
+fraudshield_request_duration_seconds_count{endpoint="/predict"} 3.0
+fraudshield_request_duration_seconds_sum{endpoint="/predict"} 0.04790308100018592
+fraudshield_request_duration_seconds_count{endpoint="/explain"} 1.0
+fraudshield_request_duration_seconds_sum{endpoint="/explain"} 0.01887118400009058
+```
+
+**GET /pipeline/runs?limit=N** (`N` from 1 to 100, default 50) returns recorded command
+executions, newest first, reading at most the last 1 MiB of the history file:
+
+```json
+{
+  "history_available": true,
+  "truncated": false,
+  "invalid_records": 0,
+  "runs": [
+    {
+      "run_id": "c66d63a9-1195-4c3f-b1b7-1c32f4864fb3",
+      "stage": "dvc_reproduction",
+      "status": "success",
+      "started_utc": "2026-11-10T13:41:38.682134+00:00",
+      "finished_utc": "2026-11-10T13:43:39.320915+00:00",
+      "duration_seconds": 120.63845133900031,
+      "git_commit": "90363c4ef0f18a5138225d2d032b889bc429cf8b",
+      "git_dirty": true,
+      "failure_reasons": []
+    }
+  ]
+}
+```
+
+Status 503 with `{"detail": "Pipeline history is temporarily unavailable."}` if the file
+cannot be read.
+
+**GET /pipeline/summary** returns the saved snapshot `reports/pipeline_summary.json`. Its keys
+are `schema_version, generated_utc, scope, spark, registered_original_models, ray_tuning, source_report_sha256`; `spark` looks like:
+
+```json
+{
+  "scope": "original complete preparation job, not DVC rerun",
+  "rows": 6362620,
+  "total_seconds": 82.82915609499969,
+  "effective_rows_per_second": 76816.18768036808,
+  "timing_scope": "whole-job elapsed time including validation and readback; not individual-stage throughput",
+  "output": "data/processed/paysim_spark_v1",
+  "spark_version": "3.5.7"
+}
+```
+
+Status 503 with `{"detail": "Historical pipeline summary is unavailable."}` if the file is
+missing or not a version 1 summary.
+
+**GET /docs**, **/redoc** and **/openapi.json** serve the interactive and raw API description.
+
+### Canary gateway (`http://127.0.0.1:8020`)
+
+**GET /health**, status 200:
+
+```json
+{
+  "status": "configured",
+  "scope": "gateway initialized; does not verify upstream health"
+}
+```
+
+**GET /routing**, status 200:
+
+```json
+{
+  "canary_weight": 0,
+  "challenger_configured": true,
+  "fallback_attempts": 0,
+  "rollback_on_failure": true,
+  "automatic_rollbacks": 0
+}
+```
+
+**POST /predict** with the same three-field body as the direct API and an optional
+`X-Transaction-ID` header (1 to 128 characters). Illustrative response (the champion's
+SHA-256 appears because the gateway checks the expected model identity):
+
+```json
+{
+  "score": 0.9916,
+  "threshold": 0.9195699691772461,
+  "predicted_fraud": true,
+  "model_sha256": "1d2df49373788c5b1e554ec9ab9cfc346cc0feb1e13406bc0cd93b1594518bcb",
+  "transaction_id": "gateway-example",
+  "requested_route": "champion",
+  "route": "champion",
+  "fallback": false,
+  "rollback_triggered": false
+}
+```
+
+Errors: status 503 `{"detail": "Scoring service is temporarily unavailable."}`; status 422 for
+an invalid body or blank transaction ID. Unlike the direct API, an invalid body returns FastAPI's
+default 422 body, which lists each problem and **echoes the submitted value** in `input`:
+
+```json
+{
+  "detail": [
+    {
+      "type": "literal_error",
+      "loc": [
+        "body",
+        "type"
+      ],
+      "msg": "Input should be 'CASH_IN', 'CASH_OUT', 'DEBIT', 'PAYMENT' or 'TRANSFER'",
+      "input": "BAD",
+      "ctx": {
+        "expected": "'CASH_IN', 'CASH_OUT', 'DEBIT', 'PAYMENT' or 'TRANSFER'"
+      }
+    }
+  ]
+}
+```
+
+**POST /admin/canary** with header `X-API-Key` and body `{"weight": 10}` (integer 0 to 100):
+
+```json
+{
+  "canary_weight": 10,
+  "challenger_configured": true,
+  "fallback_attempts": 0,
+  "rollback_on_failure": true,
+  "automatic_rollbacks": 0
+}
+```
+
+Errors: 401 `{"detail": "Invalid admin credentials."}`; 409
+`{"detail": "Requested canary configuration is unavailable."}` (for example a positive weight
+without a challenger); 422 (default body) for a weight outside 0 to 100.
+
+**GET /metrics** returns the gateway registry (names are listed under "Upstream client and
+gateway metric semantics").
+
+### Alert receiver (internal, port 8030, no host port)
+
+**GET /health**: `{"status": "configured"}`.
+
+**POST /alerts**, request (Alertmanager style; at most 20 alerts and 64 KB):
+
+```json
+{
+  "status": "firing",
+  "alerts": [
+    {
+      "status": "firing",
+      "labels": {
+        "alertname": "FraudShieldInputDrift",
+        "severity": "warning",
+        "job": "fraudshield-api",
+        "instance": "api:8000",
+        "feature": "amount"
+      }
+    }
+  ]
+}
+```
+
+Response, status 200 (`delivery_id` is a new UUID each time):
+
+```json
+{
+  "status": "recorded",
+  "delivery_id": "00000000-0000-4000-8000-000000000000"
+}
+```
+
+Errors: 413 `{"detail": "Notification too large."}`; 422 `{"detail": "Invalid notification."}`;
+503 `{"detail": "Notification storage unavailable."}`.
+
 ## Direct API startup
 
 1. Read the XGBoost registry receipt and hash the original model bundle.

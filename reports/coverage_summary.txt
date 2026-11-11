@@ -1,20 +1,23 @@
 FraudShield unit-test coverage summary
 ======================================
 Date (UTC):        2026-11-10
-Measured at commit: d5c3dc9 (HEAD when measured; this file is committed afterwards)
+Measured at:       commit 90363c4 plus uncommitted working-tree changes (logging, docstrings,
+                   new tests); the numbers below do not belong to a single commit
 Coverage tool:     Coverage.py 7.17.2 with C extension
 Python:            3.11.17
-Tests run:         179 (all passed)
+Tests run:         217 (all passed)
 Scope:             backend/ and src/fraudshield/ only
+Replaces:          the earlier measurement at 179 tests (commit d5c3dc9, also 93%), which
+                   remains in Git history
 
 Exact command (run from the repository root; Spark variables as set by scripts/run_ci.py,
 pointed at the throwaway coverage interpreter):
   export PYSPARK_PYTHON=/tmp/covenv/bin/python PYSPARK_DRIVER_PYTHON=/tmp/covenv/bin/python \
-         SPARK_LOCAL_IP=127.0.0.1 PYSPARK_SUBMIT_ARGS="--driver-memory 1g pyspark-shell" DVC_NO_ANALYTICS=1
+         SPARK_LOCAL_IP=127.0.0.1 PYSPARK_SUBMIT_ARGS="--driver-memory 1g pyspark-shell"
   COVERAGE_FILE=/tmp/cov/.coverage PYTHONPATH=src:. /tmp/covenv/bin/python -m coverage run --source=backend,src/fraudshield -m unittest discover -s tests
   COVERAGE_FILE=/tmp/cov/.coverage /tmp/covenv/bin/python -m coverage report -m
 The environment /tmp/covenv was created with: .venv/bin/python -m venv --system-site-packages /tmp/covenv
-and the tool installed with: /tmp/covenv/bin/pip install coverage
+and the tool installed with: /tmp/covenv/bin/pip install coverage==7.17.2
 
 Caveats:
 - Measured with unittest, not pytest.
@@ -27,24 +30,25 @@ Per-file result (verbatim output of "coverage report -m"):
 
 Name                                Stmts   Miss  Cover   Missing
 -----------------------------------------------------------------
-backend/alert_receiver.py              68      3    96%   31, 36, 38
-backend/app.py                        102      4    96%   72, 81, 136, 152
-backend/canary.py                      56      0   100%
-backend/drift.py                       45      8    82%   13, 17, 36, 38, 59-60, 71-80
-backend/gateway.py                     48      0   100%
-backend/gateway_metrics.py             44      4    91%   101-104
-backend/gateway_server.py              13      0   100%
-backend/metrics.py                     65      3    95%   128-134
-backend/model_client.py                77      2    97%   22, 26
-backend/pipeline.py                    58      7    88%   43, 47, 49, 88-91
-backend/process_runner.py              58      4    93%   26-27, 73, 85
+backend/alert_receiver.py              77      3    96%   35, 40, 42
+backend/app.py                        110      5    95%   81, 90, 157-158, 176
+backend/canary.py                      61      0   100%
+backend/drift.py                       45      8    82%   15, 19, 38, 40, 61-62, 74-83
+backend/gateway.py                     54      0   100%
+backend/gateway_metrics.py             44      4    91%   109-112
+backend/gateway_server.py              18      0   100%
+backend/logging_config.py              26      0   100%
+backend/metrics.py                     65      3    95%   133-139
+backend/model_client.py                77      2    97%   23, 27
+backend/pipeline.py                    58      7    88%   45, 49, 51, 91-94
+backend/process_runner.py              58      4    93%   28-29, 76, 88
 backend/result_storage.py              21      0   100%
-backend/retraining_queue.py            74     10    86%   47, 51, 55, 58, 65, 68, 78, 145-147
-backend/retraining_recovery.py        285     29    90%   57-59, 108-109, 155, 170, 175, 184, 190-191, 207-208, 247-249, 295-296, 327-328, 332-333, 357-358, 361-363, 384-385
-backend/retraining_worker.py           87      1    99%   97
-src/fraudshield/explanations.py        26      3    88%   25, 37, 39
+backend/retraining_queue.py            74     10    86%   48, 52, 56, 59, 66, 69, 79, 146-148
+backend/retraining_recovery.py        285     29    90%   59-61, 116-117, 165, 181, 186, 195, 201-202, 219-220, 259-261, 307-308, 342-343, 347-348, 372-373, 377-379, 401-402
+backend/retraining_worker.py           95      1    99%   106
+src/fraudshield/explanations.py        26      3    88%   27, 39, 41
 src/fraudshield/features.py            26      2    92%   19, 63
-src/fraudshield/mlflow_model.py        32      2    94%   28, 34
+src/fraudshield/mlflow_model.py        32      2    94%   31, 38
 src/fraudshield/spark_features.py      23      0   100%
 -----------------------------------------------------------------
-TOTAL                                1208     82    93%
+TOTAL                                1275     83    93%

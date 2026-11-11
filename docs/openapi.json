@@ -1,0 +1,363 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "FraudShield",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/pipeline/runs": {
+      "get": {
+        "summary": "Pipeline Runs",
+        "description": "Return recent recorded pipeline command executions.",
+        "operationId": "pipeline_runs_pipeline_runs_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/pipeline/summary": {
+      "get": {
+        "summary": "Pipeline Summary",
+        "description": "Return the saved historical pipeline summary.",
+        "operationId": "pipeline_summary_pipeline_summary_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Health",
+        "description": "Report readiness and the loaded model identity.",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/predict": {
+      "post": {
+        "summary": "Predict",
+        "description": "Score one transaction and record its input for drift monitoring.",
+        "operationId": "predict_predict_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Transaction"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Prediction"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/explain": {
+      "post": {
+        "summary": "Explain",
+        "description": "Score one transaction and return its SHAP feature contributions.",
+        "operationId": "explain_explain_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Transaction"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Explanation"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Contribution": {
+        "properties": {
+          "feature": {
+            "type": "string",
+            "title": "Feature"
+          },
+          "shap_log_odds": {
+            "type": "number",
+            "title": "Shap Log Odds"
+          }
+        },
+        "type": "object",
+        "required": [
+          "feature",
+          "shap_log_odds"
+        ],
+        "title": "Contribution",
+        "description": "One feature's SHAP contribution in raw model log-odds."
+      },
+      "Explanation": {
+        "properties": {
+          "score": {
+            "type": "number",
+            "title": "Score"
+          },
+          "threshold": {
+            "type": "number",
+            "title": "Threshold"
+          },
+          "predicted_fraud": {
+            "type": "boolean",
+            "title": "Predicted Fraud"
+          },
+          "model_name": {
+            "type": "string",
+            "title": "Model Name"
+          },
+          "model_version": {
+            "type": "string",
+            "title": "Model Version"
+          },
+          "base_value": {
+            "type": "number",
+            "title": "Base Value"
+          },
+          "raw_margin": {
+            "type": "number",
+            "title": "Raw Margin"
+          },
+          "contribution_units": {
+            "type": "string",
+            "title": "Contribution Units"
+          },
+          "contributions": {
+            "items": {
+              "$ref": "#/components/schemas/Contribution"
+            },
+            "type": "array",
+            "title": "Contributions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "score",
+          "threshold",
+          "predicted_fraud",
+          "model_name",
+          "model_version",
+          "base_value",
+          "raw_margin",
+          "contribution_units",
+          "contributions"
+        ],
+        "title": "Explanation",
+        "description": "Prediction plus base value, raw margin and per-feature contributions."
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "Prediction": {
+        "properties": {
+          "score": {
+            "type": "number",
+            "title": "Score"
+          },
+          "threshold": {
+            "type": "number",
+            "title": "Threshold"
+          },
+          "predicted_fraud": {
+            "type": "boolean",
+            "title": "Predicted Fraud"
+          },
+          "model_name": {
+            "type": "string",
+            "title": "Model Name"
+          },
+          "model_version": {
+            "type": "string",
+            "title": "Model Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "score",
+          "threshold",
+          "predicted_fraud",
+          "model_name",
+          "model_version"
+        ],
+        "title": "Prediction",
+        "description": "Response fields common to scoring and explanation."
+      },
+      "Transaction": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "CASH_IN",
+              "CASH_OUT",
+              "DEBIT",
+              "PAYMENT",
+              "TRANSFER"
+            ],
+            "title": "Type"
+          },
+          "amount": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Amount"
+          },
+          "oldbalanceOrg": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Oldbalanceorg"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "type",
+          "amount",
+          "oldbalanceOrg"
+        ],
+        "title": "Transaction",
+        "description": "Request body for scoring: type, amount and sender balance."
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}

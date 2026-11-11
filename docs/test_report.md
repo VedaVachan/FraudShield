@@ -2,12 +2,71 @@
 
 ## Evidence and scope
 
-This report consolidates recorded local results through 6 November 2026. It does
-not represent a new execution of the suite. Source evidence remains in the
-repository reports listed below. Results apply to the stated revision and local
+This report consolidates recorded local results through 10 November 2026. The sections
+"Latest verification" and "Acceptance results" come from the run of 10 November 2026;
+the sections after them are earlier records and keep their original numbers (110 tests).
+Source evidence remains in the repository reports listed below. Results apply to the stated revision and local
 VM configuration; they do not establish production readiness or course compliance.
 
-## Automated verification
+## Latest verification (10 November 2026)
+
+Local CI (`.venv/bin/python scripts/run_ci.py`) run `f57ca21c-0e60-4349-85e4-52bd6bcfd444` ended with exit
+code 0. The test step ran **239 tests with no failures or errors**. The
+`dvc_reproduction` step reported "Data and pipelines are up to date": the data, both
+training stages and the validation gate were skipped as unchanged, so nothing was
+retrained. The tests also run as the DVC stage `unit_tests`, whose last result is in
+`reports/unit_tests_result.json`. The CI logs are under `runtime/ci/f57ca21c-0e60-4349-85e4-52bd6bcfd444/`
+(local and git-ignored); the pipeline history is `runtime/pipeline_runs.jsonl`.
+
+Tests added since the 110-test run (counted with the unittest loader; the 31 test files
+are listed with their cases in [test_plan.md](test_plan.md)):
+
+| Commit | Files added | Tests | Total after |
+|---|---|---:|---:|
+| 99e7324, 8c2db59, d2fbedc, 6b3bf87 | `test_mlflow_identity`, `test_model_client_transport`, `test_model_client_identity`, `test_gateway_identity` | 3 + 2 + 6 + 2 | 123 |
+| 3d3900a | `test_process_runner`, `test_worker_interruptions` | 4 + 2 | 129 |
+| f69067d | `test_result_storage` | 9 | 138 |
+| b646b1e | `test_retraining_recovery` | 31 | 169 |
+| d5c3dc9 | `test_gateway_server_coverage` | 10 | 179 |
+| uncommitted at writing | `test_logging`, `test_run_unit_tests`, `test_frontend_markup`, `test_log_feature_importance`, `test_promote_model`, `test_grafana_dashboards` | 14 + 4 + 12 + 8 + 16 + 6 | 239 |
+
+No existing test file changed after the 110-test run. Unit-test coverage of `backend/` and
+`src/fraudshield/` was measured at 217 tests: 93% (1,275 statements, 83 missed, lowest
+file `backend/drift.py` at 82%); code run only in subprocesses and `scripts/` are not
+measured (`reports/coverage_summary.txt`).
+
+One intermittent failure was seen on 10 November 2026: in one CI invocation the
+`unit_tests` stage failed with an error in
+`test_worker_interruptions.test_sigterm_stops_descendants_before_recording_failure`
+(an empty process-ID file was read), although the same suite had just passed in the
+preceding step. A repeat run passed. The failure points to a timing race in the test
+setup under load, not to a product defect; it has not been fixed or investigated further.
+
+## Acceptance results
+
+The criteria are defined in [test_plan.md](test_plan.md#acceptance-criteria). They were
+written on 2026-11-10, after the benchmarks existed, so this table records what is
+verified, not predictions.
+
+| ID | Criterion | Basis | Evidence file | Result |
+|---|---|---|---|---|
+| AC-01 | All automated tests pass | CI exit 0, no failures or errors | `runtime/ci/f57ca21c-0e60-4349-85e4-52bd6bcfd444/automated_tests.log` (local); `reports/unit_tests_result.json` | MET: 239 tests |
+| AC-02 | Coverage of `backend/` and `src/fraudshield/` at least 80% | 80% | `reports/coverage_summary.txt` | MET: 93% (measured at 217 tests); not measured: code run only in subprocesses, `scripts/` |
+| AC-03 | Frozen DVC baseline passes the validation gate floors | AP >= 0.85, precision >= 0.70, recall >= 0.90 | `reports/xgboost_validation_gate.json` | MET: status PASS, AP 0.9885092, precision 0.9284028, recall 1.0 (validation, model `4b1fa5ce`, run of 2026-11-05) |
+| AC-04 | Frozen DVC baseline meets the same floors on the held-out split | Same floors | `reports/xgboost_heldout_evaluation.json` | MET for this artifact only: AP 0.9926524, precision 0.9578867, recall 0.9992013 (89,466 test rows) |
+| AC-05 | Deployed champion and logistic regression have held-out results | A recorded evaluation of both | `reports/frozen_models_heldout_evaluation.json` does not exist | NOT MEASURED |
+| AC-06 | Single-client `/predict` p95 under 50 ms | 50 ms | `reports/concurrent_api_predict.json` | MET: 19.94 ms (1,000 of 1,000 succeeded) |
+| AC-07 | p95 at 50 concurrent users under 50 ms | A recorded 50-client run | none | NOT MEASURED: no 50-user run was performed. Measured without a target: `/predict` p95 96.15 ms at 4 clients and 252.59 ms at 8 clients |
+| AC-08a | Direct API runs: failed requests under 0.5% per scenario | Per scenario | `reports/concurrent_api_predict.json`, `reports/concurrent_api_explain.json` | MET: 0 of 1,000 failed in each of the six scenarios (1, 4 and 8 clients, `/predict` and `/explain`) |
+| AC-08b | Gateway diagnostic and eight-client runs | Per scenario | `reports/concurrent_gateway_diagnostic.json`, `reports/concurrent_gateway_eight_clients.json` | MET: 0 of 1,000 failed at 4 clients and at 8 clients |
+| AC-08c | Gateway run 2, four clients | Per scenario | `reports/concurrent_gateway_predict_run2.json` | NOT MET: 16 of 1,000 failed (1.6%, all HTTP 503). The cause is unresolved; later runs do not erase it |
+| AC-08d | First gateway attempt | A measured scenario | `reports/concurrent_gateway_predict.json` | NOT MET: it failed during warmup with HTTP 503 and produced no measured scenario; cause unresolved |
+| AC-09 | Failing challenger removed automatically after one champion fallback | One recorded drill | `reports/gateway_http_drill.json`; tests A04, A07 | MET, narrowly: automatic weight zero PASS, next request to the champion PASS, detection and fallback in 0.033 s. A single manual observation from shared output, not an automated log |
+| AC-10 | `dvc repro` reports the pipeline up to date | CI step | `runtime/ci/f57ca21c-0e60-4349-85e4-52bd6bcfd444/dvc_reproduction.log` (local) | MET: all stages skipped as unchanged. This is a cache check, not a retraining |
+| AC-11 | Reproduction from a fresh clone gives the same metrics | A recorded fresh-clone run | none | NOT MEASURED |
+| AC-12 | Retraining is candidate-only | Drill records and tests | `reports/drift_request_drill.json`, `reports/controlled_retraining_drill/`; tests A15, A24, A25 | MET: queued request carries `automatic_promotion: false`; `result.json` and `training_receipt.json` record `registered_or_promoted: false`. Effectiveness against shifted data was not shown |
+
+## Earlier recorded verification (110 tests)
 
 The recorded full CI run executed **110 tests successfully**, followed by a
 successful DVC reproduction command. The test phase took 87.739 seconds. Run ID:
@@ -120,9 +179,11 @@ sustained fixed arrival rate, 50 simultaneous users, a capacity limit or an SLA.
 
 ## Remaining verification
 
-Confirm U03 explicitly, repeat required release gates at the final code revision,
-and review fresh-machine setup and course acceptance criteria against the actual
-rubric. Neither historical test counts nor later successful load runs resolve the
+Not measured: fresh-clone reproduction (AC-11), a 50-user load run (AC-07) and held-out
+results for the deployed model and logistic regression (AC-05). The frontend changes of
+10 November 2026 (manual cases U07 to U10) have not been run in a browser. The earlier
+request to confirm U03 was met (see below). Review fresh-machine setup and course
+acceptance criteria against the actual rubric. Neither historical test counts nor later successful load runs resolve the
 earlier gateway failure finding. Container readiness and threshold consistency
 also do not establish per-response model artifact identity.
 

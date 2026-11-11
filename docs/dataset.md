@@ -14,7 +14,11 @@ Project path: data/raw/paysim.csv
 Size: 493534783 bytes
 SHA-256: 16910f90577b0d981bf8ff289714510bb89bc71bff7d3f220f024e287e4eea6b
 
-The raw CSV is excluded from Git. DVC integration is pending.
+The raw CSV is excluded from Git. It is tracked by DVC through `paysim.dvc` (md5
+`e92a5f7447f43712f1dca473d0b0fa85`, 493534783 bytes) and is the input of the `spark_prepare`
+stage in `dvc.yaml`. `.dvc/config` defines a remote `localstore`, the folder
+`../fraudshield-dvc-remote` next to the repository, which is empty until its owner runs
+`dvc push`, so a fresh clone must download the file from Kaggle (see README.md).
 
 ## Verified validation results
 Rows: 6362620

@@ -100,6 +100,31 @@ removes subsequent challenger traffic. This does not revert model artifacts,
 promote a model or cancel in-flight requests. Gateway routing state is process-local
 and starts at zero. Restarting a challenger does not re-enable its traffic.
 
+### Monitoring coverage
+
+| Component | How it is observed | Source |
+|---|---|---|
+| Direct API | Prometheus job `fraudshield-api`; `fraudshield_requests_total`, `fraudshield_request_duration_seconds`, `fraudshield_decisions_total`, `fraudshield_drift_window_samples`, `fraudshield_input_drift_score`; container health check on `/health` | `monitoring/prometheus.yml`, `backend/metrics.py`, `compose.yaml` |
+| Canary gateway | Prometheus job `fraudshield-gateway`; `fraudshield_gateway_requests_total`, `fraudshield_gateway_request_duration_seconds`, `fraudshield_gateway_scoring_results_total`, `fraudshield_gateway_canary_weight_percent`, `fraudshield_gateway_fallback_attempts_total`, `fraudshield_gateway_automatic_removals_total`; container health check | `backend/gateway_metrics.py`, `compose.canary.yaml` |
+| MLflow model servers (champion, challenger) | No Prometheus scrape target is configured for them. They are observed indirectly through the gateway's scoring-result, fallback and automatic-removal metrics and a container health check on `/ping`. Whether MLflow serving exposes its own metrics endpoint is not verified | `monitoring/prometheus.yml`, `compose.canary.yaml` |
+| Host (VM) | Prometheus job `fraudshield-node` (Node Exporter); only while the optional resource stack runs | `compose.resources.yaml` |
+| Containers | Prometheus job `fraudshield-containers` (cAdvisor); same optional stack | `compose.resources.yaml` |
+| Retraining worker | A command-line process, not scraped. Observed through the files it writes under `runtime/retraining/runs/<request_id>/` (`result.json`, `training.log`, `gate.json`, `gate.stderr.log`), the SQLite queue status and its log lines. The pipeline page shows CI and DVC gate executions, not worker runs | `backend/retraining_worker.py`, `scripts/run_ci.py`, `scripts/run_model_gate.py` |
+| Alerts | Rule `FraudShieldInputDrift` to Alertmanager to the local receiver, which appends `runtime/alerts/notifications.jsonl`; it records evidence and triggers no rollback | `monitoring/drift_rules.yml`, `monitoring/alertmanager.yml`, `backend/alert_receiver.py` |
+| Frontend, Prometheus, Grafana | Container health checks only | `compose.yaml` |
+
+Grafana provisions two dashboards: service monitoring (API, drift, gateway) and VM and
+container resources. Services and the worker also log to standard error with a level
+set by `FRAUDSHIELD_LOG_LEVEL` (see [operator_guide.md](operator_guide.md#logging)).
+
+### Model rollback
+
+There is no automatic model rollback and no promotion step. A manual procedure is
+written in [operator_guide.md](operator_guide.md#manual-model-rollback-documented-not-drilled)
+(restore the earlier model file and its receipt, verify the SHA-256, restart the API).
+It is **documented, not drilled**: it has not been executed and has no recorded
+evidence. The gateway's automatic action only removes challenger traffic.
+
 ## Alert delivery and controlled retraining
 
 Alertmanager delivers notifications to a local receiver. A host scanner accepts
@@ -127,8 +152,26 @@ and gateway container UIDs match the local operator where required for bind moun
 The drift detector retains bucket indices. The receiver persists approved labels,
 not full raw notifications. Client diagnostic warnings omit transaction values and
 exception-message contents. Gateway admin authentication does not establish
-authentication for the direct API, frontend or read-only console. TLS, encrypted
-storage and comprehensive audit logging remain outside verified scope.
+authentication for the direct API, frontend or read-only console.
+
+Measures that exist (all in the code or compose files):
+
+- Gateway admin key: compared in constant time, at least 32 characters, read from a
+  mounted secret file and never logged (`backend/gateway.py`, `backend/gateway_server.py`).
+- SHA-256 checks of model bytes: the API against its receipt, the MLflow wrapper against
+  its expected hash, and the gateway client against the expected response hash.
+- Strict request schema (unknown fields refused), a generic 422 for the direct API, CORS
+  limited to the local frontend, a 64 KB cap on model responses and on alert bodies.
+- Containers run as non-root with read-only filesystems, CPU and memory limits and
+  read-only artifact mounts; all published ports bind to `127.0.0.1`.
+- Secrets stay out of Git (`.env`, `runtime/`); `.env.example` lists names only.
+- Logs carry no keys, request bodies or transaction values (`tests/test_logging.py`).
+
+Measures that do not exist: TLS or HTTPS, encryption of data, models or volumes at rest,
+authentication on the direct API and the frontend, rate limiting on any endpoint, pseudonymisation of
+identifiers, and audit logging beyond the retraining recovery table. The reason is the
+scope: a local-only course deployment on one machine with no external clients.
+`compose.resources.yaml` runs cAdvisor with `privileged: true` and `pid: host`.
 
 Checksums detect differing bytes; they do not encrypt artifacts or prove publisher
 trust. Only trusted joblib bundles should be loaded.
