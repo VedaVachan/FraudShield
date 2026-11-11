@@ -7,21 +7,21 @@ for variable in (
 ):
     os.environ[variable] = "2"
 
-import hashlib
-import json
-from pathlib import Path
+import hashlib  # noqa: E402 - thread limits set first
+import json  # noqa: E402 - thread limits set first
+from pathlib import Path  # noqa: E402 - thread limits set first
 
-import joblib
-import mlflow
-import mlflow.pyfunc
-import numpy as np
-import pandas as pd
-from mlflow.models import infer_signature
-from mlflow.tracking import MlflowClient
-from threadpoolctl import threadpool_limits
+import joblib  # noqa: E402 - thread limits set first
+import mlflow  # noqa: E402 - thread limits set first
+import mlflow.pyfunc  # noqa: E402 - thread limits set first
+import numpy as np  # noqa: E402 - thread limits set first
+import pandas as pd  # noqa: E402 - thread limits set first
+from mlflow.models import infer_signature  # noqa: E402 - thread limits set first
+from mlflow.tracking import MlflowClient  # noqa: E402 - thread limits set first
+from threadpoolctl import threadpool_limits  # noqa: E402 - thread limits set first
 
-from fraudshield.features import INPUT_COLUMNS
-from fraudshield.mlflow_model import FraudShieldModel
+from fraudshield.features import INPUT_COLUMNS  # noqa: E402 - thread limits set first
+from fraudshield.mlflow_model import FraudShieldModel  # noqa: E402 - thread limits set first
 
 ROOT = Path(__file__).resolve().parents[1]
 RECEIPT = ROOT / "reports/mlflow_registry.json"

@@ -15,10 +15,12 @@ router = APIRouter()
 
 
 def short_text(value, length=200):
+    """Return a string cut to the given length, or None for other types."""
     return value[:length] if isinstance(value, str) else None
 
 
 def read_history(path, limit):
+    """Read the newest valid records from a bounded tail of the history file."""
     if not path.exists():
         return {
             "history_available": False,
@@ -85,6 +87,7 @@ def read_history(path, limit):
 
 @router.get("/pipeline/runs")
 def pipeline_runs(limit: int = Query(default=50, ge=1, le=100)):
+    """Return recent recorded pipeline command executions."""
     try:
         return read_history(HISTORY, limit)
     except OSError as exc:
@@ -93,11 +96,13 @@ def pipeline_runs(limit: int = Query(default=50, ge=1, le=100)):
             detail="Pipeline history is temporarily unavailable.",
         ) from exc
 
+
 SUMMARY = ROOT / "reports/pipeline_summary.json"
 
 
 @router.get("/pipeline/summary")
 def pipeline_summary():
+    """Return the saved historical pipeline summary."""
     try:
         data = json.loads(SUMMARY.read_text())
         if not isinstance(data, dict) or data.get("schema_version") != 1:

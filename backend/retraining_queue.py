@@ -12,6 +12,7 @@ COOLDOWN_SECONDS = 3600
 
 
 def connect(path):
+    """Open the queue database, creating its tables if needed."""
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     connection = sqlite3.connect(path, timeout=10, isolation_level=None)

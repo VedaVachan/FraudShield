@@ -5,18 +5,18 @@ import os
 for name in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS"):
     os.environ[name] = "2"
 
-import hashlib
-import json
-import platform
-from pathlib import Path
+import hashlib  # noqa: E402 - thread limits set first
+import json  # noqa: E402 - thread limits set first
+import platform  # noqa: E402 - thread limits set first
+from pathlib import Path  # noqa: E402 - thread limits set first
 
-import joblib
-import numpy as np
-import pandas as pd
-from threadpoolctl import threadpool_limits
+import joblib  # noqa: E402 - thread limits set first
+import numpy as np  # noqa: E402 - thread limits set first
+import pandas as pd  # noqa: E402 - thread limits set first
+from threadpoolctl import threadpool_limits  # noqa: E402 - thread limits set first
 
-from fraudshield.features import INPUT_COLUMNS
-from benchmark_logreg import measure, WARMUP, REPEATS
+from fraudshield.features import INPUT_COLUMNS  # noqa: E402 - thread limits set first
+from benchmark_logreg import measure, WARMUP, REPEATS  # noqa: E402 - thread limits set first
 
 ROOT = Path(__file__).resolve().parents[1]
 MODEL = ROOT / "artifacts/xgboost_v1/model.joblib"

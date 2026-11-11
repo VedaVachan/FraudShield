@@ -10,7 +10,9 @@ from starlette.responses import Response
 
 
 class GatewayMetrics:
+    """Prometheus counters and histogram for gateway scoring requests."""
     def __init__(self, routing):
+        """Create the metric registry for the given router."""
         self.routing = routing
         self.registry = CollectorRegistry()
         self.requests = Counter(
@@ -32,6 +34,7 @@ class GatewayMetrics:
         )
 
     def observe_result(self, result):
+        """Count one successful scoring result by requested and actual route."""
         self.results.labels(
             result["requested_route"],
             result["route"],
@@ -39,6 +42,7 @@ class GatewayMetrics:
         ).inc()
 
     def response(self):
+        """Render registry metrics plus the router state as a Prometheus response."""
         state = self.routing.snapshot()
         snapshot = CollectorRegistry()
         Gauge(
@@ -68,11 +72,14 @@ class GatewayMetrics:
 
 
 class GatewayMetricsMiddleware:
+    """ASGI middleware that measures POST /predict requests."""
     def __init__(self, app, metrics):
+        """Wrap the application and store the metrics to update."""
         self.app = app
         self.metrics = metrics
 
     async def __call__(self, scope, receive, send):
+        """Time POST /predict requests and count them by final HTTP status."""
         if (
             scope["type"] != "http"
             or scope.get("method") != "POST"
@@ -86,6 +93,7 @@ class GatewayMetricsMiddleware:
         completed = False
 
         async def measured_send(message):
+            """Record the response status and completion while forwarding messages."""
             nonlocal status, completed
             await send(message)
             if message["type"] == "http.response.start":

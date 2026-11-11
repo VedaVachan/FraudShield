@@ -1,9 +1,12 @@
 """Deterministic canary routing with request-level champion fallback."""
 
 import hashlib
+import logging
 from threading import Lock
 
 from backend.model_client import ModelServerError
+
+LOGGER = logging.getLogger(__name__)
 
 
 class CanaryRouter:
@@ -13,6 +16,7 @@ class CanaryRouter:
         self, champion, challenger=None, weight=0,
         rollback_on_failure=False,
     ):
+        """Store the clients, validate the weight and set the failure policy."""
         if type(rollback_on_failure) is not bool:
             raise ValueError('rollback_on_failure must be a boolean.')
         self._champion = champion
@@ -26,6 +30,7 @@ class CanaryRouter:
         self.set_weight(weight)
 
     def set_weight(self, weight):
+        """Set the challenger traffic percentage (integer 0 to 100)."""
         if type(weight) is not int or not 0 <= weight <= 100:
             raise ValueError("Canary weight must be an integer from 0 to 100.")
         with self._lock:
@@ -35,6 +40,7 @@ class CanaryRouter:
             self._generation += 1
 
     def snapshot(self):
+        """Return the current weight, counters and removal policy."""
         with self._lock:
             return {
                 "canary_weight": self._weight,
@@ -45,6 +51,7 @@ class CanaryRouter:
             }
 
     def _choose(self, transaction_id):
+        """Select champion or challenger deterministically from the transaction ID."""
         if (
             not isinstance(transaction_id, str)
             or not transaction_id.strip()
@@ -60,6 +67,7 @@ class CanaryRouter:
             return "champion", self._champion, self._generation
 
     def predict(self, transaction_id, transaction):
+        """Score via the selected route, falling back once to the champion on failure."""
         requested_route, client, generation = self._choose(transaction_id)
         rollback_triggered = False
         try:
@@ -81,6 +89,14 @@ class CanaryRouter:
                     self._generation += 1
                     self._automatic_rollbacks += 1
                     rollback_triggered = True
+            LOGGER.warning(
+                "Challenger request failed; trying the champion once."
+            )
+            if rollback_triggered:
+                LOGGER.warning(
+                    "Challenger traffic removed automatically: weight set to 0 "
+                    "after an upstream failure."
+                )
             # If champion also fails, propagate its error. Never retry in a loop.
             prediction = self._champion.predict(transaction)
             actual_route = "champion"

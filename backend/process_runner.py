@@ -19,10 +19,12 @@ class ProcessInterrupted(RuntimeError):
 
 @contextmanager
 def interruption_handlers():
+    """Raise ProcessInterrupted on SIGINT or SIGTERM while the block is active."""
     previous = {}
     state = {"cleaning": False}
 
     def interrupted(signum, frame):
+        """Convert SIGINT or SIGTERM into ProcessInterrupted."""
         if not state["cleaning"]:
             raise ProcessInterrupted(f"Command interrupted by {signal.Signals(signum).name}.")
 
@@ -37,6 +39,7 @@ def interruption_handlers():
 
 
 def group_exists(group):
+    """Return True if any process remains in the process group."""
     try:
         os.killpg(group, 0)
     except ProcessLookupError:

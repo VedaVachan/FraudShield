@@ -15,6 +15,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 def log_failure(url, started, exc):
+    """Log a classified upstream failure without request or response contents."""
     reason = getattr(exc, "reason", None)
     if isinstance(exc, TimeoutError) or isinstance(reason, TimeoutError):
         category = "timeout"
@@ -46,6 +47,7 @@ class ModelClient:
 
     def __init__(self, base_url, expected_threshold, timeout=3.0, *,
                  expected_sha256=None):
+        """Validate the origin, threshold, timeout and optional model hash."""
         parts = urlsplit(base_url)
         if (
             parts.scheme not in ("http", "https")
@@ -79,6 +81,7 @@ class ModelClient:
         self.opener = build_opener(ProxyHandler({}))
 
     def predict(self, transaction):
+        """Call the model server and validate its single prediction."""
         request = Request(
             self.url,
             data=json.dumps(

@@ -9,14 +9,14 @@ from tempfile import mkdtemp
 for name in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS"):
     os.environ[name] = "2"
 
-import numpy as np
-import ray
-import xgboost as xgb
-from ray import tune
-from sklearn.metrics import average_precision_score
-from threadpoolctl import threadpool_limits
+import numpy as np  # noqa: E402 - thread limits set first
+import ray  # noqa: E402 - thread limits set first
+import xgboost as xgb  # noqa: E402 - thread limits set first
+from ray import tune  # noqa: E402 - thread limits set first
+from sklearn.metrics import average_precision_score  # noqa: E402 - thread limits set first
+from threadpoolctl import threadpool_limits  # noqa: E402 - thread limits set first
 
-from train_logreg_dvc import PREPARED, SPLITS, load_parquet_split
+from train_logreg_dvc import PREPARED, SPLITS, load_parquet_split  # noqa: E402 - thread limits set first
 
 ROOT = Path(__file__).resolve().parents[1]
 BASELINE = ROOT / "artifacts/xgboost_dvc_v1/validation.json"

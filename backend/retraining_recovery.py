@@ -46,6 +46,7 @@ CREATE TABLE IF NOT EXISTS recovery_audit (
 
 
 def sha256_file(path):
+    """Return the SHA-256 of a file, read in 1 MiB blocks."""
     digest = hashlib.sha256()
     with Path(path).open("rb") as handle:
         for block in iter(lambda: handle.read(1024 * 1024), b""):
@@ -54,6 +55,7 @@ def sha256_file(path):
 
 
 def exit_code(result):
+    """Map a reconciliation decision to the command exit code."""
     if result["decision"] in OK_DECISIONS:
         return 0
     return 2 if result["decision"] == "busy" else 1
@@ -73,6 +75,7 @@ def open_database(path, *, writable):
 # --- evidence ---------------------------------------------------------------
 
 def _regular(path):
+    """Return True if the path is a regular file and not a symlink."""
     try:
         return stat.S_ISREG(Path(path).lstat().st_mode)
     except OSError:
@@ -80,6 +83,7 @@ def _regular(path):
 
 
 def _directory(path):
+    """Return True if the path is a real directory and not a symlink."""
     try:
         return stat.S_ISDIR(Path(path).lstat().st_mode)
     except OSError:
@@ -87,10 +91,13 @@ def _directory(path):
 
 
 def _strict_json(path):
+    """Read a JSON file, rejecting non-finite numbers and duplicate keys."""
     def constant(name):
+        """Reject NaN and Infinity in JSON input."""
         raise ValueError(f"non-finite JSON number {name}")
 
     def pairs(items):
+        """Build an object, rejecting duplicate keys."""
         keys = [key for key, _ in items]
         if len(keys) != len(set(keys)):
             raise ValueError("duplicate JSON key")
@@ -103,6 +110,7 @@ def _strict_json(path):
 
 
 def _timestamp(value):
+    """Parse an ISO timestamp; return None unless it is timezone-aware."""
     try:
         parsed = datetime.fromisoformat(value)
     except (TypeError, ValueError):
@@ -111,6 +119,7 @@ def _timestamp(value):
 
 
 def _is_int(value):
+    """Return True for integers, excluding booleans."""
     return isinstance(value, int) and not isinstance(value, bool)
 
 
@@ -132,6 +141,7 @@ def _load(path, name, problems, facts):
 
 
 def _check_result(result, request_id, problems):
+    """Check result.json fields against the request and return its status."""
     status = result.get("status")
     if result.get("request_id") != request_id:
         problems.append("result.json belongs to a different request ID.")
@@ -157,6 +167,7 @@ def _check_result(result, request_id, problems):
 
 
 def _check_failed(result, problems):
+    """Require a non-empty error message in a failed result."""
     error = result.get("error")
     if not (isinstance(error, str) and error.strip()):
         problems.append("A failed result must carry a non-empty error message.")
@@ -194,6 +205,7 @@ def _check_gated(result, status, problems):
 
 def _check_artifacts(root, directory, request_id, result, status, run_id, model_sha,
                      problems, facts):
+    """Cross-check the receipt, model, gate and validation files of a finished run."""
     receipt = _load(directory / "training_receipt.json", "training_receipt.json",
                     problems, facts)
     model_dir = root / TREE / run_id
@@ -302,6 +314,7 @@ def check_evidence(root, request_id):
 # --- reconciliation ---------------------------------------------------------
 
 def _audit_exists(connection, request_id):
+    """Return True if a recovery audit row already exists for the request."""
     if not connection.execute(
         "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'recovery_audit'"
     ).fetchone():
@@ -312,10 +325,12 @@ def _audit_exists(connection, request_id):
 
 
 def _refuse(out, code, message, **extra):
+    """Build a refusal result with a reason code and message."""
     return {**out, "decision": "refused", "reason_code": code, "message": message, **extra}
 
 
 def _apply(connection, out, root, request_id, evidence, reason):
+    """Update the request row and write the audit row in one transaction."""
     status = evidence["proposed_status"]
     try:
         connection.execute("BEGIN IMMEDIATE")
@@ -357,7 +372,8 @@ def _apply(connection, out, root, request_id, evidence, reason):
         except sqlite3.Error:
             pass
         return {**out, "decision": "database_error", "error": str(exc)[:500],
-                "message": "Transaction rolled back. Inspect again to confirm the row is still 'running'."}
+                "message": ("Transaction rolled back. Inspect again to confirm "
+                            "the row is still 'running'.")}
     except Exception:
         connection.rollback()
         raise
@@ -369,6 +385,7 @@ def _apply(connection, out, root, request_id, evidence, reason):
 
 
 def _reconcile_locked(database, request_id, root, apply, confirm, reason, base):
+    """Inspect or apply recovery for one request while the worker lock is held."""
     try:
         connection = open_database(database, writable=apply)
     except sqlite3.Error as exc:

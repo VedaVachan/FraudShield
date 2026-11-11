@@ -23,6 +23,7 @@ RUN python -m pip install --no-cache-dir --only-binary=:all: \
 COPY backend/app.py ./backend/app.py
 COPY backend/metrics.py ./backend/metrics.py
 COPY backend/drift.py ./backend/drift.py
+COPY backend/logging_config.py ./backend/logging_config.py
 COPY backend/pipeline.py ./backend/pipeline.py
 COPY reports/drift_reference.json ./reports/drift_reference.json
 COPY reports/pipeline_summary.json ./reports/pipeline_summary.json

@@ -1,5 +1,6 @@
 """Separate local gateway for testing champion/challenger HTTP routing."""
 
+import logging
 from secrets import compare_digest
 from uuid import uuid4
 
@@ -12,8 +13,11 @@ from backend.gateway_metrics import (
     GatewayMetrics, GatewayMetricsMiddleware,
 )
 
+LOGGER = logging.getLogger(__name__)
+
 
 class CanaryWeight(BaseModel):
+    """Admin request body holding the new challenger weight."""
     model_config = ConfigDict(extra="forbid", strict=True)
     weight: int = Field(ge=0, le=100)
 
@@ -35,10 +39,12 @@ def create_app(routing, admin_key):
 
     @app.get("/metrics", include_in_schema=False)
     def prometheus_metrics():
+        """Expose gateway metrics in Prometheus format."""
         return metrics.response()
 
     @app.get("/health")
     def health():
+        """Report configuration status without probing the model servers."""
         return {
             "status": "configured",
             "scope": "gateway initialized; does not verify upstream health",
@@ -46,6 +52,7 @@ def create_app(routing, admin_key):
 
     @app.get("/routing")
     def routing_status():
+        """Return the current routing state and counters."""
         return routing.snapshot()
 
     @app.post("/predict")
@@ -56,6 +63,7 @@ def create_app(routing, admin_key):
             min_length=1, max_length=128,
         ),
     ):
+        """Route one transaction to a model server and return its prediction."""
         identifier = transaction_id if transaction_id is not None else str(uuid4())
         if not identifier.strip():
             raise HTTPException(
@@ -64,6 +72,7 @@ def create_app(routing, admin_key):
         try:
             result = routing.predict(identifier, transaction.model_dump())
         except ModelServerError as exc:
+            LOGGER.warning("Scoring request failed; returning HTTP 503.")
             raise HTTPException(
                 status_code=503,
                 detail="Scoring service is temporarily unavailable.",
@@ -84,17 +93,21 @@ def create_app(routing, admin_key):
         change: CanaryWeight,
         supplied_key: str | None = Header(default=None, alias="X-API-Key"),
     ):
+        """Set the challenger weight after checking the admin key."""
         if supplied_key is None or not compare_digest(
             supplied_key.encode("utf-8"), admin_key.encode("utf-8")
         ):
+            LOGGER.warning("Rejected a canary change: invalid admin credentials.")
             raise HTTPException(status_code=401, detail="Invalid admin credentials.")
         try:
             routing.set_weight(change.weight)
         except ValueError as exc:
+            LOGGER.warning("Rejected a canary change: configuration unavailable.")
             raise HTTPException(
                 status_code=409,
                 detail="Requested canary configuration is unavailable.",
             ) from exc
+        LOGGER.info("Canary weight set to %d percent.", change.weight)
         return routing.snapshot()
 
     return app

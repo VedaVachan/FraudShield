@@ -5,6 +5,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 import hashlib
 import json
+import logging
 import math
 from pathlib import Path
 import platform
@@ -20,6 +21,7 @@ from fraudshield.features import INPUT_COLUMNS
 
 
 ROOT = Path(__file__).resolve().parents[1]
+LOGGER = logging.getLogger("fraudshield.benchmark")
 
 
 def validate(body, identity, target, endpoint, threshold):
@@ -244,6 +246,10 @@ def main():
             result["status"] = "completed_without_request_failures"
         except Exception as exc:
             result["error"] = str(exc)[:1000]
+            LOGGER.error(
+                "Benchmark scenario failed: %s: %s",
+                type(exc).__name__, str(exc)[:200],
+            )
         finally:
             if args.target == "api" and endpoint == "/predict":
                 try:
@@ -254,6 +260,10 @@ def main():
                 except Exception as exc:
                     result["recovery_error"] = str(exc)[:1000]
                     result["status"] = "failed"
+                    LOGGER.error(
+                        "Recovery predictions failed: %s: %s",
+                        type(exc).__name__, str(exc)[:200],
+                    )
             result["finished_utc"] = datetime.now(timezone.utc).isoformat()
             args.output.parent.mkdir(parents=True, exist_ok=True)
             with args.output.open("x") as handle:

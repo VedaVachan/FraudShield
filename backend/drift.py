@@ -8,7 +8,9 @@ from threading import Lock
 
 
 class DriftMonitor:
+    """Compare recent input buckets with training reference proportions."""
     def __init__(self, reference_path, window_size=500, min_samples=100):
+        """Load and validate the training reference and set up the sliding window."""
         if not 1 <= min_samples <= window_size:
             raise ValueError("Invalid drift window or minimum sample count.")
 
@@ -63,6 +65,7 @@ class DriftMonitor:
                 self._counts[name][bucket] += 1
 
     def snapshot(self):
+        """Return the window size and per-feature drift scores (empty if too few samples)."""
         with self._lock:
             size = len(self._window)
             if size < self._min_samples:

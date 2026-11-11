@@ -54,6 +54,7 @@ def mark_prediction(request, predicted_fraud):
 
 
 def mark_drift_input(request, kind, amount, balance):
+    """Store the validated input in request-local state for drift tracking."""
     request.scope.setdefault("state", {})[DRIFT_INPUT_KEY] = (kind, amount, balance)
 
 
@@ -61,9 +62,11 @@ class ScoringMetricsMiddleware:
     """Measure scoring requests through completion of the ASGI response."""
 
     def __init__(self, app):
+        """Wrap the ASGI application."""
         self.app = app
 
     async def __call__(self, scope, receive, send):
+        """Measure scoring requests and record decisions and drift after success."""
         endpoint = scope.get("path")
         if (
             scope["type"] != "http"
@@ -79,6 +82,7 @@ class ScoringMetricsMiddleware:
         failed = False
 
         async def measured_send(message):
+            """Record the response status and completion while forwarding messages."""
             nonlocal status, completed
             await send(message)
             if message["type"] == "http.response.start":
@@ -116,6 +120,7 @@ class ScoringMetricsMiddleware:
 
 async def metrics_response(request):
     # A fresh registry keeps each scrape's drift snapshot consistent.
+    """Render service metrics plus a fresh drift snapshot for one scrape."""
     drift_registry = CollectorRegistry()
     monitor = getattr(request.app.state, "drift_monitor", None)
     size, scores = monitor.snapshot() if monitor is not None else (0, {})
@@ -139,5 +144,6 @@ async def metrics_response(request):
 
 
 def configure_metrics(app):
+    """Add the scoring middleware and the /metrics route to the application."""
     app.add_middleware(ScoringMetricsMiddleware)
     app.add_route("/metrics", metrics_response, methods=["GET"])

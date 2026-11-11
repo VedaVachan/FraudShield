@@ -7,32 +7,36 @@ for variable in (
 ):
     os.environ[variable] = "2"
 
-import hashlib
-import json
-from contextlib import asynccontextmanager
-from pathlib import Path
-from typing import Literal
+import hashlib  # noqa: E402 - thread limits set first
+import json  # noqa: E402 - thread limits set first
+import logging  # noqa: E402 - thread limits set first
+from contextlib import asynccontextmanager  # noqa: E402 - thread limits set first
+from pathlib import Path  # noqa: E402 - thread limits set first
+from typing import Literal  # noqa: E402 - thread limits set first
 
-import joblib
-import numpy as np
-import pandas as pd
-from fastapi import FastAPI, Request
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel, ConfigDict, Field
-from threadpoolctl import threadpool_limits
+import joblib  # noqa: E402 - thread limits set first
+import numpy as np  # noqa: E402 - thread limits set first
+import pandas as pd  # noqa: E402 - thread limits set first
+from fastapi import FastAPI, Request  # noqa: E402 - thread limits set first
+from fastapi.middleware.cors import CORSMiddleware  # noqa: E402 - thread limits set first
+from fastapi.exceptions import RequestValidationError  # noqa: E402 - thread limits set first
+from fastapi.responses import JSONResponse  # noqa: E402 - thread limits set first
+from pydantic import BaseModel, ConfigDict, Field  # noqa: E402 - thread limits set first
+from threadpoolctl import threadpool_limits  # noqa: E402 - thread limits set first
 
-from fraudshield.explanations import FraudExplainer
-from fraudshield.features import INPUT_COLUMNS
-from backend.drift import DriftMonitor
-from backend.pipeline import router as pipeline_router
-from backend.metrics import configure_metrics, mark_drift_input, mark_prediction
+from fraudshield.explanations import FraudExplainer  # noqa: E402 - thread limits set first
+from fraudshield.features import INPUT_COLUMNS  # noqa: E402 - thread limits set first
+from backend.drift import DriftMonitor  # noqa: E402 - thread limits set first
+from backend.logging_config import configure_logging  # noqa: E402 - thread limits set first
+from backend.pipeline import router as pipeline_router  # noqa: E402 - thread limits set first
+from backend.metrics import configure_metrics, mark_drift_input, mark_prediction  # noqa: E402 - thread limits set first
 
 ROOT = Path(__file__).resolve().parents[1]
+LOGGER = logging.getLogger(__name__)
 
 
 class Transaction(BaseModel):
+    """Request body for scoring: type, amount and sender balance."""
     model_config = ConfigDict(
         extra="forbid", strict=True, allow_inf_nan=False
     )
@@ -42,6 +46,7 @@ class Transaction(BaseModel):
 
 
 class Prediction(BaseModel):
+    """Response fields common to scoring and explanation."""
     score: float
     threshold: float
     predicted_fraud: bool
@@ -50,11 +55,13 @@ class Prediction(BaseModel):
 
 
 class Contribution(BaseModel):
+    """One feature's SHAP contribution in raw model log-odds."""
     feature: str
     shap_log_odds: float
 
 
 class Explanation(Prediction):
+    """Prediction plus base value, raw margin and per-feature contributions."""
     base_value: float
     raw_margin: float
     contribution_units: str
@@ -63,6 +70,8 @@ class Explanation(Prediction):
 
 @asynccontextmanager
 async def lifespan(app):
+    """Verify and load the model at startup; release it at shutdown."""
+    configure_logging()
     receipt = json.loads(
         (ROOT / "reports/mlflow_registry.json").read_text()
     )["models"]["xgboost"]
@@ -89,12 +98,19 @@ async def lifespan(app):
         app.state.model_sha256 = actual_hash
         app.state.drift_monitor = DriftMonitor(ROOT / "reports/drift_reference.json")
         app.state.ready = True
+        LOGGER.info(
+            "Model loaded and API ready: name=%s version=%s sha256_prefix=%s "
+            "threshold=%.6f",
+            app.state.model_name, app.state.model_version,
+            actual_hash[:12], threshold,
+        )
         try:
             yield
         finally:
             app.state.ready = False
             app.state.pipeline = None
             app.state.explainer = None
+            LOGGER.info("API stopped; model released.")
 
 
 app = FastAPI(
@@ -115,9 +131,12 @@ app.add_middleware(
 configure_metrics(app)
 app.include_router(pipeline_router)
 
+
 @app.exception_handler(RequestValidationError)
 async def invalid_request(request, exc):
     # Do not echo transaction values or arbitrary submitted field names.
+    """Return a generic 422 without echoing submitted values."""
+    LOGGER.info("Rejected invalid request: path=%s", request.url.path)
     return JSONResponse(
         status_code=422,
         content={"detail": "Invalid transaction input."},
@@ -125,14 +144,17 @@ async def invalid_request(request, exc):
 
 
 def frame_for(transaction):
+    """Build a one-row DataFrame in the model's input column order."""
     return pd.DataFrame(
         [transaction.model_dump()], columns=list(INPUT_COLUMNS)
     )
 
 
 def prediction_payload(request, score):
+    """Validate the score, record the decision metric and build the response."""
     score = float(score)
     if not np.isfinite(score) or not 0 <= score <= 1:
+        LOGGER.error("Model returned an invalid score; the request failed.")
         raise RuntimeError("Invalid model score.")
     state = request.app.state
     mark_prediction(request, score >= state.threshold)
@@ -142,10 +164,12 @@ def prediction_payload(request, score):
         "predicted_fraud": bool(score >= state.threshold),
         "model_name": state.model_name,
         "model_version": state.model_version,
-}
+    }
+
 
 @app.get("/health")
 def health(request: Request):
+    """Report readiness and the loaded model identity."""
     state = request.app.state
     ready = getattr(state, "ready", False)
     if not ready:
@@ -160,6 +184,7 @@ def health(request: Request):
 
 @app.post("/predict", response_model=Prediction)
 def predict(transaction: Transaction, request: Request):
+    """Score one transaction and record its input for drift monitoring."""
     score = request.app.state.pipeline.predict_proba(
         frame_for(transaction)
     )[0, 1]
@@ -170,6 +195,7 @@ def predict(transaction: Transaction, request: Request):
 
 @app.post("/explain", response_model=Explanation)
 def explain(transaction: Transaction, request: Request):
+    """Score one transaction and return its SHAP feature contributions."""
     result = request.app.state.explainer.explain(frame_for(transaction))
     contributions = [
         {"feature": name, "shap_log_odds": float(value)}

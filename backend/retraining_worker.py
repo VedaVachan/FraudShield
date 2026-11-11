@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 import fcntl
 import hashlib
 import json
+import logging
 import os
 from pathlib import Path
 import re
@@ -17,9 +18,11 @@ from backend.result_storage import publish_result
 
 
 ROOT = Path(__file__).resolve().parents[1]
+LOGGER = logging.getLogger(__name__)
 
 
 def execute_request(database, request_id, *, root=ROOT, runner=None):
+    """Run one queued request under the worker lock and record its outcome."""
     UUID(request_id)
     root = Path(root).resolve()
     database = Path(database)
@@ -30,6 +33,7 @@ def execute_request(database, request_id, *, root=ROOT, runner=None):
         try:
             fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError:
+            LOGGER.warning("Worker lock is held elsewhere; request %s not started.", request_id)
             return {"status": "busy"}
 
         connection = connect(database)
@@ -42,6 +46,10 @@ def execute_request(database, request_id, *, root=ROOT, runner=None):
                 raise ValueError("Unknown request ID.")
             if row["status"] != "queued":
                 connection.commit()
+                LOGGER.info(
+                    "Request %s not executed: status is %s.",
+                    request_id, row["status"],
+                )
                 return {
                     "request_id": request_id,
                     "status": "not_queued",
@@ -52,6 +60,7 @@ def execute_request(database, request_id, *, root=ROOT, runner=None):
                 (request_id,),
             )
             connection.commit()
+            LOGGER.info("Retraining request %s started.", request_id)
 
             destination = root / "runtime/retraining/runs" / request_id
             outcome = {
@@ -161,6 +170,10 @@ def execute_request(database, request_id, *, root=ROOT, runner=None):
             except Exception as exc:
                 outcome["status"] = "failed"
                 outcome["error"] = str(exc)[:1000]
+                LOGGER.error(
+                    "Retraining request %s failed: %s: %s",
+                    request_id, type(exc).__name__, str(exc)[:200],
+                )
 
             outcome["finished_utc"] = datetime.now(timezone.utc).isoformat()
             outcome["worker_sha256"] = hashlib.sha256(
@@ -175,8 +188,17 @@ def execute_request(database, request_id, *, root=ROOT, runner=None):
                 "UPDATE requests SET status = ? WHERE request_id = ?",
                 (outcome["status"], request_id),
             )
+            LOGGER.info(
+                "Retraining request %s finished: status=%s model_sha256_prefix=%s",
+                request_id, outcome["status"],
+                str(outcome.get("model_sha256", "none"))[:12],
+            )
             return outcome
         except Exception:
+            LOGGER.error(
+                "Retraining request %s aborted before a terminal state was recorded.",
+                request_id, exc_info=True,
+            )
             connection.rollback()
             raise
         finally:

@@ -11,6 +11,7 @@ class FraudExplainer:
     """Create once per loaded model, then reuse for explanation requests."""
 
     def __init__(self, pipeline):
+        """Extract the best-iteration booster used to compute SHAP contributions."""
         self.pipeline = pipeline
         classifier = pipeline.named_steps["classifier"]
         self.tree_count = int(classifier.best_iteration) + 1
@@ -21,6 +22,7 @@ class FraudExplainer:
         self.booster.set_param({"nthread": 2})
 
     def explain(self, frame):
+        """Return SHAP contributions, base values, margins and scores for the rows."""
         if len(frame) == 0:
             raise ValueError("At least one transaction is required.")
 

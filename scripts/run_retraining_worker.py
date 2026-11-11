@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import subprocess
 
+from backend.logging_config import configure_logging
 from backend.retraining_queue import connect
 from backend.retraining_recovery import exit_code, reconcile
 from backend.retraining_worker import execute_request
@@ -14,6 +15,8 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def main():
+    """Parse the command line and run the requested queue action."""
+    configure_logging()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--database", type=Path,

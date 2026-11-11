@@ -206,7 +206,8 @@ def main():
                 "limitations": [
                     "Five synthetic cases check parity; they do not evaluate model accuracy.",
                     "HTTP and serving-container verification must be performed separately.",
-                    "A reported SHA256 provides local consistency checking, not remote attestation.",
+                    "A reported SHA256 provides local consistency checking, "
+                    "not remote attestation.",
                     "Package files are checksummed, not guaranteed byte-identical across rebuilds.",
                 ],
             }

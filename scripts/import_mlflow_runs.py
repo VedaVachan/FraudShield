@@ -10,8 +10,8 @@ from tempfile import TemporaryDirectory
 
 os.environ["MLFLOW_ENABLE_ASYNC_LOGGING"] = "false"
 
-import mlflow
-from mlflow.tracking import MlflowClient
+import mlflow  # noqa: E402 - MLflow environment set first
+from mlflow.tracking import MlflowClient  # noqa: E402 - MLflow environment set first
 
 ROOT = Path(__file__).resolve().parents[1]
 STORAGE = ROOT / "runtime/mlflow"
@@ -187,4 +187,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
