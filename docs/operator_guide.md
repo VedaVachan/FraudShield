@@ -236,6 +236,48 @@ and gateway are scraped by Prometheus, the host and containers by exporters (opt
 resource stack), the MLflow model servers only indirectly through the gateway's
 metrics and health checks, and the retraining worker through the files it writes.
 
+## Which commit and which run produced this model
+
+`scripts/build_reproducibility_manifest.py` answers this from files, git and the MLflow
+database, without training and without changing anything. It hashes
+`artifacts/xgboost_v1/model.joblib`, opens `runtime/mlflow/tracking.db` read-only
+through SQLite (no MLflow migration can run), and writes
+`reports/reproducibility_manifest.json`. The manifest is **create-only**: if the file
+exists the script stops with exit code 2 and leaves it alone. To refresh it, move the old
+file away yourself (do not delete it) and run the script again.
+
+```bash
+git status --short          # commit first: the manifest records whether the tree is clean
+PYTHONPATH=src:. .venv/bin/python scripts/build_reproducibility_manifest.py
+```
+
+Reading the manifest:
+
+| Question | Where to look |
+|---|---|
+| Is this the model the registry describes? | `deployed_model.sha256`, and `registry_receipt.matches_deployed_file` |
+| Which registered version is it? | `registry.versions[]` entries with `is_deployed_model: true` (name, version, aliases) |
+| Which MLflow runs produced it? | `runs` inside that entry: the run registered with the version, then the run named by its `source_run_id` tag |
+| Which commit did each run record? | `git_commit` on each run; `commit_tags` shows every commit-like tag verbatim |
+| Does that commit exist in this repository? | `git_commit_exists_in_repository` (`false` means the tag names a commit this clone does not have) |
+| Which commit trained it? | `training_code_commit`. The value `not_established` is kept as written: the historical imports could not establish it |
+| Which data? | `data.raw_data.md5` from `paysim.dvc`, checked against `dvc.lock` (`pointer_and_lock_agree`) |
+| Which commit holds the report and gate files? | `report_files.<path>.last_commit`, and `uncommitted_changes` |
+| Does the validation gate file describe this model? | `validation_gate.describes_deployed_model` |
+| Other runs about this model | `registry.other_runs_tagged_with_model_sha256` (for example the feature-importance run) |
+
+Rules the script follows: a value that is not in the source is written as `"missing"`
+and never guessed; a commit tag is accepted only if it is a 40-character hexadecimal
+hash; package versions are those of the environment that ran the script, not proof of
+what trained the model. Read `training_code_commit` and `git_commit` differently: the
+second is the code state when the run was logged, which for a historical import is the
+import, not the training.
+
+Check the data fields and the gate field before relying on the answer. On 2026-11-12 a
+dry read of the real files showed that `reports/xgboost_validation_gate.json` describes
+a different model (`xgboost_dvc_v1`, hash starting `4b1fa5ce`) from the deployed one
+(hash starting `1d2df493`), so that gate result is not evidence about the deployed file.
+
 ## Manual model rollback (documented, not drilled)
 
 This procedure was written from the code. It has **not been executed or tested**, and

@@ -41,7 +41,7 @@ made beforehand. Results are in the "Acceptance results" table of
 
 ## Automated test cases
 
-The suite has **265 `unittest` tests in 31 files**. They run in local CI
+The suite has **312 `unittest` tests in 35 files**. They run in local CI
 (`scripts/run_ci.py`) and, since 2026-11-10, also as the DVC stage `unit_tests`, which
 records its result in `reports/unit_tests_result.json`. Counts were taken with the
 unittest loader. Inputs are test fixtures only: temporary files and databases, mocks,
@@ -80,9 +80,13 @@ FastAPI's `TestClient`, and (for A02 and A16) the real deployed model and Spark.
 | A29 | `test_log_feature_importance.py` | 8 | A tiny model and a throwaway MLflow store | Wrong hash refused before logging; one analysis run with nine importance values; model and registry unchanged |
 | A30 | `test_promote_model.py` | 16 | A throwaway registry with versions of different validation quality | Dry run changes nothing; floors and comparison enforced; test-set evidence refused; rollback restores the previous alias |
 | A31 | `test_grafana_dashboards.py` | 6 | The two dashboard JSON files | Titles, descriptions, axis labels with units, legends and colour-blind-safe colours present |
+| A32 | `test_build_reproducibility_manifest.py` | 18 | A throwaway MLflow database and git repository | Model hash and registry links recorded; absent commit tags written as `missing`, never invented; database unchanged; manifest create-only |
+| A33 | `test_integration_api.py` | 14 | The real API app and model, real metrics registry, temporary history and summary files | One request updates request, decision, latency and drift metrics; 422 changes nothing else; no transaction values in the scrape; history newest first, damaged lines counted |
+| A34 | `test_integration_gateway.py` | 9 | Real gateway, canary router and HTTP model client; only two fake model servers on 127.0.0.1 | Gateway score equals the direct API score; one champion fallback and automatic removal with matching metrics; wrong upstream identity treated as failure; 503 when the champion fails |
+| A35 | `test_e2e_smoke_guard.py` | 6 | No running stack (nothing listens on the addresses used) | `scripts/e2e_smoke.py` exits 1 and records every failure when the stack is down; result file replaced atomically; CI and DVC do not call the script |
 
-The 110 tests of A01 to A16 are the ones counted in the earlier recorded runs; A17 to A31
-add 155 tests, giving 265.
+The 110 tests of A01 to A16 are the ones counted in the earlier recorded runs; A17 to A35
+add 202 tests, giving 312.
 
 ## Execution procedure
 
@@ -102,6 +106,30 @@ changed the stage is skipped.
 
 Focused test commands may be used for a bounded code change. Record their scope;
 do not describe a focused execution as a new full-suite result.
+
+## End-to-end smoke check (not part of CI)
+
+`scripts/e2e_smoke.py` checks the **running** stack. It is not a unit test, is not found
+by `unittest discover`, and is not called by `scripts/run_ci.py` or any DVC stage, because
+it needs the Docker stack. Start the main stack first (see the operator guide), then run:
+
+```bash
+.venv/bin/python scripts/e2e_smoke.py
+```
+
+It checks that the frontend on port 8080 serves both pages; that the API answers
+`/health`, `/predict`, `/explain` and `/pipeline/summary`; that invalid input gets a 422;
+that Prometheus on port 9095 reports the API target up and has scraped the request
+counter after this run's requests (it waits up to 45 s; the scrape interval is 15 s); and
+that Grafana on port 3010 reports `/api/health` ok. The result is written to
+`reports/e2e_smoke_result.json`, replaced on each run, and the exit code is 0 only if
+every check passed. Addresses can be changed with `--frontend`, `--api`, `--prometheus`
+and `--grafana`.
+
+The script sends one valid `/predict`, one valid `/explain` and one invalid `/predict`
+request, so they show in the API metrics and the drift window. It does not test the canary
+gateway. A passing smoke run says the stack answered at that moment; it is not a
+performance or load test.
 
 ## Manual and integration cases
 
