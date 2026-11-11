@@ -1,0 +1,267 @@
+{
+  "schema_version": 1,
+  "drill": "registry alias rollback on a temporary copy",
+  "started_utc": "2026-11-11T19:45:55.842114+00:00",
+  "scope": "MLflow registry aliases on a copy only. Not a drill of what the API or gateway serve; the serving rollback is documented, not drilled.",
+  "steps": [
+    {
+      "step": "reset champion on the copy",
+      "started_utc": "2026-11-11T19:45:57.228500+00:00",
+      "output": {
+        "before": {
+          "aliases": {},
+          "tags": {}
+        },
+        "after": {
+          "aliases": {},
+          "tags": {}
+        }
+      },
+      "checks": [
+        {
+          "check": "champion alias is unset on the copy",
+          "passed": true
+        },
+        {
+          "check": "version 1 exists on the copy",
+          "passed": true
+        }
+      ],
+      "finished_utc": "2026-11-11T19:45:57.334022+00:00",
+      "passed": true
+    },
+    {
+      "step": "a. register a second version",
+      "started_utc": "2026-11-11T19:45:57.334047+00:00",
+      "output": {
+        "registered_version": "2",
+        "versions": [
+          1,
+          2
+        ],
+        "synthetic_metrics": {
+          "validation_average_precision": 0.9893366568411971,
+          "validation_precision": 0.9284028324154209,
+          "validation_recall": 1.0
+        },
+        "run_id": "88930152f7fb431cbfee3e55aad3d3e5"
+      },
+      "checks": [
+        {
+          "check": "two versions exist after registering",
+          "passed": true
+        },
+        {
+          "check": "the new version is v2",
+          "passed": true
+        }
+      ],
+      "finished_utc": "2026-11-11T19:45:57.880429+00:00",
+      "passed": true
+    },
+    {
+      "step": "b. promote v1 (apply)",
+      "started_utc": "2026-11-11T19:45:57.880464+00:00",
+      "command": "promote_model.py --candidate-version 1 --apply",
+      "exit_code": 0,
+      "output": {
+        "action": "promote",
+        "model": "FraudShield-XGBoost",
+        "alias": "champion",
+        "candidate_version": "1",
+        "current_version": null,
+        "candidate_evidence": {
+          "version": "1",
+          "run_ids": [
+            "323777a876f1444fa43893b4056c1bbf",
+            "116a3eb388a449bba425317645a84703"
+          ],
+          "metrics": {
+            "validation_average_precision": 0.9888366568411971,
+            "validation_precision": 0.9284028324154209,
+            "validation_recall": 1.0
+          },
+          "test_evaluated": "false"
+        },
+        "current_evidence": null,
+        "gate_passed": true,
+        "reasons": [],
+        "dry_run": false,
+        "changed": true
+      },
+      "stderr": "",
+      "registry_after": {
+        "aliases": {
+          "champion": "1"
+        },
+        "tags": {}
+      },
+      "checks": [
+        {
+          "check": "exit code 0",
+          "passed": true
+        },
+        {
+          "check": "gate passed",
+          "passed": true
+        },
+        {
+          "check": "alias was changed",
+          "passed": true
+        },
+        {
+          "check": "champion was None before",
+          "passed": true
+        },
+        {
+          "check": "champion is v1 afterwards",
+          "passed": true
+        },
+        {
+          "check": "previous_champion_version is None",
+          "passed": true
+        }
+      ],
+      "finished_utc": "2026-11-11T19:45:58.032962+00:00",
+      "passed": true
+    },
+    {
+      "step": "c. promote v2 (apply)",
+      "started_utc": "2026-11-11T19:45:58.032985+00:00",
+      "command": "promote_model.py --candidate-version 2 --apply",
+      "exit_code": 0,
+      "output": {
+        "action": "promote",
+        "model": "FraudShield-XGBoost",
+        "alias": "champion",
+        "candidate_version": "2",
+        "current_version": "1",
+        "candidate_evidence": {
+          "version": "2",
+          "run_ids": [
+            "88930152f7fb431cbfee3e55aad3d3e5"
+          ],
+          "metrics": {
+            "validation_average_precision": 0.9893366568411971,
+            "validation_precision": 0.9284028324154209,
+            "validation_recall": 1.0
+          },
+          "test_evaluated": "false"
+        },
+        "current_evidence": {
+          "version": "1",
+          "run_ids": [
+            "323777a876f1444fa43893b4056c1bbf",
+            "116a3eb388a449bba425317645a84703"
+          ],
+          "metrics": {
+            "validation_average_precision": 0.9888366568411971,
+            "validation_precision": 0.9284028324154209,
+            "validation_recall": 1.0
+          },
+          "test_evaluated": "false"
+        },
+        "gate_passed": true,
+        "reasons": [],
+        "dry_run": false,
+        "changed": true
+      },
+      "stderr": "",
+      "registry_after": {
+        "aliases": {
+          "champion": "2"
+        },
+        "tags": {
+          "previous_champion_version": "1"
+        }
+      },
+      "checks": [
+        {
+          "check": "exit code 0",
+          "passed": true
+        },
+        {
+          "check": "gate passed",
+          "passed": true
+        },
+        {
+          "check": "alias was changed",
+          "passed": true
+        },
+        {
+          "check": "champion was 1 before",
+          "passed": true
+        },
+        {
+          "check": "champion is v2 afterwards",
+          "passed": true
+        },
+        {
+          "check": "previous_champion_version is 1",
+          "passed": true
+        }
+      ],
+      "finished_utc": "2026-11-11T19:45:58.252662+00:00",
+      "passed": true
+    },
+    {
+      "step": "d. roll back (apply)",
+      "started_utc": "2026-11-11T19:45:58.252686+00:00",
+      "command": "promote_model.py --rollback --apply",
+      "exit_code": 0,
+      "output": {
+        "action": "rollback",
+        "model": "FraudShield-XGBoost",
+        "alias": "champion",
+        "current_version": "2",
+        "restore_version": "1",
+        "gate_passed": true,
+        "reasons": [],
+        "dry_run": false,
+        "changed": true
+      },
+      "stderr": "",
+      "registry_after": {
+        "aliases": {
+          "champion": "1"
+        },
+        "tags": {
+          "previous_champion_version": "2"
+        }
+      },
+      "checks": [
+        {
+          "check": "exit code 0",
+          "passed": true
+        },
+        {
+          "check": "rollback restores v1",
+          "passed": true
+        },
+        {
+          "check": "alias was changed",
+          "passed": true
+        },
+        {
+          "check": "champion is v1 again",
+          "passed": true
+        },
+        {
+          "check": "the replaced version v2 is now recorded as previous",
+          "passed": true
+        }
+      ],
+      "finished_utc": "2026-11-11T19:45:58.399542+00:00",
+      "passed": true
+    }
+  ],
+  "working_copy": "temporary directory, removed when the drill ends",
+  "real_database": {
+    "path": "runtime/mlflow/tracking.db",
+    "sha256_before": "e1192655f29cfce6e163eecca5303d020e6da55c284236b33d9b568cfce50fd5",
+    "sha256_after": "e1192655f29cfce6e163eecca5303d020e6da55c284236b33d9b568cfce50fd5",
+    "unchanged": true
+  },
+  "passed": true,
+  "finished_utc": "2026-11-11T19:45:58.402105+00:00"
+}
