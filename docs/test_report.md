@@ -93,6 +93,10 @@ Evidence images stored in `docs/evidence/` (there is no image numbered 4).
 | `docs/evidence/20_mlflow_run_detail.png` | ![20_mlflow_run_detail](evidence/20_mlflow_run_detail.png) | MLflow run detail page |
 | `docs/evidence/21_mlflow_models.png` | ![21_mlflow_models](evidence/21_mlflow_models.png) | MLflow registered models page |
 | `docs/evidence/22_promote_dry_run.png` | ![22_promote_dry_run](evidence/22_promote_dry_run.png) | `promote_model.py` dry-run output |
+| `docs/evidence/4_*.png` (number 4 is unused) | not captured | No file numbered 4 exists in `docs/evidence/` |
+| `docs/evidence/05_connection_settings_open.png` | not captured | "Connection settings" expanded with the API address field and its buttons |
+| `docs/evidence/07_pipeline_failed_run_row.png` | not captured | A failed run shown with its FAILED pill and reason text, if one is in the history |
+| `docs/evidence/12_coverage_report.png` | not captured | The per-file coverage table from `reports/coverage_summary.txt` |
 
 ## Earlier recorded verification (110 tests)
 
