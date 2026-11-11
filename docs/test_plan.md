@@ -41,7 +41,7 @@ made beforehand. Results are in the "Acceptance results" table of
 
 ## Automated test cases
 
-The suite has **239 `unittest` tests in 31 files**. They run in local CI
+The suite has **265 `unittest` tests in 31 files**. They run in local CI
 (`scripts/run_ci.py`) and, since 2026-11-10, also as the DVC stage `unit_tests`, which
 records its result in `reports/unit_tests_result.json`. Counts were taken with the
 unittest loader. Inputs are test fixtures only: temporary files and databases, mocks,
@@ -76,13 +76,13 @@ FastAPI's `TestClient`, and (for A02 and A16) the real deployed model and Spark.
 | A25 | `test_worker_interruptions.py` | 2 | SIGTERM and SIGKILL sent to a running worker | SIGTERM records failure after stopping children; SIGKILL leaves `running` with the lock held |
 | A26 | `test_logging.py` | 14 | Logging setup, canary failures, gateway and receiver requests, worker failures | One handler per logger; levels; no keys or request values in log lines |
 | A27 | `test_run_unit_tests.py` | 4 | A tiny passing and a tiny failing test suite | Result file has correct counts and exit code; CI environment values match `run_ci.py` |
-| A28 | `test_frontend_markup.py` | 12 | The two HTML pages and `pipeline_summary.js` read as text | Required ids and messages present; every id used by a script exists; address validation identical on both pages |
+| A28 | `test_frontend_markup.py` | 38 | The two HTML pages and `pipeline_summary.js` read as text | Required ids and messages present; every id used by a script exists; address validation identical on both pages; top bar, hero band, collapsed connection settings, status chip states, meter, bars, loading state and example buttons present; no external resources |
 | A29 | `test_log_feature_importance.py` | 8 | A tiny model and a throwaway MLflow store | Wrong hash refused before logging; one analysis run with nine importance values; model and registry unchanged |
 | A30 | `test_promote_model.py` | 16 | A throwaway registry with versions of different validation quality | Dry run changes nothing; floors and comparison enforced; test-set evidence refused; rollback restores the previous alias |
 | A31 | `test_grafana_dashboards.py` | 6 | The two dashboard JSON files | Titles, descriptions, axis labels with units, legends and colour-blind-safe colours present |
 
 The 110 tests of A01 to A16 are the ones counted in the earlier recorded runs; A17 to A31
-add 129 tests, giving 239.
+add 155 tests, giving 265.
 
 ## Execution procedure
 

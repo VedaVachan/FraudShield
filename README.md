@@ -177,7 +177,7 @@ The worker and `--recover` only run when the worker sources are committed and un
 
 ```bash
 # Registry aliases: dry run by default; --apply writes; --rollback restores the previous one
-.venv/bin/python scripts/promote_model.py --candidate-version 2
+.venv/bin/python scripts/promote_model.py --candidate-version 1
 .venv/bin/python scripts/promote_model.py --rollback
 
 # Log gain-based feature importance of the deployed model as a new MLflow run
@@ -190,12 +190,12 @@ them. It was tested on a throwaway database and not run against the real registr
 
 ## Current results
 
-- Tests: 239 tests pass in local CI run `f57ca21c-0e60-4349-85e4-52bd6bcfd444` (exit 0);
+- Tests: 265 tests pass in local CI run `113fe711-1fff-4c3c-b516-330d92a54548` (exit 0);
   `dvc repro` reported the pipeline up to date.
 - Coverage: 93% of `backend/` and `src/fraudshield/` (1,275 statements, lowest file 82%),
   measured at 217 tests; see [reports/coverage_summary.txt](reports/coverage_summary.txt).
-  The 22 tests added since exercise only `scripts/` and dashboard JSON, so this figure was
-  not re-measured. `scripts/` is not measured.
+  The 48 tests added since (265 minus 217) exercise only `scripts/`, the dashboard JSON and
+  the frontend pages, so this figure was not re-measured. `scripts/` is not measured.
 - Model gate floors on validation: average precision 0.85, precision 0.70, recall 0.90.
   The frozen DVC baseline measured 0.9885 / 0.9284 / 1.0
   (`reports/xgboost_validation_gate.json`).

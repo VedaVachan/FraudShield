@@ -10,12 +10,12 @@ VM configuration; they do not establish production readiness or course complianc
 
 ## Latest verification (10 November 2026)
 
-Local CI (`.venv/bin/python scripts/run_ci.py`) run `f57ca21c-0e60-4349-85e4-52bd6bcfd444` ended with exit
-code 0. The test step ran **239 tests with no failures or errors**. The
+Local CI (`.venv/bin/python scripts/run_ci.py`) run `113fe711-1fff-4c3c-b516-330d92a54548` ended with exit
+code 0. The test step ran **265 tests with no failures or errors**. The
 `dvc_reproduction` step reported "Data and pipelines are up to date": the data, both
 training stages and the validation gate were skipped as unchanged, so nothing was
 retrained. The tests also run as the DVC stage `unit_tests`, whose last result is in
-`reports/unit_tests_result.json`. The CI logs are under `runtime/ci/f57ca21c-0e60-4349-85e4-52bd6bcfd444/`
+`reports/unit_tests_result.json`. The CI logs are under `runtime/ci/113fe711-1fff-4c3c-b516-330d92a54548/`
 (local and git-ignored); the pipeline history is `runtime/pipeline_runs.jsonl`.
 
 Tests added since the 110-test run (counted with the unittest loader; the 31 test files
@@ -28,7 +28,7 @@ are listed with their cases in [test_plan.md](test_plan.md)):
 | f69067d | `test_result_storage` | 9 | 138 |
 | b646b1e | `test_retraining_recovery` | 31 | 169 |
 | d5c3dc9 | `test_gateway_server_coverage` | 10 | 179 |
-| uncommitted at writing | `test_logging`, `test_run_unit_tests`, `test_frontend_markup`, `test_log_feature_importance`, `test_promote_model`, `test_grafana_dashboards` | 14 + 4 + 12 + 8 + 16 + 6 | 239 |
+| uncommitted at writing | `test_logging`, `test_run_unit_tests`, `test_frontend_markup`, `test_log_feature_importance`, `test_promote_model`, `test_grafana_dashboards` | 14 + 4 + 38 + 8 + 16 + 6 | 265 |
 
 No existing test file changed after the 110-test run. Unit-test coverage of `backend/` and
 `src/fraudshield/` was measured at 217 tests: 93% (1,275 statements, 83 missed, lowest
@@ -50,7 +50,7 @@ verified, not predictions.
 
 | ID | Criterion | Basis | Evidence file | Result |
 |---|---|---|---|---|
-| AC-01 | All automated tests pass | CI exit 0, no failures or errors | `runtime/ci/f57ca21c-0e60-4349-85e4-52bd6bcfd444/automated_tests.log` (local); `reports/unit_tests_result.json` | MET: 239 tests |
+| AC-01 | All automated tests pass | CI exit 0, no failures or errors | `runtime/ci/113fe711-1fff-4c3c-b516-330d92a54548/automated_tests.log` (local); `reports/unit_tests_result.json` | MET: 265 tests |
 | AC-02 | Coverage of `backend/` and `src/fraudshield/` at least 80% | 80% | `reports/coverage_summary.txt` | MET: 93% (measured at 217 tests); not measured: code run only in subprocesses, `scripts/` |
 | AC-03 | Frozen DVC baseline passes the validation gate floors | AP >= 0.85, precision >= 0.70, recall >= 0.90 | `reports/xgboost_validation_gate.json` | MET: status PASS, AP 0.9885092, precision 0.9284028, recall 1.0 (validation, model `4b1fa5ce`, run of 2026-11-05) |
 | AC-04 | Frozen DVC baseline meets the same floors on the held-out split | Same floors | `reports/xgboost_heldout_evaluation.json` | MET for this artifact only: AP 0.9926524, precision 0.9578867, recall 0.9992013 (89,466 test rows) |
@@ -62,9 +62,30 @@ verified, not predictions.
 | AC-08c | Gateway run 2, four clients | Per scenario | `reports/concurrent_gateway_predict_run2.json` | NOT MET: 16 of 1,000 failed (1.6%, all HTTP 503). The cause is unresolved; later runs do not erase it |
 | AC-08d | First gateway attempt | A measured scenario | `reports/concurrent_gateway_predict.json` | NOT MET: it failed during warmup with HTTP 503 and produced no measured scenario; cause unresolved |
 | AC-09 | Failing challenger removed automatically after one champion fallback | One recorded drill | `reports/gateway_http_drill.json`; tests A04, A07 | MET, narrowly: automatic weight zero PASS, next request to the champion PASS, detection and fallback in 0.033 s. A single manual observation from shared output, not an automated log |
-| AC-10 | `dvc repro` reports the pipeline up to date | CI step | `runtime/ci/f57ca21c-0e60-4349-85e4-52bd6bcfd444/dvc_reproduction.log` (local) | MET: all stages skipped as unchanged. This is a cache check, not a retraining |
+| AC-10 | `dvc repro` reports the pipeline up to date | CI step | `runtime/ci/113fe711-1fff-4c3c-b516-330d92a54548/dvc_reproduction.log` (local) | MET: all stages skipped as unchanged. This is a cache check, not a retraining |
 | AC-11 | Reproduction from a fresh clone gives the same metrics | A recorded fresh-clone run | none | NOT MEASURED |
 | AC-12 | Retraining is candidate-only | Drill records and tests | `reports/drift_request_drill.json`, `reports/controlled_retraining_drill/`; tests A15, A24, A25 | MET: queued request carries `automatic_promotion: false`; `result.json` and `training_receipt.json` record `registered_or_promoted: false`. Effectiveness against shifted data was not shown |
+
+## Screenshots
+
+Placeholders only. The images are to be added by the author under `docs/evidence/`; none of
+these files exists yet, so nothing in this report depends on them. Each file should show the
+state named in the last column.
+
+| File | What it should show |
+|---|---|
+| `docs/evidence/01_transaction_page_ready.png` | Transaction page just after opening, status chip reading "API ready" |
+| `docs/evidence/02_flagged_result_with_explanation.png` | "Full-drain transfer" example checked with "Check + explain": flagged banner, score meter and contribution bars |
+| `docs/evidence/03_not_flagged_result.png` | "Normal payment" example: "Not flagged by the model" and the meter below the threshold |
+| `docs/evidence/04_inline_validation_error.png` | An empty or negative field with its red border and message under the field |
+| `docs/evidence/05_connection_settings_open.png` | "Connection settings" expanded with the API address field and its buttons |
+| `docs/evidence/06_pipeline_diagram_and_table.png` | Pipeline page: DVC diagram with key, and the recorded-executions table |
+| `docs/evidence/07_pipeline_failed_run_row.png` | A failed run shown with its FAILED pill and reason text, if one is in the history |
+| `docs/evidence/08_grafana_service_monitoring.png` | Grafana dashboard "FraudShield — Service Monitoring" |
+| `docs/evidence/09_grafana_resources.png` | Grafana dashboard "FraudShield — VM and Container Resources" |
+| `docs/evidence/10_prometheus_targets.png` | Prometheus targets page with the scrape jobs and their state |
+| `docs/evidence/11_ci_run_output.png` | Terminal output of `scripts/run_ci.py` ending in "PASS: local CI completed" |
+| `docs/evidence/12_coverage_report.png` | The per-file coverage table from `reports/coverage_summary.txt` |
 
 ## Earlier recorded verification (110 tests)
 
