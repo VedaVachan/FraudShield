@@ -28,7 +28,7 @@ are listed with their cases in [test_plan.md](test_plan.md)):
 | f69067d | `test_result_storage` | 9 | 138 |
 | b646b1e | `test_retraining_recovery` | 31 | 169 |
 | d5c3dc9 | `test_gateway_server_coverage` | 10 | 179 |
-| uncommitted at writing | `test_logging`, `test_run_unit_tests`, `test_frontend_markup`, `test_log_feature_importance`, `test_promote_model`, `test_grafana_dashboards` | 14 + 4 + 38 + 8 + 16 + 6 | 265 |
+| added after the coverage checkpoint; committed | `test_logging`, `test_run_unit_tests`, `test_frontend_markup`, `test_log_feature_importance`, `test_promote_model`, `test_grafana_dashboards` | 14 + 4 + 38 + 8 + 16 + 6 | 265 |
 
 No existing test file changed after the 110-test run. Unit-test coverage of `backend/` and
 `src/fraudshield/` was measured at 217 tests: 93% (1,275 statements, 83 missed, lowest
