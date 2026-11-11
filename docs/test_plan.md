@@ -41,7 +41,7 @@ made beforehand. Results are in the "Acceptance results" table of
 
 ## Automated test cases
 
-The suite has **312 `unittest` tests in 35 files**. They run in local CI
+The suite has **348 `unittest` tests in 37 files**. They run in local CI
 (`scripts/run_ci.py`) and, since 2026-11-10, also as the DVC stage `unit_tests`, which
 records its result in `reports/unit_tests_result.json`. Counts were taken with the
 unittest loader. Inputs are test fixtures only: temporary files and databases, mocks,
@@ -84,9 +84,11 @@ FastAPI's `TestClient`, and (for A02 and A16) the real deployed model and Spark.
 | A33 | `test_integration_api.py` | 14 | The real API app and model, real metrics registry, temporary history and summary files | One request updates request, decision, latency and drift metrics; 422 changes nothing else; no transaction values in the scrape; history newest first, damaged lines counted |
 | A34 | `test_integration_gateway.py` | 9 | Real gateway, canary router and HTTP model client; only two fake model servers on 127.0.0.1 | Gateway score equals the direct API score; one champion fallback and automatic removal with matching metrics; wrong upstream identity treated as failure; 503 when the champion fails |
 | A35 | `test_e2e_smoke_guard.py` | 6 | No running stack (nothing listens on the addresses used) | `scripts/e2e_smoke.py` exits 1 and records every failure when the stack is down; result file replaced atomically; CI and DVC do not call the script |
+| A36 | `test_rollback_drill.py` | 10 | A throwaway MLflow database standing in for the real one | Champion moves v1, v2, back to v1 on a copy; source database byte-identical and hashes recorded; real or existing locations refused; report create-only; a failing step gives exit 1 |
+| A37 | `test_retraining_watch.py` | 26 | A private SQLite queue, fake training commands, real worker lock, a temporary git repository | Watch is off by default; oldest first, each request once; busy lock retried; uncommitted sources stop it; non-positive interval refused; SIGINT and SIGTERM stop it cleanly; candidate-only result; script has no registry, promotion or docker calls |
 
-The 110 tests of A01 to A16 are the ones counted in the earlier recorded runs; A17 to A35
-add 202 tests, giving 312.
+The 110 tests of A01 to A16 are the ones counted in the earlier recorded runs; A17 to A37
+add 238 tests, giving 348.
 
 ## Execution procedure
 

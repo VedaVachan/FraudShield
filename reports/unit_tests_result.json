@@ -1,14 +1,14 @@
 {
   "schema_version": 1,
   "command": "unittest discover -s tests",
-  "tests_run": 312,
+  "tests_run": 348,
   "failures": 0,
   "errors": 0,
   "skipped": 0,
   "successful": true,
   "python_version": "3.11.17",
-  "git_commit": "69b2a2f1d85621fde5c04568666e95a19a97ae3a",
+  "git_commit": "21bec0c1b5c012d7a6794f89a359f33707ba4850",
   "git_dirty": true,
-  "duration_seconds": 127.599,
-  "finished_utc": "2026-11-11T19:21:56.680662+00:00"
+  "duration_seconds": 173.406,
+  "finished_utc": "2026-11-11T19:44:42.255631+00:00"
 }

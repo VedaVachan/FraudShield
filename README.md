@@ -154,14 +154,33 @@ More detail, troubleshooting and shutdown: [docs/operator_guide.md](docs/operato
 
 ## Retraining workflow
 
-Retraining is operator-started and candidate-only: it never registers, promotes or
-deploys a model.
+What is automatic and what is not:
+
+| Step | Automatic? |
+|---|---|
+| Drift detection (Prometheus rule) and queueing a request (alert receiver) | **Automatic** |
+| Executing a queued request (candidate training and validation gate) | **Manual by default; automatic only with `--watch`** |
+| Registering, promoting or deploying a model | **Never automatic.** Promotion is always a manual, gated step (`scripts/promote_model.py`) |
+
+Execution is candidate-only either way: it never registers, promotes or deploys a model.
 
 ```bash
 PYTHONPATH=src:. .venv/bin/python scripts/enqueue_drift_requests.py
 PYTHONPATH=src:. .venv/bin/python scripts/run_retraining_worker.py --list
 PYTHONPATH=src:. .venv/bin/python scripts/run_retraining_worker.py --request-id REQUEST_ID
 ```
+
+Opt-in automatic execution (off unless you start it; stops cleanly on Ctrl+C or SIGTERM;
+the interval must be positive, default 30 seconds):
+
+```bash
+PYTHONPATH=src:. .venv/bin/python scripts/run_retraining_worker.py --watch --interval 60
+```
+
+`--watch` polls the queue and runs each queued request through the same path as
+`--request-id`: the same worker lock, the same committed-source check and the same
+candidate-only training and gate. It was tested with fake training commands only; it has
+not been run against real training.
 
 If a worker was killed after writing its result but before updating the queue, inspect
 and then explicitly recover (see [docs/retraining_recovery.md](docs/retraining_recovery.md)):
@@ -171,7 +190,7 @@ PYTHONPATH=src:. .venv/bin/python scripts/run_retraining_worker.py --inspect-rec
 PYTHONPATH=src:. .venv/bin/python scripts/run_retraining_worker.py --recover REQUEST_ID --confirm-result-sha256 HASH --reason "why"
 ```
 
-The worker and `--recover` only run when the worker sources are committed and unchanged.
+The worker, `--watch` and `--recover` only run when the worker sources are committed and unchanged.
 
 ## Other tools
 
@@ -244,8 +263,10 @@ them. It was tested on a throwaway database and not run against the real registr
 
 ## Known limitations
 
-- No automatic model promotion or rollback. Model rollback is a manual procedure that was
-  documented but not drilled. The canary gateway only removes challenger traffic.
+- No automatic model promotion or rollback. The registry-alias rollback was drilled on a
+  copy of the registry (`scripts/rollback_drill.py`); the serving rollback (model file and
+  API restart) is a documented procedure that was not drilled. The canary gateway only
+  removes challenger traffic.
 - No TLS or encryption at rest, no authentication on the direct API or the web page, and
   no rate limiting: the deployment is local-only.
 - No feedback endpoint and no batch scoring.

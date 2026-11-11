@@ -158,11 +158,11 @@ stages:
       nfiles: 4
     - path: tests
       hash: md5
-      md5: afb6c5f53dd9dc30ce1c9cfeafd90def.dir
-      size: 225017
-      nfiles: 35
+      md5: 76fc0025cadc45f10d5ec51d53857f73.dir
+      size: 249009
+      nfiles: 37
     outs:
     - path: reports/unit_tests_result.json
       hash: md5
-      md5: 266a0e4221a6bcc6f8529fd9c8ebd916
+      md5: 4876caf5f7ceb2a228459e1d85b6551d
       size: 356

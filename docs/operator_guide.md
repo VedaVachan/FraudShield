@@ -157,6 +157,21 @@ logs and terminal queue state. A completed request is deliberately refused on
 replay. An interrupted running request needs investigation; do not reset it
 blindly or remove the lock to force concurrent work.
 
+Execution can also be automatic, but only if you start it. `--watch` is off by default:
+
+```bash
+PYTHONPATH=src:. OMP_NUM_THREADS=2 OPENBLAS_NUM_THREADS=2 MKL_NUM_THREADS=2 \
+.venv/bin/python scripts/run_retraining_worker.py --watch --interval 60
+```
+
+It polls the queue every `--interval` seconds (positive; default 30) and runs queued
+requests one at a time through the same path as `--request-id`: the same worker lock, the
+same committed-source check and the same candidate-only training and gate. Stop it with
+Ctrl+C or SIGTERM. It never registers, promotes or deploys a model; promoting a candidate
+stays a manual, gated step (`scripts/promote_model.py`). Watching was tested with fake
+training commands only. See [retraining_recovery.md](retraining_recovery.md) for how it
+stops and what to do if it exits 1.
+
 ## Troubleshooting and shutdown
 
 | Symptom | Action |
@@ -278,12 +293,46 @@ dry read of the real files showed that `reports/xgboost_validation_gate.json` de
 a different model (`xgboost_dvc_v1`, hash starting `4b1fa5ce`) from the deployed one
 (hash starting `1d2df493`), so that gate result is not evidence about the deployed file.
 
-## Manual model rollback (documented, not drilled)
+## Model rollback: registry alias (drilled on a copy) and serving (documented only)
 
-This procedure was written from the code. It has **not been executed or tested**, and
-there is no recorded evidence of it working. The system has no automatic model
-rollback and no promotion step (`docs/high_level_design.md`).
+There are two separate things called "rollback", and only one has been drilled.
 
+| Part | What it changes | Status |
+|---|---|---|
+| Registry alias move (`scripts/promote_model.py --rollback`) | The MLflow `champion` alias and one registered-model tag | **Drilled on a temporary copy** of the MLflow database by `scripts/rollback_drill.py`; unit-tested on throwaway databases |
+| Serving rollback (model file and receipt, API restart) | What the API actually scores with | **Documented procedure only. Not executed, not drilled, no evidence it works** |
+
+The two are not linked: the running API and gateway do not read registry aliases. Moving
+an alias, forwards or back, does not change which model is served, and a serving rollback
+does not move any alias.
+
+### Drilled: registry alias rollback
+
+```bash
+PYTHONPATH=src:. .venv/bin/python scripts/rollback_drill.py
+```
+
+The drill copies `runtime/mlflow/tracking.db` into a temporary folder (opening the original
+read-only), registers a synthetic second version of `FraudShield-XGBoost` on the copy,
+promotes v1, promotes v2, rolls back, and checks that `champion` is v1 again and that the
+replaced version v2 is recorded as the previous one. It refuses to use the real database or
+its folder as the working location, and records the real database's SHA-256 before and
+after in `reports/rollback_drill.json` (create-only: an existing report is never
+overwritten, so move the old one aside to repeat the drill). Exit 0 means every step
+behaved as expected. What it shows: the alias logic and its gate work on a copy of the real
+registry. What it does not show: anything about serving, the real registry being moved, or
+a real second model (version 2 is synthetic and exists only in the copy).
+
+To do the same on the real registry, which no one has yet done: dry run first, then apply.
+
+```bash
+.venv/bin/python scripts/promote_model.py --rollback            # dry run, changes nothing
+.venv/bin/python scripts/promote_model.py --rollback --apply    # moves the alias back
+```
+
+### Documented only: serving rollback
+
+This serving procedure was written from the code and has **not been executed or tested**.
 What decides which model the direct API serves: at start-up `backend/app.py` hashes
 `artifacts/xgboost_v1/model.joblib` and refuses to start unless the hash and threshold
 equal the `xgboost` entry of `reports/mlflow_registry.json`. Both files are mounted
@@ -302,10 +351,21 @@ git show <commit>:reports/mlflow_registry.json > reports/mlflow_registry.json
 sha256sum artifacts/xgboost_v1/model.joblib
 python3 -c "import json; print(json.load(open('reports/mlflow_registry.json'))['models']['xgboost']['model_sha256'])"
 
-# 4. Restart the API so it reloads and re-checks the model, then confirm the hash.
+# 4. Restart the API so it reloads and re-checks the model.
 docker compose restart api
+
+# 5. Confirm what is being served: status must be "ready" and model_sha256 must equal
+#    the hash printed in step 3 (the earlier model's hash).
 curl -fsS --max-time 10 http://127.0.0.1:8000/health
 ```
+
+In words: the file to revert is `artifacts/xgboost_v1/model.joblib` together with its
+receipt `reports/mlflow_registry.json` (the `xgboost` entry holds the expected hash and
+threshold); there is no other setting. After the restart, `/health` reports `ready` and the
+loaded `model_sha256`. If the model file and receipt disagree the API refuses to start, so
+a `/health` that never answers means step 3 was skipped or wrong; do not edit the receipt
+to match a file you have not identified. Return to the current model the same way, using
+the `model.joblib.current` copy from step 2.
 
 Notes and limits:
 
