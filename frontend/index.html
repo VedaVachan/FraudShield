@@ -31,6 +31,9 @@ button:disabled{opacity:.55;cursor:wait}
 .flagged{color:#a23a17}
 .clear{color:#17694d}
 #error{color:#a52c26;margin:16px 0}
+.field-error{color:#a52c26;font-size:13px;margin:6px 0 0}
+input[aria-invalid="true"]{border-color:#a52c26}
+.technical{font-size:12px;font-weight:400;color:#53677a}
 table{width:100%;border-collapse:collapse;font-size:14px}
 th,td{text-align:left;padding:10px 4px;border-bottom:1px solid #e5ebf1}
 td:last-child,th:last-child{text-align:right}
@@ -80,9 +83,13 @@ transaction inputs are not saved.</p>
 <option>CASH_IN</option><option>DEBIT</option>
 </select>
 <label for="amount">Transaction amount</label>
-<input id="amount" type="number" min="0" step="any" value="100000" required>
+<input id="amount" type="number" min="0" step="any" value="100000" required
+       aria-describedby="amount-error">
+<p id="amount-error" class="field-error" role="alert" hidden></p>
 <label for="balance">Sender balance before payment</label>
-<input id="balance" type="number" min="0" step="any" value="100000" required>
+<input id="balance" type="number" min="0" step="any" value="100000" required
+       aria-describedby="balance-error">
+<p id="balance-error" class="field-error" role="alert" hidden></p>
 <div class="actions">
 <button type="submit">Check transaction</button>
 <button id="explain" class="secondary" type="button">Check + explain</button>
@@ -100,19 +107,19 @@ must use the same monetary unit. Inputs are not saved by this page.</p>
 <div id="result" hidden>
 <div id="decision" class="decision"></div>
 <div class="metrics">
-<div class="metric">Model score<strong id="score"></strong></div>
-<div class="metric">Decision threshold<strong id="threshold"></strong></div>
+<div class="metric">Fraud score <span class="technical" title="Technical name: model score">(model score)</span><strong id="score"></strong></div>
+<div class="metric">Decision threshold <span class="technical" title="A payment is flagged when its fraud score is at or above this value">(flagged at or above)</span><strong id="threshold"></strong></div>
 </div>
 <p id="model" class="note"></p>
 <p class="note">The score is not a calibrated fraud probability.
 “Not flagged” does not guarantee that a payment is legitimate.</p>
 <div id="shap" hidden>
-<h2>Why this score?</h2>
+<h2>Why this score? <span class="technical" title="Technical name: feature contributions">(feature contributions)</span></h2>
 <p class="note">Positive contributions push the model toward fraud; negative
 contributions push it away. Values explain the observed feature values,
 including zero-valued indicators. They are not proof of fraud or causal effects.</p>
 <table>
-<thead><tr><th>Engineered feature</th><th>SHAP log-odds</th></tr></thead>
+<thead><tr><th>Factor <span class="technical">(engineered feature)</span></th><th>Effect on score <span class="technical">(SHAP log-odds)</span></th></tr></thead>
 <tbody id="contributions"></tbody>
 </table>
 <p id="reconstruction" class="note"></p>
@@ -176,6 +183,36 @@ function clearResult() {
   $("contributions").replaceChildren();
 }
 
+const FIELD_RULES = [
+  {input: "amount", error: "amount-error", name: "transaction amount"},
+  {input: "balance", error: "balance-error", name: "sender balance"}
+];
+
+function fieldProblem(rule) {
+  const input = $(rule.input);
+  if (input.validity.badInput) {
+    return `Enter the ${rule.name} as a number, for example 100000.`;
+  }
+  if (input.value.trim() === "") return `Enter the ${rule.name}.`;
+  const value = Number(input.value);
+  if (!Number.isFinite(value)) return `The ${rule.name} must be a finite number.`;
+  if (value < 0) return `The ${rule.name} cannot be negative.`;
+  return "";
+}
+
+function showFieldProblem(rule) {
+  const problem = fieldProblem(rule);
+  $(rule.error).textContent = problem;
+  $(rule.error).hidden = problem === "";
+  $(rule.input).setAttribute("aria-invalid", problem === "" ? "false" : "true");
+  return problem === "";
+}
+
+function validateFields() {
+  // Check every field so that all problems are shown together.
+  return FIELD_RULES.map(rule => showFieldProblem(rule)).every(Boolean);
+}
+
 async function request(path, payload) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 20000);
@@ -236,7 +273,8 @@ function applyAPI(value) {
 }
 
 async function run(explain) {
-  if (busy || !$("form").reportValidity()) return;
+  if (busy) return;
+  if (!validateFields() || !$("form").reportValidity()) return;
   const payload = {
     type: $("type").value,
     amount: Number($("amount").value),
@@ -310,6 +348,9 @@ $("form").addEventListener("submit", event => {
 });
 $("explain").addEventListener("click", () => run(true));
 $("form").addEventListener("input", clearResult);
+for (const rule of FIELD_RULES) {
+  $(rule.input).addEventListener("input", () => showFieldProblem(rule));
+}
 checkHealth();
 </script>
 </body>

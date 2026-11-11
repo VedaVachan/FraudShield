@@ -16,6 +16,11 @@ text{fill:#17283b;font:15px system-ui}path{stroke:#53677a;fill:none}
 th,td{text-align:left;padding:12px;border-bottom:1px solid #dbe4ed;vertical-align:top}
 .success{color:#17694d}.failed{color:#a52c26}
 .note{color:#53677a;line-height:1.6}#status{white-space:pre-wrap}
+.field-error{color:#a52c26;margin:8px 0 0}
+.failed{font-weight:700}
+tr.row-failed td{background:#fdecea}
+tr.row-failed td:first-child{border-left:4px solid #a52c26}
+@media(max-width:640px){main{padding:14px}section{padding:16px}h1{font-size:24px}input{width:100%}form button{width:100%;margin-top:8px}th,td{padding:8px}}
 </style>
 <main>
 <a href="/">← Transaction review</a>
@@ -25,8 +30,10 @@ This page cannot launch training or change deployment.</p>
 <section>
 <h2>Baseline DVC pipeline</h2>
 <p class="note">Configured topology. Diagram boxes do not imply a new run.</p>
-<svg viewBox="0 0 900 290" role="img" aria-label="Raw PaySim feeds Spark preparation, which feeds logistic regression and XGBoost. XGBoost feeds its validation gate.">
+<svg viewBox="0 0 900 290" role="img" aria-label="Raw PaySim feeds Spark preparation, which feeds logistic regression and XGBoost. XGBoost feeds its validation gate. A separate unit_tests stage runs the test suite.">
 <path d="M450 55 V85 M450 135 V155 H225 V180 M450 155 H675 V180 M675 230 V250"/>
+<rect x="20" y="5" width="220" height="50" rx="8"/>
+<text x="130" y="36" text-anchor="middle">unit_tests</text>
 <rect x="340" y="5" width="220" height="50" rx="8"/>
 <text x="450" y="36" text-anchor="middle">paysim.dvc</text>
 <rect x="340" y="85" width="220" height="50" rx="8"/>
@@ -43,8 +50,11 @@ This page cannot launch training or change deployment.</p>
 <h2>Recorded executions</h2>
 <form id="connection">
 <label for="api">API address</label>
-<input id="api" type="url" value="http://127.0.0.1:8000" required>
+<input id="api" type="url" value="http://127.0.0.1:8000" required
+       aria-describedby="api-note api-error">
 <button type="submit">Refresh history</button>
+<p id="api-note" class="note">The address is remembered in this browser and shared with the transaction page.</p>
+<p id="api-error" class="field-error" role="alert" hidden></p>
 </form>
 <p id="status" role="status">Loading…</p>
 <p class="note">Newest records appear first. DVC reproduction duration measures
@@ -63,17 +73,39 @@ Detailed logs remain on the host. Only gate failure reasons are exposed here.</p
 <script>
 "use strict";
 const byId = id => document.getElementById(id);
+const DEFAULT_API = "http://127.0.0.1:8000";
+const API_STORAGE_KEY = "fraudshield.apiOrigin";
+
+function normalizeAPI(value) {
+  let url;
+  try {
+    url = new URL(value.trim());
+  } catch {
+    throw new Error("Enter a complete local API address, such as http://127.0.0.1:8000.");
+  }
+  if (!["http:", "https:"].includes(url.protocol) ||
+      !["127.0.0.1", "localhost"].includes(url.hostname) ||
+      url.username || url.password || url.search || url.hash ||
+      url.pathname !== "/") {
+    throw new Error("Use an HTTP or HTTPS localhost address with an optional port, without credentials, a path, query or fragment.");
+  }
+  return url.origin;
+}
+
+try {
+  const saved = localStorage.getItem(API_STORAGE_KEY);
+  byId("api").value = saved ? normalizeAPI(saved) : DEFAULT_API;
+} catch {
+  byId("api").value = DEFAULT_API;
+}
+
 async function refresh() {
   const button = document.querySelector("button");
   button.disabled = true;
   byId("runs").replaceChildren();
   byId("status").textContent = "Loading execution history…";
   try {
-    const base = new URL(byId("api").value);
-    if (!["http:", "https:"].includes(base.protocol) ||
-        base.username || base.password) {
-      throw new Error("Enter an HTTP API address without credentials.");
-    }
+    const base = new URL(normalizeAPI(byId("api").value));
     const response = await fetch(new URL("/pipeline/runs?limit=50", base), {
       cache: "no-store", signal: AbortSignal.timeout(10000)
     });
@@ -82,11 +114,17 @@ async function refresh() {
     if (!Array.isArray(data.runs)) throw new Error("Unexpected API response.");
     for (const run of data.runs) {
       const row = document.createElement("tr");
+      const failed = run.status === "failed";
+      const reasons = (run.failure_reasons || []).join("; ");
       const values = [
-        `${run.stage}\n${run.run_id || ""}`, run.status, run.started_utc,
+        `${run.stage}\n${run.run_id || ""}`,
+        failed ? "FAILED" : run.status,
+        run.started_utc,
         Number(run.duration_seconds).toFixed(3),
         `${(run.git_commit || "").slice(0,12)} (${run.git_dirty ? "dirty" : "clean"})`,
-        (run.failure_reasons || []).join("; ") || "—"
+        reasons || (failed
+          ? "No error text is stored for this failed run; see the host logs."
+          : "—")
       ];
       for (const value of values) {
         const cell = document.createElement("td");
@@ -94,10 +132,13 @@ async function refresh() {
         row.append(cell);
       }
       row.children[1].className = run.status;
+      if (failed) row.className = "row-failed";
       byId("runs").append(row);
     }
     byId("status").textContent = data.history_available
-      ? `${data.runs.length} records shown. Invalid records: ${data.invalid_records}.`
+      ? `${data.runs.length} records shown ` +
+        `(${data.runs.filter(item => item.status === "failed").length} failed). ` +
+        `Invalid records: ${data.invalid_records}.`
         + (data.truncated ? " Showing a bounded tail of the history." : "")
       : "No execution history is available yet.";
   } catch (error) {
@@ -109,7 +150,22 @@ async function refresh() {
 }
 byId("connection").addEventListener("submit", event => {
   event.preventDefault();
-  refresh();
+  try {
+    const origin = normalizeAPI(byId("api").value);
+    byId("api").value = origin;
+    byId("api-error").hidden = true;
+    try {
+      localStorage.setItem(API_STORAGE_KEY, origin);
+    } catch {
+      // Storage may be unavailable; the address still applies to this page.
+    }
+    refresh();
+  } catch (error) {
+    // Stop the summary script's own submit handler from using a bad address.
+    event.stopImmediatePropagation();
+    byId("api-error").textContent = error.message;
+    byId("api-error").hidden = false;
+  }
 });
 refresh();
 </script>
