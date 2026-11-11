@@ -1,0 +1,10 @@
+{
+  "run_id": "afef198de2d0444487758770e13826a7",
+  "run_type": "analysis",
+  "tracking_uri": "sqlite:////home/vedavachan/projects/fraudshield/runtime/mlflow/tracking.db",
+  "experiment": "FraudShield-Models",
+  "model_sha256": "1d2df49373788c5b1e554ec9ab9cfc346cc0feb1e13406bc0cd93b1594518bcb",
+  "git_commit": "86bdc4d5ed385a3f6f4e6decd8b148198b717c46",
+  "chart_logged": true,
+  "registered_or_promoted": false
+}
