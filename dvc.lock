@@ -164,5 +164,5 @@ stages:
     outs:
     - path: reports/unit_tests_result.json
       hash: md5
-      md5: 2d8614fd1b9b9946977e8f0746aa8588
+      md5: a22ddf6fb9fec8f5d284ad379ae08bb3
       size: 356
