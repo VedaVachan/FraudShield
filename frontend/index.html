@@ -5,131 +5,278 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>FraudShield — Transaction Review</title>
 <style>
-:root{font-family:system-ui,sans-serif;color:#17283b;background:#eef3f8}
-*{box-sizing:border-box}
-body{margin:0}
-header{background:#10263d;color:white;padding:28px max(24px,calc((100% - 1100px)/2))}
-header p{color:#b9cddd;margin:6px 0}
-h1{margin:0;font-size:30px}
-main{max-width:1100px;margin:28px auto;padding:0 20px}
-.layout{display:grid;grid-template-columns:350px 1fr;gap:22px}
-.card{background:white;border:1px solid #dbe4ed;border-radius:14px;padding:24px}
-h2{font-size:20px;margin:0 0 18px}
-label{display:block;font-weight:600;margin:16px 0 7px}
-input,select{width:100%;padding:11px;border:1px solid #aab9c8;border-radius:7px;font:inherit}
-fieldset{border:0;padding:0;margin:0;min-width:0}
-button{padding:11px 15px;border:0;border-radius:7px;background:#1767a6;color:white;font:inherit;cursor:pointer}
-button.secondary{background:#e6eef6;color:#173f61}
-button:disabled{opacity:.55;cursor:wait}
-.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:22px}
-.note{font-size:13px;line-height:1.6;color:#53677a}
-.status{font-size:14px;margin-top:14px}
-.metrics{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}
-.metric{background:#f0f5fa;padding:15px;border-radius:9px}
-.metric strong{display:block;font-size:25px;margin-top:5px}
-.decision{font-weight:700;font-size:22px}
-.flagged{color:#a23a17}
-.clear{color:#17694d}
-#error{color:#a52c26;margin:16px 0}
-.field-error{color:#a52c26;font-size:13px;margin:6px 0 0}
-input[aria-invalid="true"]{border-color:#a52c26}
-.technical{font-size:12px;font-weight:400;color:#53677a}
-table{width:100%;border-collapse:collapse;font-size:14px}
-th,td{text-align:left;padding:10px 4px;border-bottom:1px solid #e5ebf1}
-td:last-child,th:last-child{text-align:right}
-.positive{color:#a23a17}.negative{color:#17694d}
+/* Design follows docs/ui_reference.html. System fonts only; no external resources. */
+:root{
+  color-scheme:light;
+  --blue-900:#0b2a6f;--blue-700:#1e40af;--blue-600:#2563eb;--blue-500:#3b82f6;--blue-100:#dbeafe;--blue-50:#eff6ff;
+  --bg:#f3f7fd;--card:#fff;--ink:#0f1f3d;--muted:#51617f;--line:#dbe4f3;
+  --orange-700:#b45309;--orange-600:#d4640a;--orange-50:#fff4e5;
+  --danger:#b42318;--danger-bg:#fdecea;
+  --control:#7a8fb5;
+  --radius:14px;
+  --shadow:0 1px 2px rgba(15,31,61,.05),0 8px 24px rgba(30,64,175,.08);
+  --font:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  /* shared names used by both pages */
+  --primary:var(--blue-600);--text:var(--ink);--r-md:10px;--s4:1rem;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font-family:var(--font);color:var(--text);background:var(--bg);font-size:16px;line-height:1.5}
+a{color:var(--blue-700)}
+h1,h2,h3,h4{line-height:1.25}
+:focus-visible{outline:3px solid var(--blue-600);outline-offset:2px}
+.skip-link{position:absolute;left:16px;top:-4rem;background:#fff;color:var(--blue-700);padding:8px 12px;border-radius:8px;z-index:10}
+.skip-link:focus{top:8px}
 [hidden]{display:none!important}
-footer{margin:22px 0;font-size:13px;color:#53677a}
-@media(max-width:760px){.layout{grid-template-columns:1fr}}
+
+/* top bar */
+.topbar{background:#fff;border-bottom:1px solid var(--line)}
+.topbar-in{max-width:1180px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px;margin-right:auto}
+.logo{width:40px;height:40px;flex:none;border-radius:11px;background:linear-gradient(135deg,var(--blue-600),var(--blue-900));display:grid;place-items:center}
+.logo svg{width:22px;height:22px}
+.brand h1{margin:0;font-size:1.25rem;letter-spacing:-.01em;color:var(--blue-900)}
+.brand small{display:block;color:var(--muted);font-size:.8rem;margin-top:-2px}
+.nav{display:flex;flex-wrap:wrap;gap:4px}
+.nav a{text-decoration:none;font-weight:600;font-size:.92rem;padding:8px 14px;border-radius:999px;color:var(--blue-700)}
+.nav a.active,.nav a:hover{background:var(--blue-50)}
+.chip{display:inline-flex;align-items:center;gap:8px;max-width:100%;font-size:.82rem;font-weight:600;color:var(--blue-700);background:var(--blue-50);border:1px solid var(--blue-100);padding:7px 12px;border-radius:999px;overflow-wrap:anywhere}
+.chip .dot{flex:none;width:9px;height:9px;border-radius:50%;background:#64748b;box-shadow:0 0 0 3px rgba(100,116,139,.2)}
+.chip[data-state="ready"] .dot{background:#16a34a;box-shadow:0 0 0 3px rgba(22,163,74,.18)}
+.chip[data-state="warn"] .dot{background:#d97706;box-shadow:0 0 0 3px rgba(217,119,6,.2)}
+.chip[data-state="error"] .dot{background:var(--danger);box-shadow:0 0 0 3px rgba(180,35,24,.18)}
+.chip[data-state="checking"] .dot{animation:pulse 1.4s ease-in-out infinite}
+
+/* hero */
+.hero{background:linear-gradient(135deg,var(--blue-700) 0%,var(--blue-600) 55%,#2f6ee6 100%);color:#fff}
+.hero-in{max-width:1180px;margin:0 auto;padding:34px 24px 70px}
+.hero h2{margin:0 0 6px;font-size:1.9rem;letter-spacing:-.02em}
+.hero p{margin:0;max-width:640px;color:#fff;font-size:1.02rem}
+
+/* layout */
+.wrap{max-width:1180px;margin:-44px auto 40px;padding:0 24px}
+.grid{display:grid;grid-template-columns:minmax(340px,420px) 1fr;gap:24px;align-items:start}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:24px}
+.card h3{margin:0 0 4px;font-size:1.15rem;color:var(--blue-900)}
+.sub{margin:0 0 18px;color:var(--muted);font-size:.92rem}
+fieldset{border:0;padding:0;margin:0;min-width:0}
+
+/* form */
+.examples{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:6px}
+.examples span{font-size:.85rem;font-weight:600;color:var(--muted);margin-right:2px}
+.pill{border:1px solid var(--blue-100);background:var(--blue-50);color:var(--blue-700);font:inherit;font-size:.85rem;font-weight:600;padding:8px 14px;min-height:36px;border-radius:999px;cursor:pointer}
+.pill:hover{background:var(--blue-100)}
+.hint{font-size:.8rem;color:var(--muted);margin:0 0 16px}
+label{display:block;font-weight:600;font-size:.92rem;margin:14px 0 6px}
+label .unit{font-weight:400;color:var(--muted)}
+select,input{width:100%;min-height:44px;font:inherit;font-size:1rem;padding:11px 13px;border:1px solid var(--control);border-radius:10px;background:#fff;color:var(--ink)}
+select:focus,input:focus{border-color:var(--blue-600)}
+input[aria-invalid="true"]{border-color:var(--danger);box-shadow:0 0 0 1px var(--danger);background:#fffafa}
+.field-error{color:var(--danger);font-size:.85rem;font-weight:600;margin:6px 0 0}
+.field-error::before{content:"⚠ ";font-weight:400}
+.actions{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;font:inherit;font-weight:700;font-size:.98rem;padding:12px 20px;border-radius:10px;border:1px solid transparent;cursor:pointer;transition:background-color .15s ease}
+.btn.primary{background:var(--blue-600);color:#fff;box-shadow:0 4px 12px rgba(37,99,235,.28)}
+.btn.primary:hover{background:var(--blue-700)}
+.btn.secondary{background:#fff;color:var(--blue-700);border-color:#7f9bd6}
+.btn.secondary:hover{background:var(--blue-50)}
+button:disabled{opacity:.55;cursor:not-allowed}
+button.loading:disabled{opacity:1;cursor:progress}
+button.loading::after{content:"";width:1em;height:1em;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin .8s linear infinite}
+#error{color:var(--danger);background:var(--danger-bg);border:1px solid #f0b8b2;border-radius:10px;padding:10px 14px;margin:16px 0 0;font-weight:600}
+details.conn{margin-top:22px;border-top:1px solid var(--line);padding-top:14px}
+details.conn summary{cursor:pointer;font-weight:600;font-size:.9rem;color:var(--blue-700);padding:4px 0}
+details.conn .row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+details.conn .row input{flex:1 1 200px;width:auto}
+details.conn .btn{padding:10px 14px;font-size:.88rem;white-space:nowrap}
+details.conn .hint{margin:8px 0 0}
+#api-config-message{margin-top:8px}
+#api-config-error{color:var(--danger);font-weight:600;font-size:.88rem;margin:8px 0 0}
+
+/* result */
+.empty{color:var(--muted);padding:30px 6px;margin:0}
+.verdict{display:flex;align-items:center;gap:14px;border-radius:12px;padding:16px 18px;margin-bottom:18px}
+.verdict .icon{flex:none;width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:1.4rem;font-weight:700;color:#fff}
+.verdict h4{margin:0;font-size:1.3rem}
+.verdict p{margin:0;font-size:.9rem}
+.decision.flagged,.decision.clear{color:inherit}
+.verdict.flag{background:var(--orange-50);border:1px solid #f7c98e;color:#7a3b00}
+.verdict.flag .icon{background:var(--orange-600)}
+.verdict.flag .icon::before{content:"⚑";content:"⚑" / ""}
+.verdict.ok{background:var(--blue-50);border:1px solid var(--blue-100);color:var(--blue-900)}
+.verdict.ok .icon{background:var(--blue-600)}
+.verdict.ok .icon::before{content:"✓";content:"✓" / ""}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:16px}
+.stat{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.stat .k{font-size:.82rem;color:var(--muted);font-weight:600}
+.technical{font-weight:400}
+.stat .v{display:block;font-size:1.9rem;font-weight:800;letter-spacing:-.02em;color:var(--blue-900);font-variant-numeric:tabular-nums}
+.meter-wrap{margin:6px 0 4px}
+.meter{position:relative;height:14px;border-radius:999px;background:linear-gradient(90deg,var(--blue-100),#cfe0fb 60%,#ffe2bd);border:1px solid #8ea8d8}
+.meter .fill{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:999px;background:var(--blue-600);transition:width .4s ease}
+.meter .thr{position:absolute;top:-6px;bottom:-6px;width:3px;margin-left:-1px;background:var(--ink);border-radius:2px;box-shadow:0 0 0 2px #fff}
+.meter-lab{display:flex;justify-content:space-between;font-size:.78rem;color:var(--muted);margin-top:6px;font-variant-numeric:tabular-nums}
+.note{font-size:.84rem;color:var(--muted);margin:14px 0 0}
+.why{margin-top:22px}
+.why h4{margin:0 0 2px;font-size:1.05rem;color:var(--blue-900)}
+.legend{display:flex;gap:18px;font-size:.82rem;color:var(--muted);margin:6px 0 10px;flex-wrap:wrap}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.legend .toward{background:var(--orange-600)}
+.legend .away{background:var(--blue-600)}
+.table{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.r{display:grid;grid-template-columns:1.1fr 1.4fr 72px;align-items:center;gap:12px;padding:9px 14px;border-top:1px solid var(--line);font-size:.9rem}
+.r.head{background:#e9f0fb;color:#1d2f58;font-weight:600;font-size:.8rem;border-top:0}
+#contributions .r:nth-child(even){background:#f8fbff}
+.bar-track{position:relative;height:12px}
+.bar-track::before{content:"";position:absolute;left:50%;top:-3px;bottom:-3px;width:2px;margin-left:-1px;background:var(--control)}
+.bar{position:absolute;top:0;height:12px;border-radius:4px}
+.bar.positive{left:50%;background:var(--orange-600)}
+.bar.negative{right:50%;background:var(--blue-600)}
+.val{text-align:right;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.val.positive{color:var(--orange-700)}
+.val.negative{color:var(--blue-700)}
+.foot{text-align:center;color:var(--muted);font-size:.85rem;padding:6px 24px 30px;margin:0}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{50%{opacity:.35}}
+@media(max-width:900px){.grid{grid-template-columns:1fr}.hero h2{font-size:1.5rem}.r{grid-template-columns:1fr 1fr 64px}}
+@media(max-width:760px){.hero-in{padding-bottom:62px}.brand{margin-right:0;width:100%}.chip{width:100%}}
+@media(max-width:420px){.topbar-in,.wrap,.hero-in{padding-left:14px;padding-right:14px}.card{padding:18px}.stats{grid-template-columns:1fr}.r{grid-template-columns:1fr 64px}.r .bar-cell{grid-column:1 / -1;order:3}.r.head .bar-cell{display:none}.actions .btn{flex:1 1 100%}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 </style>
 </head>
 <body>
-<header>
-<h1>FraudShield</h1>
-<p><a href="/pipeline.html" style="color:#b9cddd">Pipeline and execution history</a></p>
-<p>Local payment screening · XGBoost with SHAP explanations</p>
-<div id="status" class="status" role="status">Checking API…</div>
+<a class="skip-link" href="#main">Skip to main content</a>
+
+<header class="topbar">
+<div class="topbar-in">
+<div class="brand">
+<div class="logo" aria-hidden="true">
+<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M12 3l8 3v6c0 4.5-3.2 8-8 9-4.8-1-8-4.5-8-9V6l8-3z"/><path d="M8.5 12l2.5 2.5L15.5 10"/></svg>
+</div>
+<div><h1>FraudShield</h1><small>Local payment screening · XGBoost with SHAP explanations</small></div>
+</div>
+<nav class="nav" aria-label="Main">
+<a class="active" href="/" aria-current="page">Review</a>
+<a href="/pipeline.html">Pipeline and execution history</a>
+</nav>
+<div id="status-chip" class="chip" data-state="checking"><span class="dot" aria-hidden="true"></span><span id="status" role="status">Checking API…</span></div>
+</div>
 </header>
 
-<main>
-<section class="card" style="margin-bottom:22px" aria-labelledby="connection-title">
-<h2 id="connection-title">API connection</h2>
-<form id="api-config">
-<fieldset id="connection-fields">
-<label for="api-origin">Local API address</label>
-<input id="api-origin" type="url" required
-       placeholder="http://127.0.0.1:8000"
-       aria-describedby="api-config-note">
-<p id="api-config-note" class="note">Use the prediction and explanation API,
-normally on port 8000. The address is remembered in this browser;
-transaction inputs are not saved.</p>
-<div class="actions">
-<button type="submit">Apply and check connection</button>
-<button id="api-reset" type="button" class="secondary">Restore default</button>
+<section class="hero">
+<div class="hero-in">
+<h2>Check a payment and see why it was scored</h2>
+<p>XGBoost scoring with SHAP explanations. Everything runs locally on synthetic PaySim data.</p>
 </div>
-</fieldset>
-</form>
-<p id="api-config-message" class="note" role="status"></p>
-<p id="api-config-error" role="alert" style="color:#a52c26" hidden></p>
 </section>
-<div class="layout">
-<section class="card">
-<h2>Review a transaction</h2>
+
+<main id="main" class="wrap">
+<div class="grid">
+
+<section class="card" aria-labelledby="review-title">
+<h3 id="review-title">Review a transaction</h3>
+<p class="sub">Enter the payment details, or start from an example.</p>
 <form id="form">
 <fieldset id="fields">
+<div class="examples" role="group" aria-label="Try an example">
+<span>Try an example</span>
+<button id="example-normal" type="button" class="pill">Normal payment</button>
+<button id="example-drain" type="button" class="pill">Full-drain transfer</button>
+</div>
+<p class="hint">Examples only fill the fields below; nothing is sent or saved.</p>
 <label for="type">Transaction type</label>
 <select id="type">
 <option>TRANSFER</option><option>CASH_OUT</option><option>PAYMENT</option>
 <option>CASH_IN</option><option>DEBIT</option>
 </select>
-<label for="amount">Transaction amount</label>
+<label for="amount">Transaction amount <span class="unit">(currency units, 0 or more)</span></label>
 <input id="amount" type="number" min="0" step="any" value="100000" required
        aria-describedby="amount-error">
 <p id="amount-error" class="field-error" role="alert" hidden></p>
-<label for="balance">Sender balance before payment</label>
+<label for="balance">Sender balance before payment <span class="unit">(same currency units, 0 or more)</span></label>
 <input id="balance" type="number" min="0" step="any" value="100000" required
        aria-describedby="balance-error">
 <p id="balance-error" class="field-error" role="alert" hidden></p>
 <div class="actions">
-<button type="submit">Check transaction</button>
-<button id="explain" class="secondary" type="button">Check + explain</button>
+<button id="explain" class="btn primary" type="button">Check + explain</button>
+<button id="check" class="btn secondary" type="submit">Check transaction</button>
 </div>
 </fieldset>
 </form>
 <p class="note">Default values are an invented demo transaction. Amount and balance
 must use the same monetary unit. Inputs are not saved by this page.</p>
 <div id="error" role="alert" hidden></div>
+
+<details id="connection-details" class="conn">
+<summary>Connection settings</summary>
+<form id="api-config">
+<fieldset id="connection-fields">
+<label for="api-origin">Local API address</label>
+<div class="row">
+<input id="api-origin" type="url" required
+       placeholder="http://127.0.0.1:8000"
+       aria-describedby="api-config-note">
+<button type="submit" class="btn secondary">Apply and check connection</button>
+<button id="api-reset" type="button" class="btn secondary">Restore default</button>
+</div>
+<p id="api-config-note" class="hint">Use the prediction and explanation API,
+normally on port 8000. The address is remembered in this browser;
+transaction inputs are not saved.</p>
+</fieldset>
+</form>
+<p id="api-config-message" class="hint" role="status"></p>
+<p id="api-config-error" role="alert" hidden></p>
+</details>
 </section>
 
-<section class="card" aria-live="polite">
-<h2>Model assessment</h2>
-<p id="empty" class="note">Submit a transaction to view its assessment.</p>
+<section class="card" aria-labelledby="assessment-title" aria-live="polite">
+<h3 id="assessment-title">Model assessment</h3>
+<p id="empty" class="empty">Submit a transaction to view its assessment.</p>
 <div id="result" hidden>
-<div id="decision" class="decision"></div>
-<div class="metrics">
-<div class="metric">Fraud score <span class="technical" title="Technical name: model score">(model score)</span><strong id="score"></strong></div>
-<div class="metric">Decision threshold <span class="technical" title="A payment is flagged when its fraud score is at or above this value">(flagged at or above)</span><strong id="threshold"></strong></div>
+<div id="verdict" class="verdict">
+<div class="icon" aria-hidden="true"></div>
+<div>
+<h4 id="decision" class="decision"></h4>
+<p id="verdict-note"></p>
+</div>
+</div>
+<div class="stats">
+<div class="stat"><div class="k">Fraud score <span class="technical" title="Technical name: model score">(model score)</span></div><strong id="score" class="v"></strong></div>
+<div class="stat"><div class="k">Decision threshold <span class="technical" title="A payment is flagged when its fraud score is at or above this value">(flagged at or above)</span></div><strong id="threshold" class="v"></strong></div>
+</div>
+<div class="meter-wrap">
+<div id="score-meter" class="meter" role="meter" aria-label="Fraud score" aria-valuemin="0" aria-valuemax="1" aria-valuenow="0">
+<div id="score-fill" class="fill"></div>
+<div id="threshold-marker" class="thr" title="Decision threshold"></div>
+</div>
+<div class="meter-lab" aria-hidden="true"><span>0</span><span id="threshold-label"></span><span>1</span></div>
+<p class="note">The bar shows the fraud score from 0 to 1; the dark mark is the decision threshold.</p>
 </div>
 <p id="model" class="note"></p>
 <p class="note">The score is not a calibrated fraud probability.
 “Not flagged” does not guarantee that a payment is legitimate.</p>
-<div id="shap" hidden>
-<h2>Why this score? <span class="technical" title="Technical name: feature contributions">(feature contributions)</span></h2>
+<div id="shap" class="why" hidden>
+<h4>Why this score? <span class="technical" title="Technical name: feature contributions">(feature contributions)</span></h4>
 <p class="note">Positive contributions push the model toward fraud; negative
 contributions push it away. Values explain the observed feature values,
 including zero-valued indicators. They are not proof of fraud or causal effects.</p>
-<table>
-<thead><tr><th>Factor <span class="technical">(engineered feature)</span></th><th>Effect on score <span class="technical">(SHAP log-odds)</span></th></tr></thead>
-<tbody id="contributions"></tbody>
-</table>
+<div class="legend"><span><i class="toward" aria-hidden="true"></i>Pushes toward fraud</span><span><i class="away" aria-hidden="true"></i>Pushes away from fraud</span></div>
+<p class="hint">Blue bars to the left (&minus;) push the score away from fraud; orange bars to the right (+) push it toward fraud. The number is always shown.</p>
+<div class="table" role="table" aria-label="Feature contributions">
+<div class="r head" role="row"><span role="columnheader">Factor <span class="technical">(engineered feature)</span></span><span class="bar-cell" role="columnheader">&larr; Away · Toward &rarr;</span><span class="val" role="columnheader">Effect on score <span class="technical">(SHAP log-odds)</span></span></div>
+<div id="contributions" role="rowgroup"></div>
+</div>
 <p id="reconstruction" class="note"></p>
 </div>
 </div>
 </section>
+
 </div>
-<footer>College project using synthetic PaySim data. Results support a demonstration,
-not real payment authorization.</footer>
 </main>
+
+<footer class="foot">College project using synthetic PaySim data. Results support a demonstration,
+not real payment authorization.</footer>
 
 <script>
 "use strict";
@@ -174,6 +321,21 @@ const names = {
 let busy = false;
 let healthGeneration = 0;
 
+function setStatus(text, state) {
+  // The text is the message; the chip's dot colour only repeats its meaning.
+  $("status").textContent = text;
+  $("status-chip").dataset.state = state;
+}
+
+function setLoading(button, on) {
+  button.classList.toggle("loading", on);
+  if (on) {
+    button.setAttribute("aria-busy", "true");
+  } else {
+    button.removeAttribute("aria-busy");
+  }
+}
+
 function clearResult() {
   $("result").hidden = true;
   $("shap").hidden = true;
@@ -181,6 +343,20 @@ function clearResult() {
   $("empty").hidden = false;
   $("empty").textContent = "Submit a transaction to view its assessment.";
   $("contributions").replaceChildren();
+}
+
+function updateMeter(score, threshold) {
+  const percent = value => Math.min(100, Math.max(0, value * 100));
+  // A tiny score still gets a visible sliver of fill.
+  $("score-fill").style.width = `${Math.max(percent(score), 0.8)}%`;
+  $("threshold-marker").style.left = `${percent(threshold)}%`;
+  $("threshold-label").textContent = `threshold ${threshold.toFixed(3)}`;
+  $("score-meter").dataset.flagged = String(score >= threshold);
+  $("score-meter").setAttribute("aria-valuenow", score.toFixed(5));
+  $("score-meter").setAttribute(
+    "aria-valuetext",
+    `Fraud score ${score.toFixed(5)}; flagged at or above ${threshold.toFixed(5)}`
+  );
 }
 
 const FIELD_RULES = [
@@ -238,16 +414,20 @@ async function request(path, payload) {
 async function checkHealth() {
   const origin = API;
   const generation = ++healthGeneration;
-  $("status").textContent = `Checking API · ${origin}`;
+  setStatus(`Checking API · ${origin}`, "checking");
   try {
     const data = await request("/health");
     if (generation !== healthGeneration || origin !== API) return;
-    $("status").textContent = data.status === "ready"
-      ? `API ready · ${data.model_name} · version ${data.model_version} · ${origin}`
-      : `API is not ready · ${origin}`;
+    if (data.status === "ready") {
+      setStatus(`API ready · ${data.model_name} · version ${data.model_version} · ${origin}`, "ready");
+    } else {
+      setStatus(`API is not ready · ${origin}`, "warn");
+    }
   } catch {
     if (generation !== healthGeneration || origin !== API) return;
-    $("status").textContent = `API unavailable · ${origin} — check the address and backend`;
+    setStatus(`API unavailable · ${origin} — check the address and backend`, "error");
+    // Show where the address can be changed.
+    $("connection-details").open = true;
   }
 }
 
@@ -287,7 +467,9 @@ async function run(explain) {
     $("error").hidden = false;
     return;
   }
+  const trigger = explain ? $("explain") : $("check");
   busy = true;
+  setLoading(trigger, true);
   $("fields").disabled = true;
   $("connection-fields").disabled = true;
   $("empty").textContent = explain ? "Calculating explanation…" : "Checking…";
@@ -298,19 +480,46 @@ async function run(explain) {
     $("decision").textContent = data.predicted_fraud
       ? "Flagged for review" : "Not flagged by the model";
     $("decision").className = "decision " + (data.predicted_fraud ? "flagged" : "clear");
+    $("verdict").className = "verdict " + (data.predicted_fraud ? "flag" : "ok");
+    $("verdict-note").textContent = data.predicted_fraud
+      ? "The score is at or above the decision threshold."
+      : "The score is below the decision threshold.";
     $("score").textContent = data.score.toFixed(5);
     $("threshold").textContent = data.threshold.toFixed(5);
+    updateMeter(data.score, data.threshold);
     $("model").textContent = `${data.model_name} · version ${data.model_version}`;
-    $("status").textContent = `API responding · ${data.model_name} · version ${data.model_version}`;
+    setStatus(`API responding · ${data.model_name} · version ${data.model_version}`, "ready");
     if (explain) {
+      const largest = Math.max(
+        1e-9, ...data.contributions.map(x => Math.abs(x.shap_log_odds))
+      );
       for (const item of data.contributions) {
-        const row = document.createElement("tr");
-        const label = document.createElement("td");
-        const value = document.createElement("td");
+        const positive = item.shap_log_odds >= 0;
+        const row = document.createElement("div");
+        const label = document.createElement("span");
+        const barCell = document.createElement("div");
+        const value = document.createElement("span");
+        const track = document.createElement("div");
+        const bar = document.createElement("div");
+        row.className = "r";
+        row.setAttribute("role", "row");
+        label.setAttribute("role", "cell");
         label.textContent = names[item.feature] || item.feature;
-        value.textContent = (item.shap_log_odds >= 0 ? "+" : "") + item.shap_log_odds.toFixed(4);
-        value.className = item.shap_log_odds >= 0 ? "positive" : "negative";
-        row.append(label, value);
+        // The bar repeats the signed number; it is hidden from assistive technology.
+        barCell.className = "bar-cell";
+        barCell.setAttribute("role", "cell");
+        track.className = "bar-track";
+        track.setAttribute("aria-hidden", "true");
+        bar.className = "bar " + (positive ? "positive" : "negative");
+        bar.style.width = `${(Math.abs(item.shap_log_odds) / largest) * 50}%`;
+        track.append(bar);
+        barCell.append(track);
+        value.setAttribute("role", "cell");
+        value.textContent = (positive ? "+" : "") + item.shap_log_odds.toFixed(4);
+        value.className = "val " + (positive ? "positive" : "negative");
+        value.title = positive
+          ? "Pushes the score toward fraud" : "Pushes the score away from fraud";
+        row.append(label, barCell, value);
         $("contributions").append(row);
       }
       const total = data.contributions.reduce((sum, x) => sum + x.shap_log_odds, 0);
@@ -330,9 +539,26 @@ async function run(explain) {
     checkHealth();
   } finally {
     busy = false;
+    setLoading(trigger, false);
     $("fields").disabled = false;
     $("connection-fields").disabled = false;
   }
+}
+
+// Examples only fill the three fields; they never submit or store anything.
+const EXAMPLES = {
+  "example-normal": {type: "PAYMENT", amount: 50, balance: 1000},
+  "example-drain": {type: "TRANSFER", amount: 100000, balance: 100000}
+};
+for (const [id, example] of Object.entries(EXAMPLES)) {
+  $(id).addEventListener("click", () => {
+    if (busy) return;
+    $("type").value = example.type;
+    $("amount").value = String(example.amount);
+    $("balance").value = String(example.balance);
+    clearResult();
+    FIELD_RULES.forEach(rule => showFieldProblem(rule));
+  });
 }
 
 $("api-origin").value = API;

@@ -1,58 +1,186 @@
 <!doctype html>
 <html lang="en">
+<head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>FraudShield — Pipeline</title>
 <style>
-body{font:16px system-ui,sans-serif;background:#eef3f8;color:#17283b;margin:0}
-main{max-width:1100px;margin:auto;padding:24px}
-section{background:white;padding:22px;margin:20px 0;border-radius:12px}
-a{color:#1767a6}label{display:block;margin-bottom:8px}
-input,button{font:inherit;padding:10px;border:1px solid #aab9c8;border-radius:6px}
-input{width:min(420px,85%)}button{cursor:pointer}
-svg{width:100%;max-height:300px}rect{fill:#e6eef6;stroke:#1767a6}
-text{fill:#17283b;font:15px system-ui}path{stroke:#53677a;fill:none}
-.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse}
-th,td{text-align:left;padding:12px;border-bottom:1px solid #dbe4ed;vertical-align:top}
-.success{color:#17694d}.failed{color:#a52c26}
-.note{color:#53677a;line-height:1.6}#status{white-space:pre-wrap}
-.field-error{color:#a52c26;margin:8px 0 0}
-.failed{font-weight:700}
+/* Same design as the transaction page (docs/ui_reference.html). System fonts only. */
+:root{
+  color-scheme:light;
+  --blue-900:#0b2a6f;--blue-700:#1e40af;--blue-600:#2563eb;--blue-500:#3b82f6;--blue-100:#dbeafe;--blue-50:#eff6ff;
+  --bg:#f3f7fd;--card:#fff;--ink:#0f1f3d;--muted:#51617f;--line:#dbe4f3;
+  --orange-700:#b45309;--orange-600:#d4640a;--orange-50:#fff4e5;
+  --danger:#b42318;--danger-bg:#fdecea;
+  --control:#7a8fb5;
+  --radius:14px;
+  --shadow:0 1px 2px rgba(15,31,61,.05),0 8px 24px rgba(30,64,175,.08);
+  --font:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --primary:var(--blue-600);--text:var(--ink);--r-md:10px;--s4:1rem;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font-family:var(--font);color:var(--text);background:var(--bg);font-size:16px;line-height:1.5}
+a{color:var(--blue-700)}
+h1,h2,h3{line-height:1.25}
+:focus-visible{outline:3px solid var(--blue-600);outline-offset:2px}
+.skip-link{position:absolute;left:16px;top:-4rem;background:#fff;color:var(--blue-700);padding:8px 12px;border-radius:8px;z-index:10}
+.skip-link:focus{top:8px}
+[hidden]{display:none!important}
+
+/* top bar and hero */
+.topbar{background:#fff;border-bottom:1px solid var(--line)}
+.topbar-in{max-width:1180px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px;margin-right:auto}
+.logo{width:40px;height:40px;flex:none;border-radius:11px;background:linear-gradient(135deg,var(--blue-600),var(--blue-900));display:grid;place-items:center}
+.logo svg{width:22px;height:22px}
+.brand h1{margin:0;font-size:1.25rem;letter-spacing:-.01em;color:var(--blue-900)}
+.brand small{display:block;color:var(--muted);font-size:.8rem;margin-top:-2px}
+.nav{display:flex;flex-wrap:wrap;gap:4px}
+.nav a{text-decoration:none;font-weight:600;font-size:.92rem;padding:8px 14px;border-radius:999px;color:var(--blue-700)}
+.nav a.active,.nav a:hover{background:var(--blue-50)}
+.hero{background:linear-gradient(135deg,var(--blue-700) 0%,var(--blue-600) 55%,#2f6ee6 100%);color:#fff}
+.hero-in{max-width:1180px;margin:0 auto;padding:34px 24px 70px}
+.hero h2{margin:0 0 6px;font-size:1.9rem;letter-spacing:-.02em}
+.hero p{margin:0;max-width:640px;color:#fff;font-size:1.02rem}
+
+/* cards */
+.wrap{max-width:1180px;margin:-44px auto 40px;padding:0 24px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:24px;margin:0 0 24px}
+.card h3{margin:0 0 4px;font-size:1.15rem;color:var(--blue-900)}
+.note{color:var(--muted);font-size:.9rem;line-height:1.6;margin:8px 0 0}
+label{display:block;font-weight:600;font-size:.92rem;margin:0 0 6px}
+input,button{font:inherit;min-height:44px;border-radius:10px}
+input{width:min(420px,100%);padding:11px 13px;border:1px solid var(--control);background:#fff;color:var(--ink)}
+input:focus{border-color:var(--blue-600)}
+.btn{display:inline-flex;align-items:center;justify-content:center;padding:12px 20px;border:1px solid transparent;font-weight:700;font-size:.98rem;cursor:pointer;transition:background-color .15s ease}
+.btn.primary{background:var(--blue-600);color:#fff;box-shadow:0 4px 12px rgba(37,99,235,.28)}
+.btn.primary:hover{background:var(--blue-700)}
+button:disabled{opacity:.55;cursor:progress}
+.field-error{color:var(--danger);font-weight:600;margin:8px 0 0}
+.field-error::before{content:"⚠ ";font-weight:400}
+.form-row{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+#status{white-space:pre-wrap;margin:16px 0 0;padding:8px 12px;background:var(--bg);border:1px solid var(--line);border-radius:8px;font-size:.9rem}
+
+/* DVC diagram */
+.diagram-wrap{overflow-x:auto;margin-top:12px}
+.diagram{display:block;width:100%;min-width:640px;height:auto;max-height:340px}
+.diagram .edge{fill:none;stroke:#5a6b7c;stroke-width:2}
+.diagram .arrow-head{fill:#5a6b7c;stroke:none}
+.diagram rect{stroke-width:2}
+.diagram .node-data{fill:#eff6ff;stroke:#2563eb}
+.diagram .node-step{fill:#eef2f7;stroke:#5a6b7c}
+.diagram .node-model{fill:#fff4e5;stroke:#d4640a}
+.diagram .node-gate{fill:#e2f4ee;stroke:#009E73}
+.diagram .node-test{fill:#fff;stroke:#5a6b7c;stroke-dasharray:6 4}
+.diagram text{fill:var(--ink);font:600 14px var(--font)}
+.diagram-key{display:flex;flex-wrap:wrap;gap:8px 18px;margin:12px 0 0;padding:0;list-style:none;font-size:.82rem;color:var(--muted)}
+.diagram-key li{display:flex;align-items:center;gap:8px}
+.swatch{width:14px;height:14px;border-radius:3px;border:2px solid;flex:none}
+.swatch.data{background:#eff6ff;border-color:#2563eb}
+.swatch.step{background:#eef2f7;border-color:#5a6b7c}
+.swatch.model{background:#fff4e5;border-color:#d4640a}
+.swatch.gate{background:#e2f4ee;border-color:#009E73}
+.swatch.test{background:#fff;border-color:#5a6b7c;border-style:dashed}
+
+/* executions table */
+.table-wrap{overflow:auto;max-height:min(70vh,640px);margin-top:12px;border:1px solid var(--line);border-radius:12px}
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+th,td{text-align:left;padding:12px;border-bottom:1px solid var(--line);vertical-align:top}
+thead th{position:sticky;top:0;z-index:1;background:#e9f0fb;color:#1d2f58;font-weight:600;white-space:nowrap}
+tbody tr:nth-child(even) td{background:#f8fbff}
+tbody tr:hover td{background:var(--blue-50)}
+tbody td:first-child{white-space:pre-line;font-family:var(--mono);font-size:.8rem;overflow-wrap:anywhere}
+tbody tr:last-child td{border-bottom:0}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:999px;font-size:.8rem;font-weight:700;background:#e8edf3;color:#3c4d5e}
+.pill::before{content:"●";font-size:.6rem}
+.pill.success{background:#dff3e8;color:#0b5a31}
+.pill.success::before{content:"✓";font-size:inherit}
+.pill.failed{background:#fde4e1;color:#8c1a12}
+.pill.failed::before{content:"✗";font-size:inherit}
 tr.row-failed td{background:#fdecea}
-tr.row-failed td:first-child{border-left:4px solid #a52c26}
-@media(max-width:640px){main{padding:14px}section{padding:16px}h1{font-size:24px}input{width:100%}form button{width:100%;margin-top:8px}th,td{padding:8px}}
+tr.row-failed td:first-child{border-left:4px solid var(--danger)}
+#historical-summary h3{margin:24px 0 8px;font-size:1rem}
+#historical-summary p{margin:8px 0;color:var(--muted);font-size:.9rem}
+.foot{text-align:center;color:var(--muted);font-size:.85rem;padding:6px 24px 30px;margin:0}
+
+@media(max-width:900px){.hero h2{font-size:1.5rem}}
+@media(max-width:640px){.topbar-in,.wrap,.hero-in{padding-left:14px;padding-right:14px}.hero-in{padding-bottom:62px}.card{padding:18px}input{width:100%}form .btn{width:100%}th,td{padding:8px}.form-row{align-items:stretch}.brand{width:100%;margin-right:0}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 </style>
-<main>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+
+<header class="topbar">
+<div class="topbar-in">
+<div class="brand">
+<div class="logo" aria-hidden="true">
+<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M12 3l8 3v6c0 4.5-3.2 8-8 9-4.8-1-8-4.5-8-9V6l8-3z"/><path d="M8.5 12l2.5 2.5L15.5 10"/></svg>
+</div>
+<div><h1>FraudShield</h1><small>Local payment screening · XGBoost with SHAP explanations</small></div>
+</div>
+<nav class="nav" aria-label="Main">
 <a href="/">← Transaction review</a>
-<h1>Pipeline and execution history</h1>
-<p class="note">Inspect how the model is built and what actually ran.
+<a class="active" href="/pipeline.html" aria-current="page">Pipeline and execution history</a>
+</nav>
+</div>
+</header>
+
+<section class="hero">
+<div class="hero-in">
+<h2>Pipeline and execution history</h2>
+<p>Inspect how the model is built and what actually ran.
 This page cannot launch training or change deployment.</p>
-<section>
-<h2>Baseline DVC pipeline</h2>
+</div>
+</section>
+
+<main id="main" class="wrap">
+<section class="card" aria-labelledby="dvc-title">
+<h3 id="dvc-title">Baseline DVC pipeline</h3>
 <p class="note">Configured topology. Diagram boxes do not imply a new run.</p>
-<svg viewBox="0 0 900 290" role="img" aria-label="Raw PaySim feeds Spark preparation, which feeds logistic regression and XGBoost. XGBoost feeds its validation gate. A separate unit_tests stage runs the test suite.">
-<path d="M450 55 V85 M450 135 V155 H225 V180 M450 155 H675 V180 M675 230 V250"/>
-<rect x="20" y="5" width="220" height="50" rx="8"/>
+<div class="diagram-wrap" tabindex="0" role="region" aria-label="DVC pipeline diagram (scrolls sideways on small screens)">
+<svg class="diagram" viewBox="0 0 900 290" role="img" aria-label="Raw PaySim feeds Spark preparation, which feeds logistic regression and XGBoost. XGBoost feeds its validation gate. A separate unit_tests stage runs the test suite.">
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path class="arrow-head" d="M0 0 10 5 0 10z"/></marker>
+</defs>
+<path class="edge" marker-end="url(#arrow)" d="M450 55 V85"/>
+<path class="edge" marker-end="url(#arrow)" d="M450 135 V155 H225 V180"/>
+<path class="edge" marker-end="url(#arrow)" d="M450 155 H675 V180"/>
+<path class="edge" marker-end="url(#arrow)" d="M675 230 V250"/>
+<rect class="node-test" x="20" y="5" width="220" height="50" rx="8"/>
 <text x="130" y="36" text-anchor="middle">unit_tests</text>
-<rect x="340" y="5" width="220" height="50" rx="8"/>
+<rect class="node-data" x="340" y="5" width="220" height="50" rx="8"/>
 <text x="450" y="36" text-anchor="middle">paysim.dvc</text>
-<rect x="340" y="85" width="220" height="50" rx="8"/>
+<rect class="node-step" x="340" y="85" width="220" height="50" rx="8"/>
 <text x="450" y="116" text-anchor="middle">spark_prepare</text>
-<rect x="115" y="180" width="220" height="50" rx="8"/>
+<rect class="node-model" x="115" y="180" width="220" height="50" rx="8"/>
 <text x="225" y="211" text-anchor="middle">logreg_train</text>
-<rect x="565" y="180" width="220" height="50" rx="8"/>
+<rect class="node-model" x="565" y="180" width="220" height="50" rx="8"/>
 <text x="675" y="211" text-anchor="middle">xgboost_train</text>
-<rect x="545" y="250" width="260" height="38" rx="8"/>
+<rect class="node-gate" x="545" y="250" width="260" height="38" rx="8"/>
 <text x="675" y="275" text-anchor="middle">xgboost_validation_gate</text>
 </svg>
+</div>
+<ul class="diagram-key">
+<li><span class="swatch data"></span>Raw data pointer</li>
+<li><span class="swatch step"></span>Data preparation</li>
+<li><span class="swatch model"></span>Model training</li>
+<li><span class="swatch gate"></span>Validation gate</li>
+<li><span class="swatch test"></span>Tests (no upstream stage)</li>
+</ul>
 </section>
-<section>
-<h2>Recorded executions</h2>
+
+<section class="card" aria-labelledby="runs-title">
+<h3 id="runs-title">Recorded executions</h3>
 <form id="connection">
 <label for="api">API address</label>
+<div class="form-row">
 <input id="api" type="url" value="http://127.0.0.1:8000" required
        aria-describedby="api-note api-error">
-<button type="submit">Refresh history</button>
+<button type="submit" class="btn primary">Refresh history</button>
+</div>
 <p id="api-note" class="note">The address is remembered in this browser and shared with the transaction page.</p>
 <p id="api-error" class="field-error" role="alert" hidden></p>
 </form>
@@ -68,8 +196,10 @@ Detailed logs remain on the host. Only gate failure reasons are exposed here.</p
 </table>
 </div>
 </section>
-<section><h2>Historical pipeline evidence</h2><div id="historical-summary" aria-live="polite"></div></section>
+
+<section class="card" aria-labelledby="evidence-title"><h3 id="evidence-title">Historical pipeline evidence</h3><div id="historical-summary" aria-live="polite"></div></section>
 </main>
+
 <script>
 "use strict";
 const byId = id => document.getElementById(id);
@@ -131,6 +261,11 @@ async function refresh() {
         cell.textContent = value ?? "—";
         row.append(cell);
       }
+      // Status pill: the word stays visible; the symbol and colour repeat it.
+      const pill = document.createElement("span");
+      pill.className = "pill " + run.status;
+      pill.textContent = row.children[1].textContent;
+      row.children[1].replaceChildren(pill);
       row.children[1].className = run.status;
       if (failed) row.className = "row-failed";
       byId("runs").append(row);
@@ -170,4 +305,5 @@ byId("connection").addEventListener("submit", event => {
 refresh();
 </script>
 <script src="/pipeline_summary.js"></script>
+</body>
 </html>
