@@ -26,7 +26,7 @@ docker compose up -d --build
 | Pipeline page | http://127.0.0.1:8080/pipeline.html |
 | MLflow | not a compose service; run `.venv/bin/mlflow ui --backend-store-uri sqlite:///runtime/mlflow/tracking.db` and open http://127.0.0.1:5000 (needs `runtime/mlflow/tracking.db`, which is not in Git) |
 | Prometheus | http://127.0.0.1:9095 |
-| Grafana (user `admin`, password from `.env`) | http://127.0.0.1:3010 |
+| Grafana | http://127.0.0.1:3010 |
 
 ## Run the tests
 
