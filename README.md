@@ -14,7 +14,7 @@ pipeline and tests (see the [operator guide](docs/operator_guide.md)).
 ```bash
 git clone https://github.com/VedaVachan/FraudShield.git
 cd FraudShield
-cp .env.example .env          # then replace the placeholder password; never commit .env
+cp .env.example .env        
 mkdir -p runtime && touch runtime/pipeline_runs.jsonl
 docker compose up -d --build
 ```
