@@ -64,3 +64,8 @@ so nothing was retrained).
 - The deployed model has no recorded training commit (`reports/reproducibility_manifest.json`).
 - The canary gateway, alert and resource-monitoring stacks are optional extra compose files.
 - Serving rollback is a documented procedure only; it was never drilled.
+
+
+## Screen recording
+
+[Watch the video](https://drive.google.com/file/d/134BDrZ83VMFRfTwv-xqS-FnmFgm4SDHf/view?usp=drive_link)
