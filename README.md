@@ -64,4 +64,5 @@ FraudShield is built to run locally, so it has no TLS, authentication or rate li
 ## Screen recording
 
 [Watch the video](https://drive.google.com/file/d/134BDrZ83VMFRfTwv-xqS-FnmFgm4SDHf/view?usp=drive_link)
-(https://drive.google.com/file/d/134BDrZ83VMFRfTwv-xqS-FnmFgm4SDHf/view?usp=drive_link)
+
+If not able to open above link try this:  (https://drive.google.com/file/d/134BDrZ83VMFRfTwv-xqS-FnmFgm4SDHf/view?usp=drive_link) 
