@@ -1,51 +1,52 @@
-# FraudShield Test Plan
+# FraudShield test plan
 
-## Purpose and scope
+## What this covers
 
-Verify data/feature consistency, direct API behavior, pipeline evidence, model gates,
-canary recovery, notification delivery, controlled candidate training and local
-performance. This plan consolidates the implemented project's checks; it is not a
-claim that every requirement in the course rubric has been fulfilled.
+This plan lists how I check the project: that the data and features are consistent, that
+the API behaves, that the pipeline evidence is honest, that the model gates work, that the
+canary gateway recovers from a failing challenger, that alerts get delivered, that candidate
+retraining stays candidate-only, and how fast it runs locally. It collects the checks the
+project actually has. It doesn't claim every point of the course rubric is covered.
 
-## Environment and entry conditions
+## Setup needed
 
-- Existing Ubuntu VM: 6 vCPUs, approximately 8 GiB RAM, CPU inference/training.
-- Project `.venv` and separate DVC/serving environments with recorded dependencies.
-- Trusted model artifacts, registry receipt and prepared data available.
-- Docker access, main network, existing images and optional stack mounts available.
-- Secrets remain in ignored local files; test evidence must not contain key values.
-- Use temporary files/mocks for failure unit tests; do not corrupt deployed artifacts.
-- Freeze model selection before held-out evaluation; never retune on test outcomes.
+- The existing Ubuntu VM: 6 vCPUs, about 8 GiB RAM, everything on CPU.
+- The project `.venv`, plus the separate DVC and serving environments with their pinned
+  dependencies.
+- The trusted model files, the registry receipt and the prepared data.
+- Docker access, the main network, the existing images and the mounts the optional stacks need.
+- Secrets stay in local files that Git ignores, and no test evidence may contain a key.
+- Failure tests use temporary files and mocks, never the deployed model files.
+- Model selection is frozen before the held-out evaluation, and nothing is retuned on test results.
 
 ## Acceptance criteria
 
-These criteria were written on 2026-11-10, after the benchmarks, drills and tests
-already existed. They record what the repository can show; they are not predictions
-made beforehand. Results are in the "Acceptance results" table of
-[test_report.md](test_report.md).
+I wrote these on 2026-11-10, after the benchmarks, drills and tests already existed, so they
+describe what the repository can show rather than predictions made in advance. The results
+are in the "Acceptance results" table of [test_report.md](test_report.md).
 
-| ID | Criterion | Basis |
+| ID | Criterion | How it's judged |
 |---|---|---|
 | AC-01 | All automated tests pass | Local CI exits 0 with no failures or errors |
-| AC-02 | Unit-test coverage of `backend/` and `src/fraudshield/` is at least 80% | Threshold 80%, `coverage` with `unittest` |
-| AC-03 | The frozen DVC baseline passes the validation gate floors | Validation average precision >= 0.85, precision >= 0.70, recall >= 0.90 |
-| AC-04 | The frozen DVC baseline meets the same floors on the held-out test split | Same floors; test split opened once after selection was frozen |
-| AC-05 | The deployed champion and the logistic-regression baseline have held-out results | A recorded held-out evaluation of both artifacts |
-| AC-06 | Single-client `/predict` p95 latency is under 50 ms | Threshold 50 ms, closed-loop, 1,000 requests |
-| AC-07 | p95 latency at 50 concurrent users is under 50 ms | A recorded 50-client run |
-| AC-08 | Each recorded benchmark scenario has fewer than 0.5% failed requests | Per scenario, counted from the report files |
-| AC-09 | A failing challenger is removed from traffic automatically after one champion fallback | One recorded drill |
+| AC-02 | Unit-test coverage of `backend/` and `src/fraudshield/` is at least 80% | `coverage` with `unittest`, threshold 80% |
+| AC-03 | The frozen DVC baseline passes the validation gate | Validation average precision ≥ 0.85, precision ≥ 0.70, recall ≥ 0.90 |
+| AC-04 | The frozen DVC baseline meets the same floors on the held-out test split | Same floors; test split opened once, after selection was frozen |
+| AC-05 | The served champion and the logistic-regression baseline have held-out results | A recorded held-out evaluation of both |
+| AC-06 | Single-client `/predict` p95 latency under 50 ms | Closed loop, 1,000 requests |
+| AC-07 | p95 latency under 50 ms with 50 concurrent users | A recorded 50-client run |
+| AC-08 | Fewer than 0.5% failed requests in each recorded benchmark scenario | Counted per scenario from the report files |
+| AC-09 | A failing challenger is taken out of traffic automatically after one champion fallback | One recorded drill |
 | AC-10 | `dvc repro` reports the pipeline up to date | The `dvc_reproduction` step of local CI |
-| AC-11 | Reproduction from a fresh clone gives the same metrics | A recorded fresh-clone run |
-| AC-12 | Retraining is candidate-only and never promotes or deploys a model | Drill records and tests |
+| AC-11 | A fresh clone reproduces the same metrics | A recorded fresh-clone run |
+| AC-12 | Retraining only ever produces a candidate; it never promotes or deploys | Drill records and tests |
 
-## Automated test cases
+## Automated tests
 
-The suite has **348 `unittest` tests in 37 files**. They run in local CI
-(`scripts/run_ci.py`) and, since 2026-11-10, also as the DVC stage `unit_tests`, which
-records its result in `reports/unit_tests_result.json`. Counts were taken with the
-unittest loader. Inputs are test fixtures only: temporary files and databases, mocks,
-FastAPI's `TestClient`, and (for A02 and A16) the real deployed model and Spark.
+There are 348 `unittest` tests in 37 files. They run in local CI (`scripts/run_ci.py`) and,
+since 2026-11-10, also as the DVC stage `unit_tests`, which saves its result in
+`reports/unit_tests_result.json`. I counted them with the unittest loader. The tests only use
+fixtures: temporary files and databases, mocks and FastAPI's `TestClient`. A02, A16 and the
+integration tests A33 and A34 also load the real served model, and A16 runs Spark.
 
 | ID | File (in `tests/`) | Tests | Input | Expected result |
 |---|---|---:|---|---|
@@ -87,53 +88,51 @@ FastAPI's `TestClient`, and (for A02 and A16) the real deployed model and Spark.
 | A36 | `test_rollback_drill.py` | 10 | A throwaway MLflow database standing in for the real one | Champion moves v1, v2, back to v1 on a copy; source database byte-identical and hashes recorded; real or existing locations refused; report create-only; a failing step gives exit 1 |
 | A37 | `test_retraining_watch.py` | 26 | A private SQLite queue, fake training commands, real worker lock, a temporary git repository | Watch is off by default; oldest first, each request once; busy lock retried; uncommitted sources stop it; non-positive interval refused; SIGINT and SIGTERM stop it cleanly; candidate-only result; script has no registry, promotion or docker calls |
 
-The 110 tests of A01 to A16 are the ones counted in the earlier recorded runs; A17 to A37
-add 238 tests, giving 348.
+A01 to A16 are the 110 tests counted in the earlier recorded runs; A17 to A37 add 238 more,
+for 348 in total.
 
-## Execution procedure
+## Running the tests
 
-From the project root, run:
+From the project root:
 
 ```bash
 .venv/bin/python scripts/run_ci.py
 ```
 
-The wrapper runs automated tests and then DVC reproduction, records actual exits,
-saves per-command logs and stops if a stage fails. A successful cached DVC check
-is evidence of up-to-date dependencies/outputs, not a new model fit.
+This runs the tests and then `dvc repro`, records the real exit codes, saves a log for each
+command and stops at the first failure. When DVC finds nothing changed, that only shows the
+outputs are up to date; it isn't a new training run.
 
-The `unit_tests` DVC stage runs the same suite through `scripts/run_unit_tests.py`
-when its inputs change, so a changed test run executes the suite twice; when nothing
-changed the stage is skipped.
+The `unit_tests` DVC stage runs the same suite through `scripts/run_unit_tests.py` whenever
+its inputs change, so after you change a test the suite runs twice in one CI run. If nothing
+changed, the stage is skipped.
 
-Focused test commands may be used for a bounded code change. Record their scope;
-do not describe a focused execution as a new full-suite result.
+For a small change it's fine to run just the related tests, as long as you say so. A focused
+run isn't a new full-suite result.
 
 ## End-to-end smoke check (not part of CI)
 
-`scripts/e2e_smoke.py` checks the **running** stack. It is not a unit test, is not found
-by `unittest discover`, and is not called by `scripts/run_ci.py` or any DVC stage, because
-it needs the Docker stack. Start the main stack first (see the operator guide), then run:
+`scripts/e2e_smoke.py` checks the running stack. It isn't a unit test, `unittest discover`
+doesn't find it, and neither `scripts/run_ci.py` nor any DVC stage calls it, because it needs
+the Docker stack up. Start the main stack (see the operator guide) and run:
 
 ```bash
 .venv/bin/python scripts/e2e_smoke.py
 ```
 
-It checks that the frontend on port 8080 serves both pages; that the API answers
-`/health`, `/predict`, `/explain` and `/pipeline/summary`; that invalid input gets a 422;
-that Prometheus on port 9095 reports the API target up and has scraped the request
-counter after this run's requests (it waits up to 45 s; the scrape interval is 15 s); and
-that Grafana on port 3010 reports `/api/health` ok. The result is written to
-`reports/e2e_smoke_result.json`, replaced on each run, and the exit code is 0 only if
-every check passed. Addresses can be changed with `--frontend`, `--api`, `--prometheus`
-and `--grafana`.
+It checks that the frontend on port 8080 serves both pages; that the API answers `/health`,
+`/predict`, `/explain` and `/pipeline/summary`; that bad input gets a 422; that Prometheus on
+port 9095 shows the API target up and has scraped the request counter after this run's
+requests (it waits up to 45 seconds, and Prometheus scrapes every 15); and that Grafana on
+port 3010 reports `/api/health` as ok. The result goes to `reports/e2e_smoke_result.json`,
+replaced on every run, and the exit code is 0 only if every check passed. You can point it
+elsewhere with `--frontend`, `--api`, `--prometheus` and `--grafana`.
 
-The script sends one valid `/predict`, one valid `/explain` and one invalid `/predict`
-request, so they show in the API metrics and the drift window. It does not test the canary
-gateway. A passing smoke run says the stack answered at that moment; it is not a
-performance or load test.
+It sends one valid `/predict`, one valid `/explain` and one invalid `/predict`, so those show
+up in the API metrics and the drift window. It doesn't touch the canary gateway. A pass means
+the stack answered at that moment; it's not a performance or load test.
 
-## Manual and integration cases
+## Manual and integration checks
 
 | ID | Procedure | Expected behavior / evidence |
 |---|---|---|
@@ -152,14 +151,14 @@ performance or load test.
 | I13 | Replay completed request | Refused as not_queued; training log unchanged |
 | I14 | Run fixed concurrent scenarios | Preserve counts, all-attempt and success latencies, failures and exact run context |
 
-Manual drills may change process-local counters and traffic windows. Preserve
-before/after identity and restore challenger weight zero and low drift after drills.
-Use the controlled drill evidence for completed cases; do not rerun expensive fits
-solely to populate documentation.
+Manual drills change in-memory counters and the traffic window. Record the model identity
+before and after, and put the challenger weight back to zero and the drift back to low
+afterwards. For cases already done, use the drill evidence rather than re-running expensive
+training just to fill in a document.
 
-## Frontend cases
+## Frontend checks
 
-Remain on the frontend at port 8080; change the API field inside the page.
+Stay on the frontend at port 8080 and change the API address inside the page.
 
 | ID | Action | Expected behavior |
 |---|---|---|
@@ -174,42 +173,40 @@ Remain on the frontend at port 8080; change the API field inside the page.
 | U09 | Pipeline page: apply `http://localhost:8000`, then reload | The address is remembered and is the one used on the transaction page |
 | U10 | Pipeline page with a failed run in the history | The row is marked FAILED and shows the stored reason, or says that no error text is stored |
 
-U03 was confirmed manually later (see test_report.md). U07 to U10 describe behaviour added
-on 2026-11-10 and have **not been run in a browser**; only static markup checks (A28)
-exist for them.
+I confirmed U03 by hand later (see test_report.md). U07 to U10 cover behaviour added on
+2026-11-10. I checked the "cannot be negative" message by hand for a negative amount
+(screenshot `evidence/12_ui_invalid.png`); otherwise these four only have the static markup
+tests in A28 and haven't been run in a browser. Screenshots back up what I saw by hand, but
+they aren't automated browser tests.
 
-Original note: U03 reload persistence was not explicitly confirmed in the recorded
-conversation; record it separately before marking it passed. Screenshots of other cases support
-manual observations, not automated browser-test coverage.
+## Load tests
 
-## Performance policy
+The load tests use 1, 4 and 8 closed-loop clients, five warm-up requests per client, 1,000
+measured requests per full scenario and the first 1,000 validation rows as input. Each
+endpoint's scenarios run one after another, and higher concurrency is skipped once a scenario
+has failures. Smoke runs use fewer requests and aren't meant as latency estimates.
 
-Closed-loop tests use 1, 4 and 8 clients, five warmups per client, 1,000 measured
-requests per full scenario, and the first 1,000 validation input rows. Run endpoint
-workloads sequentially. Higher concurrency is skipped after measured failures.
-Smoke cases use fewer requests and are not population-level latency estimates.
+I never set a fixed-rate target or measured maximum capacity in advance, so I'm not going to
+invent a pass mark afterwards. Report throughput, successes and failures, median, p95, p99 and
+maximum, including failed warm-up attempts and the latency over all attempts. See
+[load_test_report.md](load_test_report.md).
 
-No predeclared fixed-rate SLA or maximum capacity was demonstrated. Do not invent
-a pass threshold afterward. Report throughput, success/failure counts, median,
-p95, p99 and maximum, including failed warmup attempts and all-attempt latency.
-See [load_test_report.md](load_test_report.md).
+## When is something done
 
-## Completion and defect handling
+A case only passes when its expected assertions or evidence are there. Failed reports are kept
+next to later successful ones. The gateway 503s during warm-up and under load are still an open
+finding. If a worker is interrupted, record its state; don't reset it to queued. Never put raw
+transaction bodies or admin keys into evidence.
 
-Functional cases pass only with their expected assertions/evidence. Retain failed
-reports alongside later successful runs. Gateway warmup/load 503s remain a known
-unresolved finding. Record interrupted worker state without automatically resetting
-it to queued. Never include raw transaction bodies or admin secrets in evidence.
+Some things need a separate review and aren't proved by the tests passing: whether the
+documentation is complete, restoring on a fresh machine, host and per-component monitoring,
+fixed-rate targets and the course rubric.
 
-Documentation completeness, fresh-machine restoration, host/component monitoring,
-fixed-rate acceptance targets and course-rubric compliance require separate review;
-a passing unit-test result alone does not prove them.
+## Code style check
 
-## Static style check
-
-The line-length limit is 100 characters (`setup.cfg`, section `[pycodestyle]`).
-`pycodestyle` is pinned in `requirements-dev.txt` and is deliberately not part of
-`scripts/run_ci.py`. To run it from the project root:
+Lines can be up to 100 characters (`setup.cfg`, section `[pycodestyle]`). `pycodestyle` is
+pinned in `requirements-dev.txt` and is deliberately left out of `scripts/run_ci.py`. To run it
+from the project root:
 
 ```bash
 python -m venv --system-site-packages /tmp/stylenv
@@ -217,8 +214,8 @@ python -m venv --system-site-packages /tmp/stylenv
 /tmp/stylenv/bin/pycodestyle backend src scripts
 ```
 
-Result on 2026-11-10: `backend` 0, `src` 0, `scripts` 28 findings. All 28 are
-E402 (import not at top) in `scripts/train_logreg.py` and `scripts/train_xgboost.py`.
-Those two files are inputs of DVC training stages, so they were not edited: any
-change would invalidate the stages and force retraining. Other intentional
-import-order cases carry `# noqa: E402` with a reason.
+On 2026-11-10 it found nothing in `backend` or `src` and 28 findings in `scripts`, all E402
+(import not at the top) in `scripts/train_logreg.py` and `scripts/train_xgboost.py`. I left those
+two alone because they are inputs to the DVC training stages, and any edit would force a
+retrain. The other places where imports are deliberately out of order have a `# noqa: E402`
+comment explaining why.

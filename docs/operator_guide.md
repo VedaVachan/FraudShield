@@ -1,21 +1,21 @@
-# FraudShield Operator Guide
+# FraudShield operator guide
 
-This guide is for the person who runs the system. It holds the commands, the
-monitoring and recovery notes, and the security limits. Day-to-day use of the web
-page is described in [user_manual.md](user_manual.md). `<project-directory>` stands
-for the folder that contains this repository.
+This is for whoever runs the system: starting and stopping it, checking it, monitoring,
+retraining, rollback and the security limits. Using the web page itself is covered in the
+[user manual](user_manual.md). Below, `<project-directory>` means the folder this repository
+is in.
 
-## Scope and prerequisites
+## Before you start
 
-FraudShield is a local demonstration using synthetic PaySim data. Assessments do
-not authorize payments. These instructions resume the existing prepared Ubuntu VM
-at `<project-directory>`; they are not a complete fresh-machine
-restoration procedure. Existing images, model packages, data, runtime directories,
-Python environments and ignored credentials must already be present.
+FraudShield is a local demo on synthetic PaySim data, and its assessments don't authorise
+any payments. These steps are for bringing the already-prepared Ubuntu VM back up. They are
+not a full guide to setting it up on a new machine: the Docker images, model packages, data,
+runtime folders, Python environments and the credentials that aren't in Git all need to be
+there already.
 
-## Start or resume after a VM restart
+## Starting after a VM restart
 
-Run commands in the VM terminal:
+In a terminal on the VM:
 
 ```bash
 cd <project-directory>
@@ -23,11 +23,11 @@ docker compose up -d --no-build --wait --wait-timeout 180
 docker compose ps
 ```
 
-This starts the API, frontend, Prometheus and Grafana. Existing files and saved
-reports do not need to be recreated after an ordinary restart. `--no-build` uses
-existing images; build the affected image separately after changing its source.
+That starts the API, the frontend, Prometheus and Grafana. After a normal restart nothing
+needs to be recreated. `--no-build` reuses the existing images, so if you changed the code
+for one of them, build that image separately first.
 
-Optional canary stack, after the main stack is ready:
+The canary stack is optional. Start it once the main stack is up:
 
 ```bash
 export GATEWAY_UID="$(id -u)"
@@ -36,11 +36,11 @@ docker compose -f compose.canary.yaml --profile canary up -d --no-build --wait -
 docker compose -f compose.canary.yaml --profile canary ps -a
 ```
 
-The exported IDs let the non-root containers read the prepared model packages and
-local key. Keep the existing `runtime/gateway-admin.key` private; do not print,
-commit or paste its value. Export the IDs again in a new shell when required.
+The two exported IDs let the non-root containers read the model packages and the local
+key. You need to export them again in every new shell. Keep `runtime/gateway-admin.key`
+private: don't print it, commit it or paste it anywhere.
 
-Optional alert stack, after the main network exists:
+The alert stack is optional too, and needs the main stack's network to exist:
 
 ```bash
 export LOCAL_UID="$(id -u)"
@@ -50,146 +50,145 @@ docker compose -f compose.alerts.yaml up -d --no-build --wait --wait-timeout 180
 docker compose -f compose.alerts.yaml ps -a
 ```
 
-Slow VM startup can exceed a health-check deadline. Check current state and logs
-before repeating commands. If both models have become healthy but the gateway is
-still stopped, repeat the canary `up` command. Do not rebuild or retrain merely
-because startup was slow.
+The VM is sometimes slow enough to miss a health-check deadline. Look at the current state
+and the logs before running anything again. If both model servers are healthy but the
+gateway stopped, just run the canary `up` command again. A slow start is not a reason to
+rebuild or retrain.
 
 ## Addresses
 
-| Purpose | Browser address |
+| What | Address |
 |---|---|
-| Transaction interface | `http://127.0.0.1:8080` |
-| Pipeline interface | `http://127.0.0.1:8080/pipeline.html` |
-| Direct API readiness | `http://127.0.0.1:8000/health` |
-| API interactive documentation | `http://127.0.0.1:8000/docs` |
+| Transaction page | `http://127.0.0.1:8080` |
+| Pipeline page | `http://127.0.0.1:8080/pipeline.html` |
+| API readiness | `http://127.0.0.1:8000/health` |
+| API documentation | `http://127.0.0.1:8000/docs` |
 | Prometheus | `http://127.0.0.1:9095` |
 | Grafana | `http://127.0.0.1:3010` |
-| Optional gateway routing state | `http://127.0.0.1:8020/routing` |
+| Gateway routing state (canary stack) | `http://127.0.0.1:8020/routing` |
 
-Opening `http://localhost:8000` without a route returns `Not Found`; that is not
-the transaction webpage. Use port 8080 for the webpage and `/health` or `/docs`
-on port 8000. These addresses refer to the machine running the browser. A browser
-on another machine needs a separately configured access arrangement.
+`http://localhost:8000` on its own returns `Not Found`. That's normal, it just isn't the web
+page: use port 8080 for the page and `/health` or `/docs` on port 8000. These addresses only
+work in a browser on the same machine; reaching them from another machine needs its own
+setup.
 
-## Inspect the API and canary gateway
+## Checking the API and the gateway
 
-These read-only checks do not change routing:
+These don't change anything:
 
 ```bash
 curl -fsS --max-time 10 http://127.0.0.1:8000/health
 curl -fsS --max-time 10 http://127.0.0.1:8020/routing
 ```
 
-The gateway normally starts at zero challenger weight. Its `/health` reports
-configuration status, not a successful upstream prediction. `/routing` shows
-weight, challenger configuration, fallback attempts and automatic removals.
-Counters and weight are process-local and reset on gateway restart.
+The gateway starts with the challenger weight at zero. Its `/health` only tells you it's
+configured, not that a model answered. `/routing` shows the weight, whether a challenger is
+configured, the number of fallbacks and the number of automatic removals. All of these live
+in the gateway process and reset when it restarts.
 
-Gateway predictions use `/predict`. Weight changes require the admin endpoint
-and the private key. Keep weight at zero during ordinary inspection. A failed
-challenger request triggers one champion fallback and, when enabled, removes
-challenger traffic. Restarting the challenger does not re-enable its weight.
-This removes traffic; it does not replace an artifact or promote a new model.
-See `reports/compose_canary_drill.json` for the completed controlled drill rather
-than stopping a service during normal use.
+Predictions through the gateway go to `/predict`. Changing the weight needs the admin
+endpoint and the private key; leave it at zero when you're just looking around. If a
+challenger request fails, the gateway tries the champion once and (when enabled) stops
+sending traffic to the challenger. Restarting the challenger doesn't turn its traffic back
+on. This only moves traffic; it doesn't swap a model file or promote anything. The
+controlled drill I ran is recorded in `reports/compose_canary_drill.json`, so there's no
+need to stop services to see it happen.
 
-## Monitoring and notifications
+## Monitoring and alerts
 
-In Grafana open **FraudShield — Service Monitoring**. API and gateway scrape
-health should show 1 when Prometheus reaches them. Gateway panels display weight,
-fallbacks, automatic removals, request rate and estimated p95 latency. Rate and
-latency plots need recent requests and enough scrape samples; an idle panel can
-show no data. The panels describe different API and gateway traffic paths.
+In Grafana, open "FraudShield — Service Monitoring". API and gateway scrape health show 1
+when Prometheus can reach them. The gateway panels show the weight, fallbacks, automatic
+removals, request rate and estimated p95 latency. Rate and latency need recent traffic and a
+few scrapes, so an idle panel can show "No data". The API and gateway panels describe two
+different traffic paths.
 
-Log in using the existing local Grafana credentials. Changing the initial password
-in an environment file does not necessarily reset an existing Grafana database.
-Do not publish credentials in screenshots or logs.
+Log in with the local Grafana credentials you already have. Changing the initial password in
+`.env` doesn't necessarily change it in an existing Grafana database. Keep credentials out of
+screenshots and logs.
 
-Input drift compares recent successful direct-API predictions with training
-reference distributions. It needs at least 100 observations in its 500-input
-window. Explanation and gateway requests do not populate that monitor. Drift is
-a distribution-change signal, not measured accuracy loss. The configured alert
-also requires recent prediction traffic and a healthy API scrape.
+The drift monitor compares the inputs of recent successful API predictions with the
+training data. It needs at least 100 predictions in its 500-prediction window, and
+explanations and gateway requests don't count. Drift means the inputs look different; it
+doesn't mean accuracy dropped. The alert also needs recent prediction traffic and a healthy
+API scrape before it fires.
 
-With the optional alert stack running, Alertmanager sends firing and resolved
-notifications to the local receiver. Sanitized delivery records are appended to
-`runtime/alerts/notifications.jsonl`. Notification delivery can repeat; the queue
-applies duplicate, active-request and cooldown controls. No public receiver port
-or external messaging service is required.
+With the alert stack running, Alertmanager sends firing and resolved notifications to the
+local receiver, which appends a cleaned-up record to `runtime/alerts/notifications.jsonl`.
+The same notification can arrive more than once; the queue handles duplicates, active
+requests and the cooldown. Nothing needs a public port or an outside messaging service.
 
-## Pipeline history and controlled retraining
+## Pipeline history and retraining
 
-The pipeline page displays saved summaries and recorded execution outcomes. Its
-summary is a historical snapshot, not a live query of MLflow or the registry.
-The local CI entry point is:
+The pipeline page shows saved summaries and the commands that ran. Its summary is a
+snapshot, not a live view of MLflow or the registry. To run local CI:
 
 ```bash
 .venv/bin/python scripts/run_ci.py
 ```
 
-Run it when verification is needed, not on every browser refresh. It records test
-and DVC command outcomes separately. An unchanged DVC stage may be skipped.
+Run it when you actually want to check something, not every time you refresh the page. It
+records the test run and the DVC run separately, and DVC may skip stages that haven't
+changed.
 
-To inspect delivered notifications and queued requests:
+To look at delivered notifications and queued requests:
 
 ```bash
 PYTHONPATH=src:. .venv/bin/python scripts/enqueue_drift_requests.py
 PYTHONPATH=src:. .venv/bin/python scripts/run_retraining_worker.py --list
 ```
 
-The scanner can run with `--watch`; it is not automatically installed as a
-continuous service. It ignores synthetic delivery checks, resolved alerts and
-out-of-window records. An empty list means there is no eligible listed work;
-do not create synthetic requests just to populate it.
+The scanner can also run with `--watch`, but it isn't installed as a service. It ignores
+synthetic test deliveries, resolved alerts and old records. An empty list just means there's
+nothing to do; don't create fake requests to fill it.
 
-To execute an eligible queued request, substitute its actual UUID:
+To run a queued request, use its real UUID:
 
 ```bash
 PYTHONPATH=src:. OMP_NUM_THREADS=2 OPENBLAS_NUM_THREADS=2 MKL_NUM_THREADS=2 \
 .venv/bin/python scripts/run_retraining_worker.py --request-id REQUEST_UUID
 ```
 
-Run one worker at a time. It trains a separate MLflow candidate and checks its
-saved validation report and checksum. It does not promote or register a model,
-change serving weights, or open the test set. Review the resulting receipt, gate,
-logs and terminal queue state. A completed request is deliberately refused on
-replay. An interrupted running request needs investigation; do not reset it
-blindly or remove the lock to force concurrent work.
+Only run one worker at a time. It trains a separate MLflow candidate and checks its saved
+validation report and checksum. It doesn't register or promote a model, change any serving
+weights or open the test set. Afterwards, look at the receipt, the gate result, the logs and
+the request's final status. Running a finished request again is refused on purpose. If a
+request is stuck in `running`, investigate it; don't reset it or delete the lock to force
+another worker through.
 
-Execution can also be automatic, but only if you start it. `--watch` is off by default:
+If you want queued requests to run on their own, start the worker in watch mode. It's off
+unless you do this:
 
 ```bash
 PYTHONPATH=src:. OMP_NUM_THREADS=2 OPENBLAS_NUM_THREADS=2 MKL_NUM_THREADS=2 \
 .venv/bin/python scripts/run_retraining_worker.py --watch --interval 60
 ```
 
-It polls the queue every `--interval` seconds (positive; default 30) and runs queued
-requests one at a time through the same path as `--request-id`: the same worker lock, the
-same committed-source check and the same candidate-only training and gate. Stop it with
-Ctrl+C or SIGTERM. It never registers, promotes or deploys a model; promoting a candidate
-stays a manual, gated step (`scripts/promote_model.py`). Watching was tested with fake
-training commands only. See [retraining_recovery.md](retraining_recovery.md) for how it
-stops and what to do if it exits 1.
+It checks the queue every `--interval` seconds (default 30, must be positive) and runs
+requests one at a time through the same path as `--request-id`: same lock, same check that
+the worker code is committed, same candidate-only training and gate. Stop it with Ctrl+C or
+SIGTERM. It never registers, promotes or deploys a model; promoting a candidate is always a
+separate manual step (`scripts/promote_model.py`). I've only tested watch mode with fake
+training commands. [retraining_recovery.md](retraining_recovery.md) explains how it stops and
+what to do if it exits with 1.
 
-## Troubleshooting and shutdown
+## When something goes wrong
 
-| Symptom | Action |
+| What you see | What to do |
 |---|---|
-| Browser shows API root `Not Found` | Open port 8080 for the interface or port 8000 `/health` |
-| API unavailable after connection edit | Restore the default and check API container state |
-| Container healthy but prediction fails | Inspect upstream logs and make a scoring diagnostic; health alone is insufficient |
-| Model package permission error | Check package readability and configured host UID/GID; do not make the key public |
-| Gateway HTTP 503 under load | Preserve the report and diagnostic logs; earlier intermittent failures remain unresolved |
-| Benchmark output already exists | Preserve it; choose a new output filename for a separately justified run |
-| Shell shows only `>` after pasted code | Press Ctrl+C to cancel the incomplete command before starting again |
-| VM freezes | Resume existing stacks and inspect resource/startup evidence; do not assume data loss or a proven cause |
+| The browser shows `Not Found` for the API | Open port 8080 for the page, or `/health` on port 8000 |
+| "API unavailable" after changing the address | Press "Restore default" and check the API container |
+| Container is healthy but predictions fail | Check the upstream logs and send a test prediction; a health check alone isn't enough |
+| Permission error on a model package | Check the package is readable and the UID/GID you exported; don't make the key public |
+| Gateway returns 503 under load | Keep the report and the logs; the earlier 503s were never explained |
+| A benchmark output file already exists | Keep it, and pick a new file name if you really need another run |
+| The shell only shows `>` after pasting | Press Ctrl+C to cancel the half-finished command and start again |
+| The VM freezes | Bring the stacks back up and look at the resource and startup evidence; don't assume data was lost or guess a cause |
 
-Inspect a relevant stack with `docker compose ... ps -a` and
-`docker compose ... logs --no-color --tail=80`. The `-f` and `--profile` options
-must match the stack being inspected. Avoid pasting secrets from configuration.
+To look at a stack, use `docker compose ... ps -a` and
+`docker compose ... logs --no-color --tail=80`, with the same `-f` and `--profile` options
+you started it with. Be careful not to paste secrets from configuration files.
 
-Stop services without deleting volumes:
+To stop everything without deleting volumes:
 
 ```bash
 docker compose -f compose.alerts.yaml stop
@@ -197,194 +196,190 @@ docker compose -f compose.canary.yaml --profile canary stop
 docker compose stop
 ```
 
-Do not use `down -v` when you want to preserve monitoring data. Keep untracked
-backups such as `compose.yaml.before-grafana` separate from intended commits.
+Don't use `down -v` if you want to keep the monitoring data. Keep local backup files such as
+`compose.yaml.before-grafana` out of your commits.
 
-## VM and container resource monitoring
+## VM and container resources
 
-Start the main stack first, then run:
-`docker compose -f compose.resources.yaml up -d`
+Start the main stack first, then:
 
-Dashboard: http://127.0.0.1:3010/d/fraudshield-resources
+```bash
+docker compose -f compose.resources.yaml up -d
+```
 
-Six panels show VM CPU, memory, root disk usage, exporter health,
-and container CPU and memory. Scrapes occur every 30 seconds.
-CPU rates use a five-minute window.
+The dashboard is at http://127.0.0.1:3010/d/fraudshield-resources. Its six panels show VM
+CPU, memory and root disk, exporter health, and container CPU and memory. Prometheus scrapes
+every 30 seconds and the CPU rates use a five-minute window.
 
-Node Exporter reads host metrics. cAdvisor requires privileged host access.
-Neither exporter publishes a host port. The existing Ubuntu VM and
-fraudshield_default Docker network are required.
+Node Exporter reads the host's metrics and cAdvisor needs privileged access to the host.
+Neither publishes a port on the host. Both need the existing VM and the
+`fraudshield_default` Docker network.
 
-Stop with: `docker compose -f compose.resources.yaml stop`
+Stop it with `docker compose -f compose.resources.yaml stop`.
 
-Evidence: reports/resource_monitoring_verification.json.
-Both exporters were up; all six queries passed. Container CPU and memory
-queries each returned 11 series at verification time.
-Resource metrics do not prove application correctness or model accuracy.
+When I checked it (`reports/resource_monitoring_verification.json`), both exporters were up,
+all six queries worked, and the container CPU and memory queries each returned 11 series.
+Resource numbers say nothing about whether the application or the model is right.
 
 ## Logging
 
-The API, the canary gateway, the alert receiver and the retraining worker command
-write log lines to standard error through `backend/logging_config.py`. Each line has
-a timestamp, level, logger name and message. The level comes from the environment
-variable `FRAUDSHIELD_LOG_LEVEL` (`DEBUG`, `INFO`, `WARNING`, `ERROR` or `CRITICAL`);
-the default is `INFO`, and an unknown value falls back to `INFO`. Only the project's
-own loggers (`backend`, `fraudshield`) are configured. Container output is read with
-the `docker compose ... logs` command shown under Troubleshooting.
+The API, the canary gateway, the alert receiver and the retraining worker all write log
+lines to standard error through `backend/logging_config.py`. Each line has a timestamp,
+level, logger name and message. Set the level with `FRAUDSHIELD_LOG_LEVEL` (`DEBUG`, `INFO`,
+`WARNING`, `ERROR` or `CRITICAL`); it defaults to `INFO`, and anything it doesn't recognise
+also means `INFO`. Only the project's own loggers (`backend` and `fraudshield`) are set up.
+For containers, read the output with the `docker compose ... logs` command above.
 
-What is logged: service start-up and model load (the first 12 characters of the model
-SHA-256, never the admin key), rejected requests (the URL path only), scoring failures
-returned as HTTP 503, canary fallback and automatic removal, rejected or accepted
-canary weight changes, notification receipt, and the retraining worker's start, finish
-and outcome. Request bodies, transaction values and keys are not logged; tests in
-`tests/test_logging.py` check this for the canary, gateway, API and receiver.
+What gets logged: start-up and model loading (with the first 12 characters of the model
+SHA-256, never the admin key), rejected requests (just the URL path), scoring failures
+returned as 503, canary fallbacks and automatic removals, accepted or rejected weight
+changes, received notifications, and the retraining worker's start, finish and result.
+Request bodies, transaction values and keys are never logged; `tests/test_logging.py`
+checks this for the canary, gateway, API and receiver.
 
-The container images copy `backend/` files one by one, so `backend/logging_config.py`
-is listed in the `Dockerfile`. The images must be rebuilt to pick it up (not verified:
-no image was rebuilt when this was written).
+The images copy `backend/` files one by one, so `backend/logging_config.py` is listed in the
+`Dockerfile`. A container only gets it after its image is rebuilt.
 
-## Monitoring coverage
+## What's monitored
 
-Which component is observed, and how, is listed in the table in
-[high_level_design.md](high_level_design.md#monitoring-coverage). In short: the API
-and gateway are scraped by Prometheus, the host and containers by exporters (optional
-resource stack), the MLflow model servers only indirectly through the gateway's
-metrics and health checks, and the retraining worker through the files it writes.
+The full list is in the table in
+[high_level_design.md](high_level_design.md#what-is-monitored). Briefly: Prometheus scrapes
+the API and the gateway; the host and containers are covered by the exporters in the
+optional resource stack; the MLflow model servers are only seen indirectly through the
+gateway's metrics and health checks; and the retraining worker is followed through the files
+it writes.
 
-## Which commit and which run produced this model
+## Which commit and which run produced the served model
 
-`scripts/build_reproducibility_manifest.py` answers this from files, git and the MLflow
-database, without training and without changing anything. It hashes
-`artifacts/xgboost_v1/model.joblib`, opens `runtime/mlflow/tracking.db` read-only
-through SQLite (no MLflow migration can run), and writes
-`reports/reproducibility_manifest.json`. The manifest is **create-only**: if the file
-exists the script stops with exit code 2 and leaves it alone. To refresh it, move the old
-file away yourself (do not delete it) and run the script again.
+`scripts/build_reproducibility_manifest.py` works this out from files, git and the MLflow
+database. It doesn't train or change anything. It hashes
+`artifacts/xgboost_v1/model.joblib`, opens `runtime/mlflow/tracking.db` read-only through
+SQLite (so MLflow can't run a migration on it) and writes
+`reports/reproducibility_manifest.json`. It never overwrites that file: if it exists, the
+script stops with exit code 2. To make a fresh one, move the old file somewhere else first
+(don't delete it).
 
 ```bash
-git status --short          # commit first: the manifest records whether the tree is clean
+git status --short          # commit first; the manifest records whether the tree was clean
 PYTHONPATH=src:. .venv/bin/python scripts/build_reproducibility_manifest.py
 ```
 
-Reading the manifest:
+How to read it:
 
 | Question | Where to look |
 |---|---|
-| Is this the model the registry describes? | `deployed_model.sha256`, and `registry_receipt.matches_deployed_file` |
-| Which registered version is it? | `registry.versions[]` entries with `is_deployed_model: true` (name, version, aliases) |
-| Which MLflow runs produced it? | `runs` inside that entry: the run registered with the version, then the run named by its `source_run_id` tag |
-| Which commit did each run record? | `git_commit` on each run; `commit_tags` shows every commit-like tag verbatim |
-| Does that commit exist in this repository? | `git_commit_exists_in_repository` (`false` means the tag names a commit this clone does not have) |
-| Which commit trained it? | `training_code_commit`. The value `not_established` is kept as written: the historical imports could not establish it |
+| Is this the model the registry describes? | `deployed_model.sha256` and `registry_receipt.matches_deployed_file` |
+| Which registered version is it? | The `registry.versions[]` entry with `is_deployed_model: true` (name, version, aliases) |
+| Which MLflow runs produced it? | That entry's `runs`: the run registered with the version, then the run its `source_run_id` tag points to |
+| Which commit did each run record? | `git_commit` on each run; `commit_tags` shows every commit-like tag exactly as stored |
+| Is that commit in this repository? | `git_commit_exists_in_repository` (`false` means this clone doesn't have it) |
+| Which commit trained it? | `training_code_commit`. `not_established` is kept as written: the historical imports couldn't tell |
 | Which data? | `data.raw_data.md5` from `paysim.dvc`, checked against `dvc.lock` (`pointer_and_lock_agree`) |
-| Which commit holds the report and gate files? | `report_files.<path>.last_commit`, and `uncommitted_changes` |
-| Does the validation gate file describe this model? | `validation_gate.describes_deployed_model` |
-| Other runs about this model | `registry.other_runs_tagged_with_model_sha256` (for example the feature-importance run) |
+| Which commit holds the report and gate files? | `report_files.<path>.last_commit` and `uncommitted_changes` |
+| Is the validation gate file about this model? | `validation_gate.describes_deployed_model` |
+| Any other runs about this model? | `registry.other_runs_tagged_with_model_sha256` (the feature-importance run, for example) |
 
-Rules the script follows: a value that is not in the source is written as `"missing"`
-and never guessed; a commit tag is accepted only if it is a 40-character hexadecimal
-hash; package versions are those of the environment that ran the script, not proof of
-what trained the model. Read `training_code_commit` and `git_commit` differently: the
-second is the code state when the run was logged, which for a historical import is the
-import, not the training.
+The script never guesses: anything it can't find is written as `"missing"`, a commit tag
+only counts if it's a full 40-character hash, and the package versions it lists are from the
+environment that ran the script, not necessarily the one that trained the model. Don't
+confuse `git_commit` with `training_code_commit`: `git_commit` is the code at the moment the
+run was logged, which for a historical import is the import, not the training.
 
-Check the data fields and the gate field before relying on the answer. On 2026-11-12 a
-dry read of the real files showed that `reports/xgboost_validation_gate.json` describes
-a different model (`xgboost_dvc_v1`, hash starting `4b1fa5ce`) from the deployed one
-(hash starting `1d2df493`), so that gate result is not evidence about the deployed file.
+Check the data and gate fields before relying on the answer. When I ran it on 2026-11-12,
+it showed that `reports/xgboost_validation_gate.json` is about a different model
+(`xgboost_dvc_v1`, hash starting `4b1fa5ce`) from the one being served (hash starting
+`1d2df493`), so that gate result says nothing about the served file.
 
-## Model rollback: registry alias (drilled on a copy) and serving (documented only)
+## Rolling back a model
 
-There are two separate things called "rollback", and only one has been drilled.
+"Rollback" can mean two different things here, and I've only drilled one of them.
 
-| Part | What it changes | Status |
+| What | What it changes | Status |
 |---|---|---|
-| Registry alias move (`scripts/promote_model.py --rollback`) | The MLflow `champion` alias and one registered-model tag | **Drilled on a temporary copy** of the MLflow database by `scripts/rollback_drill.py`; unit-tested on throwaway databases |
-| Serving rollback (model file and receipt, API restart) | What the API actually scores with | **Documented procedure only. Not executed, not drilled, no evidence it works** |
+| Moving the registry alias back (`scripts/promote_model.py --rollback`) | The MLflow `champion` alias and one registered-model tag | Drilled on a temporary copy of the MLflow database with `scripts/rollback_drill.py`, and unit-tested on throwaway databases |
+| Serving rollback (model file and receipt, then restart the API) | Which model the API actually uses | Written down only. Never run, never drilled |
 
-The two are not linked: the running API and gateway do not read registry aliases. Moving
-an alias, forwards or back, does not change which model is served, and a serving rollback
-does not move any alias.
+They're not connected. The API and gateway don't read registry aliases, so moving an alias
+doesn't change what's served, and restoring a model file doesn't move any alias.
 
-### Drilled: registry alias rollback
+### Registry alias rollback (drilled on a copy)
 
 ```bash
 PYTHONPATH=src:. .venv/bin/python scripts/rollback_drill.py
 ```
 
-The drill copies `runtime/mlflow/tracking.db` into a temporary folder (opening the original
-read-only), registers a synthetic second version of `FraudShield-XGBoost` on the copy,
-promotes v1, promotes v2, rolls back, and checks that `champion` is v1 again and that the
-replaced version v2 is recorded as the previous one. It refuses to use the real database or
-its folder as the working location, and records the real database's SHA-256 before and
-after in `reports/rollback_drill.json` (create-only: an existing report is never
-overwritten, so move the old one aside to repeat the drill). Exit 0 means every step
-behaved as expected. What it shows: the alias logic and its gate work on a copy of the real
-registry. What it does not show: anything about serving, the real registry being moved, or
-a real second model (version 2 is synthetic and exists only in the copy).
+The drill copies `runtime/mlflow/tracking.db` into a temporary folder (the original is only
+opened read-only), registers a made-up second version of `FraudShield-XGBoost` in the copy,
+promotes v1, promotes v2, rolls back, and checks that `champion` points at v1 again with v2
+recorded as the previous version. It refuses to work on the real database or in its folder,
+and writes the real database's SHA-256 from before and after into
+`reports/rollback_drill.json`. That report is never overwritten, so move the old one away to
+run the drill again. Exit code 0 means every step did what it should.
 
-To do the same on the real registry, which no one has yet done: dry run first, then apply.
+What this proves: the alias logic and its gate work on a copy of the real registry. What it
+doesn't: anything about serving, that the real registry has been moved, or anything about a
+real second model, since version 2 is synthetic and only exists in the copy.
+
+Nobody has done this on the real registry yet. If you do, dry-run first:
 
 ```bash
 .venv/bin/python scripts/promote_model.py --rollback            # dry run, changes nothing
-.venv/bin/python scripts/promote_model.py --rollback --apply    # moves the alias back
+.venv/bin/python scripts/promote_model.py --rollback --apply    # actually moves the alias
 ```
 
-### Documented only: serving rollback
+### Serving rollback (written down, never run)
 
-This serving procedure was written from the code and has **not been executed or tested**.
-What decides which model the direct API serves: at start-up `backend/app.py` hashes
-`artifacts/xgboost_v1/model.joblib` and refuses to start unless the hash and threshold
-equal the `xgboost` entry of `reports/mlflow_registry.json`. Both files are mounted
-read-only by `compose.yaml`. To return to an earlier model:
+I wrote this from the code and haven't tried it. When the API starts, `backend/app.py`
+hashes `artifacts/xgboost_v1/model.joblib` and won't start unless the hash and threshold
+match the `xgboost` entry in `reports/mlflow_registry.json`. Both files are mounted
+read-only by `compose.yaml`. To go back to an earlier model:
 
 ```bash
 # 1. Find the earlier receipt and model file in Git history (if they were committed).
 git log --oneline -- reports/mlflow_registry.json artifacts/xgboost_v1/model.joblib
 
-# 2. Keep the current model file, then restore the earlier model and its receipt.
+# 2. Keep a copy of the current model, then restore the earlier model and its receipt.
 cp artifacts/xgboost_v1/model.joblib artifacts/xgboost_v1/model.joblib.current
 git show <commit>:artifacts/xgboost_v1/model.joblib > artifacts/xgboost_v1/model.joblib
 git show <commit>:reports/mlflow_registry.json > reports/mlflow_registry.json
 
-# 3. Verify: the two hashes must be identical.
+# 3. Check: these two hashes must be the same.
 sha256sum artifacts/xgboost_v1/model.joblib
 python3 -c "import json; print(json.load(open('reports/mlflow_registry.json'))['models']['xgboost']['model_sha256'])"
 
-# 4. Restart the API so it reloads and re-checks the model.
+# 4. Restart the API so it loads and checks the model again.
 docker compose restart api
 
-# 5. Confirm what is being served: status must be "ready" and model_sha256 must equal
-#    the hash printed in step 3 (the earlier model's hash).
+# 5. Confirm what's being served: status should be "ready" and model_sha256 should equal
+#    the hash from step 3.
 curl -fsS --max-time 10 http://127.0.0.1:8000/health
 ```
 
-In words: the file to revert is `artifacts/xgboost_v1/model.joblib` together with its
-receipt `reports/mlflow_registry.json` (the `xgboost` entry holds the expected hash and
-threshold); there is no other setting. After the restart, `/health` reports `ready` and the
-loaded `model_sha256`. If the model file and receipt disagree the API refuses to start, so
-a `/health` that never answers means step 3 was skipped or wrong; do not edit the receipt
-to match a file you have not identified. Return to the current model the same way, using
-the `model.joblib.current` copy from step 2.
+So the only things to put back are `artifacts/xgboost_v1/model.joblib` and its receipt
+`reports/mlflow_registry.json` (the `xgboost` entry holds the expected hash and threshold);
+there's no other setting. After the restart `/health` should say `ready` and show the loaded
+`model_sha256`. If the model file and the receipt don't match, the API won't start, so if
+`/health` never answers, step 3 went wrong. Don't edit the receipt to match a file you
+haven't identified. To go forward again, do the same thing with the `model.joblib.current`
+copy from step 2.
 
-Notes and limits:
+Things to watch out for:
 
-- If the earlier model file was never committed, restore it from your own backup. Do
-  not skip the hash check in step 3.
-- Restoring `reports/mlflow_registry.json` changes a tracked evidence file; record why.
-- If the canary stack is running, restart the gateway so it reads the same receipt:
+- If the earlier model file was never committed, you'll need your own backup of it. Don't
+  skip the hash check.
+- Restoring `reports/mlflow_registry.json` changes a tracked evidence file, so write down why.
+- If the canary stack is running, restart the gateway too so it reads the same receipt:
   `docker compose -f compose.canary.yaml --profile canary restart canary-gateway`.
-- The champion model-server package under `runtime/mlflow-serving/identity-v1/` is not
-  covered. `scripts/package_identity_models.py` has the approved hashes written into
-  the script and refuses to overwrite an existing output folder, so it cannot rebuild
-  an earlier champion package as it stands.
-- The commands above were not run; the `docker compose` service names come from the
-  compose files, and whether a restart is enough to reload the mounted file is not
-  verified.
+- This doesn't cover the champion model-server package in
+  `runtime/mlflow-serving/identity-v1/`. `scripts/package_identity_models.py` has the
+  approved hashes hard-coded and won't overwrite an existing output folder, so as it stands
+  it can't rebuild an older champion package.
+- I haven't run any of these commands. The service names come from the compose files, and I
+  don't know for sure that a restart is enough to pick up the mounted file.
 
-## Security measures and limits
+## Security
 
-The measures that exist and those that do not are listed in
-[high_level_design.md](high_level_design.md#reliability-privacy-and-security). The
-deployment is local-only for a course project: every published port is bound to
-`127.0.0.1` in the compose files, so TLS and encryption at rest were not added.
+What's in place and what isn't is listed in
+[high_level_design.md](high_level_design.md#reliability-privacy-and-security). In short,
+this is a local-only course deployment: every published port is bound to `127.0.0.1` in the
+compose files, which is why I didn't add TLS or encryption at rest.

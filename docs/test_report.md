@@ -1,25 +1,26 @@
-# FraudShield Test Report
+# FraudShield test report
 
-## Evidence and scope
+## About this report
 
-This report consolidates recorded local results through 10 November 2026. The sections
-"Latest verification" and "Acceptance results" come from the run of 10 November 2026;
-the sections after them are earlier records and keep their original numbers (110 tests).
-Source evidence remains in the repository reports listed below. Results apply to the stated revision and local
-VM configuration; they do not establish production readiness or course compliance.
+This collects the test results I recorded on my VM up to 12 November 2026. The first two
+sections ("Latest run" and "Acceptance results") come from the most recent CI run. Everything
+after the screenshots is older and keeps its original numbers (110 tests at the time). The
+evidence files are in `reports/`. These results are for this code on this VM; they don't show
+the system is production-ready or that it meets the course rubric.
 
-## Latest verification (12 November 2026)
+## Latest run (12 November 2026)
 
-Local CI (`.venv/bin/python scripts/run_ci.py`) run `a6784025-ae57-4ba8-8915-c1e939fba489` ended with exit
-code 0. The test step ran **348 tests with no failures or errors**. The
-`dvc_reproduction` step reported "Data and pipelines are up to date": the data, both
-training stages, the validation gate and the `unit_tests` stage were skipped as unchanged
-(`unit_tests` had already re-run in the preceding CI invocation), so nothing was retrained. The tests also run as the DVC stage `unit_tests`, whose last result is in
-`reports/unit_tests_result.json`. The CI logs are under `runtime/ci/a6784025-ae57-4ba8-8915-c1e939fba489/`
-(local and git-ignored); the pipeline history is `runtime/pipeline_runs.jsonl`.
+Local CI (`.venv/bin/python scripts/run_ci.py`), run `a6784025-ae57-4ba8-8915-c1e939fba489`,
+finished with exit code 0. The test step ran 348 tests with no failures or errors. The
+`dvc_reproduction` step said "Data and pipelines are up to date": the data, both trainings, the
+validation gate and the `unit_tests` stage were all skipped as unchanged (`unit_tests` had
+already re-run in the CI run just before), so nothing was retrained. The last result of the
+`unit_tests` DVC stage is in `reports/unit_tests_result.json`. The CI logs are in
+`runtime/ci/a6784025-ae57-4ba8-8915-c1e939fba489/` (local only, ignored by Git), and the
+pipeline history is in `runtime/pipeline_runs.jsonl`.
 
-Tests added since the 110-test run (counted with the unittest loader; the 37 test files
-are listed with their cases in [test_plan.md](test_plan.md)):
+How the suite grew after the 110-test run (counted with the unittest loader; every file and
+its cases are listed in the [test plan](test_plan.md)):
 
 | Commit | Files added | Tests | Total after |
 |---|---|---:|---:|
@@ -32,29 +33,33 @@ are listed with their cases in [test_plan.md](test_plan.md)):
 | 0b314c2 | `test_build_reproducibility_manifest`, `test_integration_api`, `test_integration_gateway`, `test_e2e_smoke_guard` | 18 + 14 + 9 + 6 | 312 |
 | d77f048 | `test_rollback_drill`, `test_retraining_watch` | 10 + 26 | 348 |
 
-No existing test file changed after the 110-test run. Unit-test coverage of `backend/` and
-`src/fraudshield/` was measured at 217 tests and **not re-measured at 348**: 93% (1,275 statements, 83 missed, lowest
-file `backend/drift.py` at 82%); code run only in subprocesses and `scripts/` are not
+None of the original test files were changed after the 110-test run.
+
+Coverage of `backend/` and `src/fraudshield/` was 93% when I measured it at 217 tests (1,275
+statements, 83 missed; the lowest file was `backend/drift.py` at 82%). I haven't measured it
+again at 348 tests. Code that only runs in subprocesses, and everything in `scripts/`, isn't
 measured (`reports/coverage_summary.txt`).
 
-One intermittent failure was seen on 10 November 2026: in one CI invocation the
-`unit_tests` stage failed with an error in
-`test_worker_interruptions.test_sigterm_stops_descendants_before_recording_failure`
-(an empty process-ID file was read), although the same suite had just passed in the
-preceding step. A repeat run passed. The failure points to a timing race in the test
-setup under load, not to a product defect; it has not been fixed or investigated further.
+### A flaky test
 
-The same family of timing failure occurred once more on 12 November 2026: a CI invocation
-failed in `test_worker_interruptions.test_sigkill_retains_running_state_and_child_holds_lock`
-(setup: "Dummy process did not reach the expected state") while the machine load average
-was about 38, caused by the VS Code DVC extension scanning the dataset. The test file
-passed when run alone, and a rerun at low load passed all tests. The test was not changed.
+Twice, a test in `test_worker_interruptions.py` failed for timing reasons rather than because
+of a bug in the product:
+
+- On 10 November one CI run failed in the `unit_tests` stage on
+  `test_sigterm_stops_descendants_before_recording_failure` (it read an empty process-ID file),
+  although the same suite had passed a moment earlier. Running it again passed.
+- On 12 November `test_sigkill_retains_running_state_and_child_holds_lock` failed in its setup
+  ("Dummy process did not reach the expected state") while the machine's load average was
+  about 38, because the VS Code DVC extension was scanning the dataset. The file passed on its
+  own, and the full suite passed once the load dropped.
+
+Both look like the test setup racing under heavy load. I haven't changed or fixed the test.
 
 ## Acceptance results
 
-The criteria are defined in [test_plan.md](test_plan.md#acceptance-criteria). They were
-written on 2026-11-10, after the benchmarks existed, so this table records what is
-verified, not predictions.
+The criteria are in the [test plan](test_plan.md#acceptance-criteria). I wrote them on
+2026-11-10, after the benchmarks already existed, so this table records what I could show, not
+predictions.
 
 | ID | Criterion | Basis | Evidence file | Result |
 |---|---|---|---|---|
@@ -76,9 +81,11 @@ verified, not predictions.
 
 ## Screenshots
 
-Evidence images stored in `docs/evidence/` (there is no image numbered 4).
+These are the images in `docs/evidence/`. There's no image number 4. Three shots I planned
+were never taken: the open "Connection settings" panel, a failed run on the pipeline page and
+the coverage table.
 
-| File | Image | Description |
+| File | Image | What it shows |
 |---|---|---|
 | `docs/evidence/1_ci_tests.png` | ![1_ci_tests](evidence/1_ci_tests.png) | Terminal output of the CI run executing the unit tests |
 | `docs/evidence/2_dvc_status_dag.png` | ![2_dvc_status_dag](evidence/2_dvc_status_dag.png) | `dvc status` and the pipeline DAG |
@@ -88,7 +95,7 @@ Evidence images stored in `docs/evidence/` (there is no image numbered 4).
 | `docs/evidence/7_api_health.png` | ![7_api_health](evidence/7_api_health.png) | API `/health` response |
 | `docs/evidence/8_api_docs.png` | ![8_api_docs](evidence/8_api_docs.png) | API interactive documentation page |
 | `docs/evidence/9_ui_landing.png` | ![9_ui_landing](evidence/9_ui_landing.png) | Transaction page on first load |
-| `docs/evidence/10_ui_normal.png` | ![10_ui_normal](evidence/10_ui_normal.png) | Transaction page with a normal payment result |
+| `docs/evidence/10_ui_normal.png` | ![10_ui_normal](evidence/10_ui_normal.png) | Meant to show a normal payment, but it actually shows the same flagged TRANSFER result as 11 (score 0.99161). A real normal-payment screenshot is still missing |
 | `docs/evidence/11_ui_fraud.png` | ![11_ui_fraud](evidence/11_ui_fraud.png) | Transaction page with a flagged (fraud) result |
 | `docs/evidence/12_ui_invalid.png` | ![12_ui_invalid](evidence/12_ui_invalid.png) | Transaction page showing input validation errors |
 | `docs/evidence/13_ui_pipeline.png` | ![13_ui_pipeline](evidence/13_ui_pipeline.png) | Pipeline page with the DVC diagram and execution history |
@@ -101,23 +108,17 @@ Evidence images stored in `docs/evidence/` (there is no image numbered 4).
 | `docs/evidence/20_mlflow_run_detail.png` | ![20_mlflow_run_detail](evidence/20_mlflow_run_detail.png) | MLflow run detail page |
 | `docs/evidence/21_mlflow_models.png` | ![21_mlflow_models](evidence/21_mlflow_models.png) | MLflow registered models page |
 | `docs/evidence/22_promote_dry_run.png` | ![22_promote_dry_run](evidence/22_promote_dry_run.png) | `promote_model.py` dry-run output |
-| `docs/evidence/4_*.png` (number 4 is unused) | not captured | No file numbered 4 exists in `docs/evidence/` |
-| `docs/evidence/05_connection_settings_open.png` | not captured | "Connection settings" expanded with the API address field and its buttons |
-| `docs/evidence/07_pipeline_failed_run_row.png` | not captured | A failed run shown with its FAILED pill and reason text, if one is in the history |
-| `docs/evidence/12_coverage_report.png` | not captured | The per-file coverage table from `reports/coverage_summary.txt` |
 
-## Earlier recorded verification (110 tests)
+## Older results (110 tests)
 
-The recorded full CI run executed **110 tests successfully**, followed by a
-successful DVC reproduction command. The test phase took 87.739 seconds. Run ID:
-`4856995d-5df5-4c06-8937-f43f2427bcfa`, at revision `c3c9d08`.
-Evidence: `reports/retraining_ci/execution.json`, `automated_tests.log` and
-`dvc_reproduction.log` in that directory.
+### The recorded 110-test run
 
-DVC skipped unchanged stages: this verifies the command outcome and cached
-pipeline state, not a fresh training run. Subsequent upstream-diagnostic logging
-was checked with the nine focused model-client tests. Frontend changes received
-manual checks rather than another recorded full-suite execution.
+The full CI run at revision `c3c9d08` (run `4856995d-5df5-4c06-8937-f43f2427bcfa`) passed 110
+tests in 87.739 seconds, followed by a successful DVC reproduction. The evidence is
+`reports/retraining_ci/execution.json` plus `automated_tests.log` and `dvc_reproduction.log` in
+the same folder. DVC skipped stages that hadn't changed, so this shows the command worked and
+the cache was current, not a fresh training run. After that I checked the extra diagnostic
+logging with the nine focused model-client tests, and the frontend changes by hand.
 
 | Suite | Passing tests |
 |---|---:|
@@ -139,10 +140,18 @@ manual checks rather than another recorded full-suite execution.
 | Spark features | 4 |
 | **Total** | **110** |
 
-Deprecation and resource warnings appeared in recorded output despite successful
-assertions. Their presence must not be described as a warning-free run.
+The output had deprecation and resource warnings even though every assertion passed, so it
+wasn't a warning-free run.
 
-## Operational drills
+Later, at revision `187fb3a`, CI run `bb6af575-7e9a-48a7-8046-aab57336728f` passed all 110 tests
+in 33.637 seconds, with DVC skipping unchanged stages (`reports/final_ci/`). MLflow also built
+the Conda environment declared in the `MLproject` and ran the gate and all 110 tests there
+(28.363 seconds, no failures; `reports/mlproject_environment_verification.json`). That
+configuration was committed as `e789920`. CI and DVC still use their own environments, and Java
+on the host is still needed. This checks the test and gate environment, not a full fresh-machine
+setup.
+
+## Drills
 
 | Check | Recorded outcome | Evidence |
 |---|---|---|
@@ -155,96 +164,55 @@ assertions. Their presence must not be described as a warning-free run.
 | Controlled training | Candidate training and validation gate succeeded; candidate checksum and terminal queue state verified | `reports/controlled_retraining_drill/` |
 | Recovery and replay | Resolved notification received; completed request refused replay without changing its training log | `reports/controlled_retraining_drill/recovery_and_replay.json` |
 
-The first synthetic resolution attempt timed out after removing its rule. The
-successful repeat retained the rule and changed its condition to false. This
-later success does not make the first attempt successful.
+My first attempt at a synthetic "resolved" alert timed out after I'd removed its rule. The
+repeat kept the rule and switched its condition to false, and that worked. The later success
+doesn't make the first attempt a success.
 
-## Controlled candidate identity
+### The retrained candidate
 
-Request: `418aa34f-fc6b-4228-9a26-f59be1879c26`.
-MLflow run: `6354dedb1a8f4360b22553f9e147fa06`.
-Candidate SHA256:
-`cb69091fce02570dd1fe85add2dd67caee400cc81633e3d62ac9d4ffddd27f66`.
-Training and gate exit codes were both zero; elapsed worker time was approximately
-202 seconds. The deployed API model remained unchanged and challenger weight
-remained zero. The candidate was neither registered nor promoted. This exercise
-reused existing training/validation data; it does not demonstrate that retraining
-improved accuracy or repaired drift.
+Request `418aa34f-fc6b-4228-9a26-f59be1879c26` produced MLflow run
+`6354dedb1a8f4360b22553f9e147fa06`, with candidate SHA-256
+`cb69091fce02570dd1fe85add2dd67caee400cc81633e3d62ac9d4ffddd27f66`. Training and the gate both
+exited with 0, and the worker took about 202 seconds. The served model didn't change and the
+challenger weight stayed at zero. The candidate wasn't registered or promoted. It was trained on
+the same training and validation data as before, so it doesn't show that retraining improved
+accuracy or fixed drift.
 
-## Manual frontend observations
+## Checking the frontend by hand
 
-| Case | Result |
+| Case | What I saw |
 |---|---|
-| U01 default connection and assessment | Observed ready status and successful prediction/explanation |
-| U02 localhost alternative | Applying `http://localhost:8000` showed API ready |
-| U03 persistence after reload | **Not explicitly confirmed** |
-| U04 unused local port | Applying port 8999 showed unavailable and cleared assessment |
-| U05 default recovery | Restoring the default returned to a ready API |
-| U06 nonlocal origin | `http://example.com:8000` was rejected; previous valid origin remained active |
+| U01 default connection and assessment | "API ready", then a prediction and an explanation |
+| U02 `http://localhost:8000` | The page showed "API ready" |
+| U03 address kept after reload | After applying `http://localhost:8000` and reloading, the address was still selected and the header said "API ready"; `/health` and `/docs` loaded too |
+| U04 unused port 8999 | The page showed the API as unavailable and cleared the old result |
+| U05 restore default | Back to a ready API |
+| U06 `http://example.com:8000` | Rejected; the previous address stayed active |
 
-Screenshots were shown during manual verification; they are not automated browser
-coverage or an archived screenshot suite. The backend root returning
-`{"detail":"Not Found"}` is expected: the frontend is served on port 8080.
+The negative-amount message from U08 shows in screenshot 12. The rest of U07 to U10 (behaviour
+added on 10 November) haven't been run in a browser. These were manual checks, not automated
+browser tests. Opening `http://127.0.0.1:8000` on its own returns `{"detail":"Not Found"}`,
+which is expected because the page is on port 8080.
 
-## Concurrent load observations
+## Load tests in short
 
-Each row below represents 1,000 measured attempts, excluding warmup. The final
-column includes failed attempts. These were separate local runs, not controlled
-comparisons of isolated gateway overhead.
+The full table and method are in the [load-test report](load_test_report.md), with checksums
+in `reports/load_test_summary.json`. The direct API had no failed requests at 1, 4 or 8 clients.
+The gateway's first attempt failed in warm-up with HTTP 503, and a later run had 16 failures
+out of 1,000 at four clients (1.6%) and stopped before eight clients. After I added diagnostics
+and recreated the gateway, later four- and eight-client runs had no failures and no upstream
+errors in the logs, without any timeout increase. I still don't know what caused the earlier
+503s, and the diagnostics aren't a fix. The eight-client explanation run had a maximum latency
+of 4,904 ms despite no failures. None of this shows a sustained request rate, 50 users at once,
+a capacity limit or an SLA.
 
-| Path/run | Clients | Successes | Failures | Successful req/s | Success p95 ms | All-attempt p99 ms |
-|---|---:|---:|---:|---:|---:|---:|
-| API predict | 1 | 1000 | 0 | 82.54 | 19.94 | 32.03 |
-| API predict | 4 | 1000 | 0 | 74.31 | 96.15 | 160.59 |
-| API predict | 8 | 1000 | 0 | 52.61 | 252.59 | 319.66 |
-| API explain | 1 | 1000 | 0 | 44.85 | 38.18 | 59.31 |
-| API explain | 4 | 1000 | 0 | 28.46 | 247.51 | 350.86 |
-| API explain | 8 | 1000 | 0 | 28.45 | 379.74 | 561.49 |
-| Gateway run 2 | 1 | 1000 | 0 | 40.06 | 38.51 | 54.32 |
-| Gateway run 2 | 4 | 984 | 16 | 38.53 | 101.28 | 2013.06 |
-| Gateway diagnostic | 4 | 1000 | 0 | 84.75 | 76.51 | 99.35 |
-| Gateway later run | 8 | 1000 | 0 | 78.50 | 162.78 | 245.21 |
+## What still isn't checked
 
-An earlier gateway run failed during warmup with HTTP 503 and recorded no measured
-scenario. Run 2 stopped before eight clients after 16 failures at four clients
-(1.6%). Later diagnostic and eight-client runs succeeded without upstream failure
-log entries. The cause of earlier 503s remains unresolved; adding diagnostics
-and recreating the gateway is not proof of a functional fix. No timeout increase
-was used to obtain these later results. The eight-client explanation run also
-contained a 4,904 ms maximum latency despite zero failed requests.
+- Rebuilding from a fresh clone and getting the same metrics (AC-11).
+- A 50-user load test (AC-07).
+- Held-out results for the served model and for logistic regression (AC-05).
+- U07 to U10 in a real browser, apart from the negative-amount message.
+- Fresh-machine setup, and the course's real acceptance criteria.
 
-Full sources and checksum summary: [load_test_report.md](load_test_report.md) and
-`reports/load_test_summary.json`. Closed-loop observations do not demonstrate a
-sustained fixed arrival rate, 50 simultaneous users, a capacity limit or an SLA.
-
-## Remaining verification
-
-Not measured: fresh-clone reproduction (AC-11), a 50-user load run (AC-07) and held-out
-results for the deployed model and logistic regression (AC-05). The frontend changes of
-10 November 2026 (manual cases U07 to U10) have not been run in a browser. The earlier
-request to confirm U03 was met (see below). Review fresh-machine setup and course
-acceptance criteria against the actual rubric. Neither historical test counts nor later successful load runs resolve the
-earlier gateway failure finding. Container readiness and threshold consistency
-also do not establish per-response model artifact identity.
-
-## Final verification update
-
-At revision `187fb3a`, local CI run
-`bb6af575-7e9a-48a7-8046-aab57336728f` passed all 110 tests
-in 33.637 seconds. DVC reproduction succeeded with unchanged stages skipped.
-Records and logs are preserved in `reports/final_ci/`.
-
-Manual case U03 passed: after applying `http://localhost:8000` inside
-the transaction page and reloading, the address remained selected and
-the header showed API ready. The `/health` and `/docs` pages also loaded.
-This supersedes the earlier pending U03 status.
-
-## MLproject environment verification
-
-MLflow created the declared Conda environment and successfully ran the gate
-and all 110 tests (28.363 seconds, zero failures). Run records and configuration
-checksums are in `reports/mlproject_environment_verification.json`.
-The configuration was subsequently committed as `e789920`.
-CI and DVC retain their separate existing environments; host Java remains
-a prerequisite. This verifies the test/gate environment, not complete
-fresh-machine or deployment-environment parity.
+Old test counts and later clean load runs don't settle the earlier gateway failures. A ready
+container and a matching threshold also don't prove which model file answered each request.

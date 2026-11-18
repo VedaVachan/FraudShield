@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "scope": "running stack only; not part of unit tests or scripts/run_ci.py",
-  "started_utc": "2026-11-11T19:56:02.620175+00:00",
-  "finished_utc": "2026-11-11T19:56:08.934965+00:00",
+  "started_utc": "2026-11-18T13:50:14.980895+00:00",
+  "finished_utc": "2026-11-18T13:50:28.134860+00:00",
   "addresses": {
     "frontend": "http://127.0.0.1:8080",
     "api": "http://127.0.0.1:8000",
@@ -18,25 +18,25 @@
       "name": "frontend serves both pages",
       "passed": true,
       "detail": "index, pipeline page and pipeline_summary.js served",
-      "seconds": 0.038
+      "seconds": 0.101
     },
     {
       "name": "API /health is ready",
       "passed": true,
       "detail": "ready, FraudShield-XGBoost v1",
-      "seconds": 0.014
+      "seconds": 0.022
     },
     {
       "name": "API /predict returns a consistent score",
       "passed": true,
       "detail": "score 0.000006, predicted_fraud=False",
-      "seconds": 0.028
+      "seconds": 0.123
     },
     {
       "name": "API /explain returns additive contributions",
       "passed": true,
       "detail": "nine contributions, additive to the raw margin",
-      "seconds": 0.029
+      "seconds": 0.196
     },
     {
       "name": "API rejects bad input with 422",
@@ -48,25 +48,25 @@
       "name": "API /pipeline/summary and /pipeline/runs",
       "passed": true,
       "detail": "summary schema 1; history_available=True",
-      "seconds": 0.054
+      "seconds": 0.092
     },
     {
       "name": "Prometheus reports the API target up",
       "passed": true,
       "detail": "fraudshield-api target is up",
-      "seconds": 0.028
+      "seconds": 0.385
     },
     {
       "name": "Prometheus has scraped the request counter",
       "passed": true,
-      "detail": "Prometheus counter 31 reached the API's 31",
-      "seconds": 6.094
+      "detail": "Prometheus counter 5 reached the API's 5",
+      "seconds": 12.161
     },
     {
       "name": "Grafana /api/health is ok",
       "passed": true,
       "detail": "database ok, version 13.2.3",
-      "seconds": 0.02
+      "seconds": 0.058
     }
   ],
   "requests_sent_to_api": {
