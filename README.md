@@ -59,13 +59,9 @@ so nothing was retrained).
 
 ## Known limitations
 
-- No TLS, authentication or rate limiting: the deployment is local-only.
-- No 50-user load test was run.
-- The deployed model has no recorded training commit (`reports/reproducibility_manifest.json`).
-- The canary gateway, alert and resource-monitoring stacks are optional extra compose files.
-- Serving rollback is a documented procedure only; it was never drilled.
-
+FraudShield is built to run locally, so it has no TLS, authentication or rate limiting, and it should not be exposed to the internet as it is. The deployed model does not have a recorded training commit, which means I cannot trace that exact model back to the code that produced it (details are in reports/reproducibility_manifest.json). The canary gateway, alerting and resource-monitoring stacks are optional extras that run from separate compose files, so they are not part of the default setup. Rolling back the serving model is described in the documentation, but I only practised the registry rollback on a copy and never drilled the live serving rollback. I also did not run a 50-user load test.
 
 ## Screen recording
 
 [Watch the video](https://drive.google.com/file/d/134BDrZ83VMFRfTwv-xqS-FnmFgm4SDHf/view?usp=drive_link)
+(https://drive.google.com/file/d/134BDrZ83VMFRfTwv-xqS-FnmFgm4SDHf/view?usp=drive_link)
